@@ -1,0 +1,19 @@
+files: app|tests
+repos:
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v1.7.7
+    hooks:
+      - id: autoflake
+        args: ["--remove-all-unused-imports",
+               "--remove-unused-variables",
+               "--in-place",
+               "--exclude=__init__.py"]
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
