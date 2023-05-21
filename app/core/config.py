@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     STREAMER_NAME: str
 
     PORT_ORG_ID: str
-
+    GITLAB_URL: str = "https://gitlab.com/"
     KAFKA_CONSUMER_BROKERS: str = "localhost:9092"
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
@@ -39,6 +39,7 @@ class Settings(BaseSettings):
         case_sensitive = True
 
     WEBHOOK_INVOKER_TIMEOUT: int = 5000
+    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5000
 
 
 settings = Settings()
