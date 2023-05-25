@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_AUTO_OFFSET_RESET: str = "earliest"
     KAFKA_CONSUMER_GROUP_ID: str = ""
 
+    PORT_API_URL: str = "https://api.getport.io/v1"
+    PORT_CLIENT_ID: str
+    PORT_CLIENT_SECRET: str
+
     KAFKA_RUNS_TOPIC: str = ""
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
@@ -38,8 +42,10 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-    WEBHOOK_INVOKER_TIMEOUT: int = 5000
-    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5000
+    WEBHOOK_INVOKER_TIMEOUT: int = 5
+    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5
+    GITLAB_PIPELINE_REPORT_TIMEOUT: int = 600
+    GITLAB_PIPELINE_REPORT_INTERVAL: int = 5
 
 
 settings = Settings()

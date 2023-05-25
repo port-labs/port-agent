@@ -19,23 +19,15 @@ class KafkaToWebhookStreamer(BaseKafkaStreamer):
         topic = msg.topic()
         invocation_method = BaseKafkaStreamer.get_invocation_method(msg_value, topic)
 
-        if not invocation_method.pop("agent", False):
+        invocation_method_error = BaseKafkaStreamer.validate_invocation_method(invocation_method)
+        if invocation_method_error != "":
             logger.info(
                 "Skip process message"
-                " from topic %s, partition %d, offset %d: not for agent",
+                " from topic %s, partition %d, offset %d: %s",
                 topic,
                 msg.partition(),
                 msg.offset(),
-            )
-            return
-
-        if invocation_method.pop("type", "") != consts.INVOCATION_TYPE_WEBHOOK:
-            logger.info(
-                "Skip process message"
-                " from topic %s, partition %d, offset %d: not for webhook invoker",
-                topic,
-                msg.partition(),
-                msg.offset(),
+                invocation_method_error
             )
             return
 

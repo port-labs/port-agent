@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class WebhookInvoker(BaseInvoker):
-    def invoke(self, body: dict, destination: dict) -> None:
+    def invoke(self, body: dict, destination: dict):
         logger.info("WebhookInvoker - start - destination: %s", destination)
         res = requests.post(
             destination.get("url", ""),
@@ -22,6 +22,8 @@ class WebhookInvoker(BaseInvoker):
             res.status_code,
         )
         res.raise_for_status()
+
+        return res
 
 
 webhook_invoker = WebhookInvoker()
