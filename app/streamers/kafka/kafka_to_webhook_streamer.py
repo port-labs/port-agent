@@ -18,7 +18,8 @@ class KafkaToWebhookStreamer(BaseKafkaStreamer):
         topic = msg.topic()
         invocation_method = BaseKafkaStreamer.get_invocation_method(msg_value, topic)
 
-        invocation_method_error = BaseKafkaStreamer.validate_invocation_method(invocation_method)
+        invocation_method_error = BaseKafkaStreamer\
+            .validate_invocation_method(invocation_method)
         if invocation_method_error != "":
             logger.info(
                 "Skip process message"

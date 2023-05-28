@@ -19,7 +19,8 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         topic = msg.topic()
         invocation_method = BaseKafkaStreamer.get_invocation_method(msg_value, topic)
 
-        invocation_method_error = BaseKafkaStreamer.validate_invocation_method(invocation_method)
+        invocation_method_error = BaseKafkaStreamer \
+            .validate_invocation_method(invocation_method)
         if invocation_method_error != "":
             logger.info(
                 "Skip process message"
@@ -39,7 +40,8 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         if not gitlab_project or not gitlab_group:
             logger.info(
                 "Skip process message"
-                " from topic %s, partition %d, offset %d: GitLab project path is missing",
+                " from topic %s, partition %d, offset %d:"
+                " GitLab project path is missing",
                 topic,
                 msg.partition(),
                 msg.offset(),
@@ -63,7 +65,8 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         if not trigger_token:
             logger.info(
                 "Skip process message"
-                " from topic %s, partition %d, offset %d: no token env variable found for project %s/%s",
+                " from topic %s, partition %d, offset %d:"
+                " no token env variable found for project %s/%s",
                 topic,
                 msg.partition(),
                 msg.offset(),
@@ -84,7 +87,8 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
             body["port_payload"] = msg_value.copy()
 
         try:
-            gitlab_pipeline_invoker.invoke(body, f'{gitlab_group}%2F{gitlab_project}')
+            gitlab_pipeline_invoker\
+                .invoke(body, f'{gitlab_group}%2F{gitlab_project}')
 
         except Exception as e:
             logger.info(
