@@ -1,10 +1,11 @@
 import json
 import logging
+import os
+
 from confluent_kafka import Message
 from core.config import settings
 from invokers.gitlab_pipeline_invoker import gitlab_pipeline_invoker
 from streamers.kafka.base_kafka_streamer import BaseKafkaStreamer
-import os
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -93,7 +94,8 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         except Exception as e:
             logger.info(
                 "Skip process message"
-                " from topic %s, partition %d, offset %d: Failed to trigger GitLab Pipeline: %s",
+                " from topic %s, partition %d, offset %d:"
+                " Failed to trigger GitLab Pipeline: %s",
                 topic,
                 msg.partition(),
                 msg.offset(),

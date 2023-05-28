@@ -1,6 +1,6 @@
 from streamers.base_streamer import BaseStreamer
-from streamers.kafka.kafka_to_webhook_streamer import KafkaToWebhookStreamer
 from streamers.kafka.kafka_to_gitlab_streamer import KafkaToGitLabStreamer
+from streamers.kafka.kafka_to_webhook_streamer import KafkaToWebhookStreamer
 
 
 class StreamerFactory:

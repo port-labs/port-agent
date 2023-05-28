@@ -7,7 +7,6 @@ from core.config import settings
 from core.consts import consts
 from streamers.base_streamer import BaseStreamer
 
-
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
