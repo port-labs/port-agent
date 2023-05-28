@@ -1,9 +1,7 @@
 import json
 import logging
-
 from confluent_kafka import Message
 from core.config import settings
-from core.consts import consts
 from invokers.gitlab_pipeline_invoker import gitlab_pipeline_invoker
 from streamers.kafka.base_kafka_streamer import BaseKafkaStreamer
 import os
@@ -20,31 +18,37 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         msg_value = json.loads(msg.value().decode())
         topic = msg.topic()
         invocation_method = BaseKafkaStreamer.get_invocation_method(msg_value, topic)
+
+        invocation_method_error = BaseKafkaStreamer.validate_invocation_method(invocation_method)
+        if invocation_method_error != "":
+            logger.info(
+                "Skip process message"
+                " from topic %s, partition %d, offset %d: %s",
+                topic,
+                msg.partition(),
+                msg.offset(),
+                invocation_method_error
+            )
+            return
+
         user_inputs = msg_value.get("payload", {}).get("properties", {})
-        project_id = invocation_method.get("projectId", "")
-        ref = user_inputs.get("ref")
 
-        if invocation_method.pop("type", "") != consts.INVOCATION_TYPE_GITLAB_PIPELINE:
+        gitlab_group = invocation_method.get("groupName", "")
+        gitlab_project = invocation_method.get("projectName", "")
+
+        if not gitlab_project or not gitlab_group:
             logger.info(
                 "Skip process message"
-                " from topic %s, partition %d, offset %d: not for GitLab Pipeline invoker",
+                " from topic %s, partition %d, offset %d: GitLab project path is missing",
                 topic,
                 msg.partition(),
                 msg.offset(),
             )
             return
 
-        if not project_id:
-            logger.info(
-                "Skip process message"
-                " from topic %s, partition %d, offset %d: Project ID wasn't passed to agent",
-                topic,
-                msg.partition(),
-                msg.offset(),
-            )
-            return
+        ref = user_inputs.get("ref", invocation_method.get("defaultRef", ""))
 
-        if not ref:
+        if ref == "":
             logger.info(
                 "Skip process message"
                 " from topic %s, partition %d, offset %d: Ref wasn't passed to agent",
@@ -54,27 +58,44 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
             )
             return
 
-        trigger_token = os.environ.get(project_id, "")
+        trigger_token = os.environ.get(f'{gitlab_group}_{gitlab_project}', "")
 
         if not trigger_token:
             logger.info(
                 "Skip process message"
-                " from topic %s, partition %d, offset %d: no token found for project id %s",
+                " from topic %s, partition %d, offset %d: no token env variable found for project %s/%s",
                 topic,
                 msg.partition(),
                 msg.offset(),
-                project_id
+                gitlab_group,
+                gitlab_project
             )
             return
 
-        payload = {
+        body = {
             'token': trigger_token,
             'ref': ref,
-            **{f"variables[{key}]": value for variable in user_inputs.get("variables", []) for key, value in
-               variable.items()}
         }
 
-        gitlab_pipeline_invoker.invoke(payload, f"{settings.GITLAB_URL}/api/v4/projects/{project_id}/trigger/pipeline")
+        if not invocation_method.get("omitUserInputs"):
+            body.update({'variables': {**user_inputs}})
+
+        if not invocation_method.get("omitPayload"):
+            body["port_payload"] = msg_value.copy()
+
+        try:
+            gitlab_pipeline_invoker.invoke(body, f'{gitlab_group}%2F{gitlab_project}')
+
+        except Exception as e:
+            logger.info(
+                "Skip process message"
+                " from topic %s, partition %d, offset %d: Failed to trigger GitLab Pipeline: %s",
+                topic,
+                msg.partition(),
+                msg.offset(),
+                e,
+            )
+            return
 
         logger.info(
             "Successfully processed message from topic %s, partition %d, offset %d",

@@ -38,8 +38,8 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-    WEBHOOK_INVOKER_TIMEOUT: int = 5000
-    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5000
+    WEBHOOK_INVOKER_TIMEOUT: int = 5
+    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5
 
 
 settings = Settings()
