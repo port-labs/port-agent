@@ -17,7 +17,7 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
         def raise_for_status(self) -> None:
             if 400 <= self.status_code <= 599:
                 raise Exception(
-                    "Webhook Invoker failed with status code: %d" % self.status_code
+                    "Invoker failed with status code: %d" % self.status_code
                 )
 
     def mock_post(*args: Any, **kwargs: Any) -> MockResponse:

@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class KafkaToGitLabStreamer(BaseKafkaStreamer):
-
     @staticmethod
     def msg_process(msg: Message) -> None:
         logger.info("Raw message value: %s", msg.value())

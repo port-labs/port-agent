@@ -51,7 +51,7 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
             ANY,
             0,
             0,
-            "Invoker failed with status code: 500",
+            "Webhook Invoker failed with status code: 500",
         )
 
 

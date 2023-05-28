@@ -23,7 +23,7 @@ class BaseKafkaStreamer(BaseStreamer):
     @staticmethod
     def validate_invocation_method(invocation_method: dict) -> str:
         if not invocation_method.pop("agent", False):
-            return "Invocation is not for agent"
+            return "not for agent"
 
         if invocation_method.pop("type", "") not in consts.INVOCATION_TYPES:
             return "Invocation type not found / not supported"
