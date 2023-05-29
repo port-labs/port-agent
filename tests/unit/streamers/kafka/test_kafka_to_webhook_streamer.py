@@ -15,8 +15,8 @@ from tests.unit.streamers.kafka.conftest import Consumer, terminate_consumer
 @pytest.mark.parametrize(
     "mock_kafka",
     [
-        ("mock_change_log_message", None, settings.KAFKA_CHANGE_LOG_TOPIC),
-        ("mock_run_message", None, settings.KAFKA_RUNS_TOPIC),
+        ("mock_webhook_change_log_message", None, settings.KAFKA_CHANGE_LOG_TOPIC),
+        ("mock_webhook_run_message", None, settings.KAFKA_RUNS_TOPIC),
     ],
     indirect=True,
 )
@@ -34,8 +34,8 @@ def test_single_stream_success(mock_requests: None, mock_kafka: None) -> None:
 @pytest.mark.parametrize(
     "mock_kafka",
     [
-        ("mock_change_log_message", None, settings.KAFKA_CHANGE_LOG_TOPIC),
-        ("mock_run_message", None, settings.KAFKA_RUNS_TOPIC),
+        ("mock_webhook_change_log_message", None, settings.KAFKA_CHANGE_LOG_TOPIC),
+        ("mock_webhook_run_message", None, settings.KAFKA_RUNS_TOPIC),
     ],
     indirect=True,
 )
@@ -51,15 +51,16 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
             ANY,
             0,
             0,
-            "Webhook Invoker failed with status code: 500",
+            "Invoker failed with status code: 500",
         )
 
 
 @pytest.mark.parametrize(
     "mock_kafka",
     [
-        ("mock_change_log_message", {"agent": False}, settings.KAFKA_CHANGE_LOG_TOPIC),
-        ("mock_run_message", {"agent": False}, settings.KAFKA_RUNS_TOPIC),
+        ("mock_webhook_change_log_message", {"agent": False},
+         settings.KAFKA_CHANGE_LOG_TOPIC),
+        ("mock_webhook_run_message", {"agent": False}, settings.KAFKA_RUNS_TOPIC),
     ],
     indirect=True,
 )
@@ -78,10 +79,11 @@ def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
                 call(ANY, ANY),
                 call(
                     "Skip process message"
-                    " from topic %s, partition %d, offset %d: not for agent",
+                    " from topic %s, partition %d, offset %d: %s",
                     ANY,
                     0,
                     0,
+                    "not for agent"
                 ),
             ]
         )
@@ -91,12 +93,12 @@ def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
     "mock_kafka",
     [
         (
-            "mock_change_log_message",
+            "mock_webhook_change_log_message",
             {"agent": True, "type": "NOT_WEBHOOK"},
             settings.KAFKA_CHANGE_LOG_TOPIC,
         ),
         (
-            "mock_run_message",
+            "mock_webhook_run_message",
             {"agent": True, "type": "NOT_WEBHOOK"},
             settings.KAFKA_RUNS_TOPIC,
         ),
@@ -118,10 +120,11 @@ def test_single_stream_skipped_due_to_not_webhook_invoker(mock_kafka: None) -> N
                 call(ANY, ANY),
                 call(
                     "Skip process message"
-                    " from topic %s, partition %d, offset %d: not for webhook invoker",
+                    " from topic %s, partition %d, offset %d: %s",
                     ANY,
                     0,
                     0,
+                    "Invocation type not found / not supported"
                 ),
             ]
         )

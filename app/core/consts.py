@@ -1,5 +1,5 @@
 class Consts:
-    INVOCATION_TYPE_WEBHOOK = "WEBHOOK"
+    INVOCATION_TYPES = ["WEBHOOK", "GITLAB"]
     KAFKA_CONSUMER_CLIENT_ID = "port-agent"
 
 
