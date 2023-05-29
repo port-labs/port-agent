@@ -48,17 +48,7 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
             )
             return
 
-        ref = user_inputs.get("ref", invocation_method.get("defaultRef", ""))
-
-        if ref == "":
-            logger.info(
-                "Skip process message"
-                " from topic %s, partition %d, offset %d: Ref wasn't passed to agent",
-                topic,
-                msg.partition(),
-                msg.offset(),
-            )
-            return
+        ref = user_inputs.get("ref", invocation_method.get("defaultRef", "main"))
 
         trigger_token = os.environ.get(f'{gitlab_group}_{gitlab_project}', "")
 
