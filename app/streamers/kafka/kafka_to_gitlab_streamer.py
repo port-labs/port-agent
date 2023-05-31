@@ -71,7 +71,7 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         }
 
         if not invocation_method.get("omitUserInputs"):
-            body.update({'variables': {**user_inputs}})
+            body.update({'variables': {key: str(value) for key, value in user_inputs.items()}})
 
         if not invocation_method.get("omitPayload"):
             body["port_payload"] = msg_value.copy()
