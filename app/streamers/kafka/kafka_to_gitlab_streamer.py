@@ -71,6 +71,7 @@ class KafkaToGitLabStreamer(BaseKafkaStreamer):
         }
 
         if not invocation_method.get("omitUserInputs"):
+            # GitLab variables must be strings, to be sent to a GitLab pipeline
             body.update({'variables': {key: str(value) for key, value in user_inputs.items()}})
 
         if not invocation_method.get("omitPayload"):
