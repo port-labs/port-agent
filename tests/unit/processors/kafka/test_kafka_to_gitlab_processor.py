@@ -5,8 +5,8 @@ from unittest.mock import ANY, call
 import pytest
 from consumers.kafka_consumer import logger as consumer_logger
 from core.config import settings
-from streamers.kafka.kafka_streamer import KafkaStreamer
 from processors.kafka.kafka_to_gitlab_processor import logger as gitlab_processor_logger
+from streamers.kafka.kafka_streamer import KafkaStreamer
 
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 

@@ -94,6 +94,7 @@ def mock_kafka(monkeypatch: MonkeyPatch, request: Any) -> None:
     monkeypatch.setattr(Consumer, "commit", mock_commit)
     monkeypatch.setattr(Consumer, "close", mock_close)
 
+
 @pytest.fixture(scope="module")
 def mock_webhook_run_message() -> Callable[[dict], bytes]:
     run_message: dict = {
