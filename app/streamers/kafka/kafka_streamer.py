@@ -41,7 +41,7 @@ class KafkaStreamer(BaseStreamer):
         if not invocation_method.pop("agent", False):
             return "not for agent"
 
-        if invocation_method.get("type", "") not in consts.KAFKA_STREAMERS.keys():
+        if invocation_method.get("type", "") not in consts.KAFKA_INVOCATIONS.keys():
             return "Invocation type not found / not supported"
 
         return ""
