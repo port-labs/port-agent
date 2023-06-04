@@ -60,7 +60,10 @@ def test_single_stream_failed(mock_requests: None,
     [
         (
             "mock_gitlab_run_message",
-            {"type": "GITLAB", "agent": True, "projectName": "project", "groupName": ""},
+            {"type": "GITLAB",
+             "agent": True,
+             "projectName": "project",
+             "groupName": ""},
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
@@ -97,7 +100,10 @@ def test_single_stream_skipped_due_to_missing_group_name(
     [
         (
             "mock_gitlab_run_message",
-            {"type": "GITLAB", "agent": True, "groupName": "group", "projectName": ""},
+            {"type": "GITLAB",
+             "agent": True,
+             "groupName": "group",
+             "projectName": ""},
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
