@@ -1,5 +1,5 @@
+import json
 import logging
-from abc import abstractmethod
 
 from confluent_kafka import Consumer, Message
 from consumers.kafka_consumer import KafkaConsumer
@@ -11,21 +11,37 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-class BaseKafkaStreamer(BaseStreamer):
+class KafkaStreamer(BaseStreamer):
     def __init__(self, consumer: Consumer = None) -> None:
         self.kafka_consumer = KafkaConsumer(self.msg_process, consumer)
 
-    @staticmethod
-    @abstractmethod
-    def msg_process(msg: Message) -> None:
-        pass
+    def msg_process(self, msg: Message) -> None:
+        logger.info("Raw message value: %s", msg.value())
+        msg_value = json.loads(msg.value().decode())
+        topic = msg.topic()
+        invocation_method = self.get_invocation_method(msg_value, topic)
+
+        invocation_method_error = self.validate_invocation_method(invocation_method)
+        if invocation_method_error != "":
+            logger.info(
+                "Skip process message"
+                " from topic %s, partition %d, offset %d: %s",
+                topic,
+                msg.partition(),
+                msg.offset(),
+                invocation_method_error
+            )
+            return
+
+        specific_kafka_streamer = consts.KAFKA_STREAMERS[invocation_method.get("type")]
+        specific_kafka_streamer.msg_process(msg, invocation_method, topic)
 
     @staticmethod
     def validate_invocation_method(invocation_method: dict) -> str:
         if not invocation_method.pop("agent", False):
             return "not for agent"
 
-        if invocation_method.pop("type", "") not in consts.INVOCATION_TYPES:
+        if invocation_method.get("type", "") not in consts.KAFKA_STREAMERS.keys():
             return "Invocation type not found / not supported"
 
         return ""

@@ -13,11 +13,12 @@ from confluent_kafka import Consumer as _Consumer
 def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
     class MockResponse:
         status_code = request.param.get("status_code")
+        text = "Invoker failed with status code: %d" % status_code
 
         def raise_for_status(self) -> None:
             if 400 <= self.status_code <= 599:
                 raise Exception(
-                    "Invoker failed with status code: %d" % self.status_code
+                    self.text
                 )
 
     def mock_post(*args: Any, **kwargs: Any) -> MockResponse:
