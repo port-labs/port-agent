@@ -33,8 +33,8 @@ class KafkaStreamer(BaseStreamer):
             )
             return
 
-        specific_kafka_streamer = consts.KAFKA_STREAMERS[invocation_method.get("type")]
-        specific_kafka_streamer.msg_process(msg, invocation_method, topic)
+        kafka_processor = consts.KAFKA_INVOCATIONS[invocation_method.get("type")]
+        kafka_processor.msg_process(msg, invocation_method, topic)
 
     @staticmethod
     def validate_invocation_method(invocation_method: dict) -> str:
