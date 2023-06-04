@@ -25,7 +25,9 @@ class GitLabPipelineInvoker(BaseInvoker):
             project_path,
             res.status_code,
         )
-        res.raise_for_status()
+
+        if res.status_code >= 400:
+            raise Exception(res.text)
 
 
 gitlab_pipeline_invoker = GitLabPipelineInvoker()
