@@ -60,7 +60,7 @@ def test_single_stream_failed(mock_requests: None,
     [
         (
             "mock_gitlab_run_message",
-            {"type": "GITLAB", "agent": True, "projectName":"project", "groupName": ""},
+            {"type": "GITLAB", "agent": True, "projectName": "project", "groupName": ""},
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
