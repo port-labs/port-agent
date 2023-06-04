@@ -10,7 +10,7 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-class KafkaToGitLabStreamer:
+class KafkaToGitLabProcessor:
     @staticmethod
     def msg_process(msg: Message, invocation_method: dict, topic: str) -> None:
         logger.info("Raw message value: %s", msg.value())

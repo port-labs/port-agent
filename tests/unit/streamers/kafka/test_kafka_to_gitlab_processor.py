@@ -6,7 +6,7 @@ import pytest
 from consumers.kafka_consumer import logger as consumer_logger
 from core.config import settings
 from streamers.kafka.kafka_streamer import KafkaStreamer
-from streamers.kafka.kafka_to_gitlab_streamer import logger as gitlab_streamer_logger
+from streamers.kafka.kafka_to_gitlab_processor import logger as gitlab_processor_logger
 
 from tests.unit.streamers.kafka.conftest import Consumer, terminate_consumer
 
@@ -74,7 +74,7 @@ def test_single_stream_skipped_due_to_missing_group_name(
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        gitlab_streamer_logger, "info"
+        gitlab_processor_logger, "info"
     ) as mock_info:
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
@@ -114,7 +114,7 @@ def test_single_stream_skipped_due_to_missing_project_name(
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        gitlab_streamer_logger, "info"
+        gitlab_processor_logger, "info"
     ) as mock_info:
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
@@ -154,7 +154,7 @@ def test_single_stream_skipped_due_to_wrong_token(
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        gitlab_streamer_logger, "info"
+        gitlab_processor_logger, "info"
     ) as mock_info:
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
