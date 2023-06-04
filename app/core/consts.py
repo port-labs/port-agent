@@ -1,5 +1,5 @@
-from streamers.kafka.kafka_to_gitlab_processor import KafkaToGitLabProcessor
-from streamers.kafka.kafka_to_webhook_processor import KafkaToWebhookProcessor
+from processors.kafka.kafka_to_gitlab_processor import KafkaToGitLabProcessor
+from processors.kafka.kafka_to_webhook_processor import KafkaToWebhookProcessor
 
 
 class Consts:

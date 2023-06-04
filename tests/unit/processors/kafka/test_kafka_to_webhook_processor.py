@@ -7,7 +7,7 @@ from consumers.kafka_consumer import logger as consumer_logger
 from core.config import settings
 from streamers.kafka.kafka_streamer import KafkaStreamer
 
-from tests.unit.streamers.kafka.conftest import Consumer, terminate_consumer
+from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 
 
 @pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
