@@ -15,14 +15,18 @@ class KafkaToWebhookProcessor:
         logger.info("Raw message value: %s", msg.value())
         msg_value = json.loads(msg.value().decode())
 
-        if invocation_method.get("method", "") not in ['POST', 'PUT', 'DELETE', 'PATCH']:
+        if invocation_method.get("method", "POST") not in [
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+        ]:
             logger.info(
-                "Skip process message"
-                " from topic %s, partition %d, offset %d: %s",
+                "Skip process message" " from topic %s, partition %d, offset %d: %s",
                 topic,
                 msg.partition(),
                 msg.offset(),
-                "HTTP method wasn't provided / not supported"
+                "HTTP method not supported",
             )
             return
 

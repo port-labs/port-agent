@@ -1,10 +1,13 @@
 from threading import Timer
 from unittest import mock
-from unittest.mock import ANY
+from unittest.mock import ANY, call
 
 import pytest
 from consumers.kafka_consumer import logger as consumer_logger
 from core.config import settings
+from processors.kafka.kafka_to_webhook_processor import (
+    logger as webhook_processor_logger,
+)
 from streamers.kafka.kafka_streamer import KafkaStreamer
 
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
@@ -53,3 +56,45 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
             "Invoker failed with status code: 500",
         )
 
+
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        (
+            "mock_gitlab_run_message",
+            {
+                "type": "WEBHOOK",
+                "agent": True,
+                "url": "https://example.com",
+                "method": "GET",
+            },
+            settings.KAFKA_RUNS_TOPIC,
+        ),
+    ],
+    indirect=True,
+)
+def test_single_stream_skipped_due_to_not_supported_http_method(
+    mock_kafka: None, mock_gitlab_token: None
+) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
+        webhook_processor_logger, "info"
+    ) as mock_info:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_not_called()
+        mock_info.assert_has_calls(
+            [
+                call(ANY, ANY),
+                call(
+                    "Skip process message"
+                    " from topic %s, partition %d, offset %d: %s",
+                    ANY,
+                    0,
+                    0,
+                    "HTTP method not supported",
+                ),
+            ]
+        )

@@ -17,14 +17,12 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
 
         def raise_for_status(self) -> None:
             if 400 <= self.status_code <= 599:
-                raise Exception(
-                    self.text
-                )
+                raise Exception(self.text)
 
     def mock_post(*args: Any, **kwargs: Any) -> MockResponse:
         return MockResponse()
 
-    monkeypatch.setattr(requests, "post", mock_post)
+    monkeypatch.setattr(requests, "request", mock_post)
 
 
 def terminate_consumer() -> None:
@@ -132,7 +130,7 @@ def mock_webhook_change_log_message() -> Callable[[dict], bytes]:
         "changelogDestination": {
             "type": "WEBHOOK",
             "agent": True,
-            "url": "http://localhost:80/api/test"
+            "url": "http://localhost:80/api/test",
         },
     }
 
@@ -178,7 +176,6 @@ def mock_webhook_run_message() -> Callable[[dict], bytes]:
                     "type": "WEBHOOK",
                     "agent": True,
                     "url": "http://localhost:80/api/test",
-                    "method": "POST"
                 },
                 "trigger": "CREATE",
                 "description": "",
@@ -235,7 +232,7 @@ def mock_gitlab_run_message() -> Callable[[dict], bytes]:
                     "agent": True,
                     "defaultRef": "main",
                     "projectName": "project",
-                    "groupName": "group"
+                    "groupName": "group",
                 },
                 "trigger": "CREATE",
                 "description": "",
