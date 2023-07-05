@@ -132,7 +132,7 @@ def mock_webhook_change_log_message() -> Callable[[dict], bytes]:
         "changelogDestination": {
             "type": "WEBHOOK",
             "agent": True,
-            "url": "http://localhost:80/api/test",
+            "url": "http://localhost:80/api/test"
         },
     }
 
@@ -178,6 +178,7 @@ def mock_webhook_run_message() -> Callable[[dict], bytes]:
                     "type": "WEBHOOK",
                     "agent": True,
                     "url": "http://localhost:80/api/test",
+                    "method": "POST"
                 },
                 "trigger": "CREATE",
                 "description": "",
