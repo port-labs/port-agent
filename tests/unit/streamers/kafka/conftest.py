@@ -143,6 +143,7 @@ def mock_webhook_run_message() -> Callable[[dict], bytes]:
     def get_run_message(invocation_method: dict) -> bytes:
         if invocation_method is not None:
             run_message["payload"]["action"]["invocationMethod"] = invocation_method
+
         return json.dumps(run_message).encode()
 
     return get_run_message

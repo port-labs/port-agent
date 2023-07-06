@@ -61,7 +61,7 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
     "mock_kafka",
     [
         (
-            "mock_gitlab_run_message",
+            "mock_webhook_run_message",
             {
                 "type": "WEBHOOK",
                 "agent": True,
@@ -74,7 +74,7 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
     indirect=True,
 )
 def test_single_stream_skipped_due_to_not_supported_http_method(
-    mock_kafka: None, mock_gitlab_token: None
+    mock_kafka: None
 ) -> None:
     Timer(0.01, terminate_consumer).start()
 
@@ -104,7 +104,7 @@ def test_single_stream_skipped_due_to_not_supported_http_method(
     "mock_kafka",
     [
         (
-            "mock_gitlab_run_message",
+            "mock_webhook_run_message",
             {
                 "type": "WEBHOOK",
                 "agent": True,
@@ -116,7 +116,7 @@ def test_single_stream_skipped_due_to_not_supported_http_method(
     indirect=True,
 )
 def test_single_stream_skipped_due_to_not_url_not_provided(
-    mock_kafka: None, mock_gitlab_token: None
+    mock_kafka: None
 ) -> None:
     Timer(0.01, terminate_consumer).start()
 
@@ -137,6 +137,52 @@ def test_single_stream_skipped_due_to_not_url_not_provided(
                     0,
                     0,
                     "Webhook URL wasn't provided",
+                ),
+            ]
+        )
+
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        (
+            "mock_synchronized_webhook_run_message",
+            {
+                "invocationMethod": {
+                    "type": "WEBHOOK",
+                    "agent": True,
+                    "synchronized": True,
+                    "method": "POST",
+                    "url": "https://example.com",
+                },
+                "runId": ""
+            },
+            settings.KAFKA_RUNS_TOPIC,
+        ),
+    ],
+indirect=True,
+)
+def test_single_stream_skipped_due_to_no_run_id_in_synchronized(
+    mock_kafka: None
+    ) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
+        webhook_processor_logger, "info"
+    ) as mock_info:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_not_called()
+        mock_info.assert_has_calls(
+            [
+                call(ANY, ANY),
+                call(
+                    "Skip process message"
+                    " from topic %s, partition %d, offset %d: %s",
+                    ANY,
+                    0,
+                    0,
+                    "Run id was not provided for synchronized webhook invocation",
                 ),
             ]
         )

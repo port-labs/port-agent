@@ -253,6 +253,68 @@ def mock_gitlab_run_message() -> Callable[[dict], bytes]:
 
     return get_gitlab_run_message
 
+@pytest.fixture(scope="module")
+def mock_synchronized_webhook_run_message() -> Callable[[dict], bytes]:
+    run_message: dict = {
+        "action": "Create",
+        "resourceType": "run",
+        "status": "TRIGGERED",
+        "trigger": {
+            "by": {"orgId": "test_org", "userId": "test_user"},
+            "origin": "UI",
+            "at": "2022-11-16T16:31:32.447Z",
+        },
+        "context": {
+            "entity": None,
+            "blueprint": "Service",
+            "runId": "r_jE5FhDURh4Uen2Qr",
+        },
+        "payload": {
+            "entity": None,
+            "action": {
+                "id": "action_34aweFQtayw7SCVb",
+                "identifier": "Create",
+                "title": "Create",
+                "icon": "DefaultBlueprint",
+                "userInputs": {
+                    "properties": {
+                        "foo": {"type": "string", "description": "Description"},
+                        "bar": {"type": "number", "description": "Description"},
+                    },
+                    "required": [],
+                },
+                "invocationMethod": {
+                    "type": "WEBHOOK",
+                    "agent": True,
+                    "url": "http://localhost:80/api/test",
+                    "method": "POST",
+                    "synchronized": True
+                },
+                "trigger": "CREATE",
+                "description": "",
+                "blueprint": "Service",
+                "createdAt": "2022-11-15T09:58:52.863Z",
+                "createdBy": "test_user",
+                "updatedAt": "2022-11-15T09:58:52.863Z",
+                "updatedBy": "test_user",
+            },
+            "properties": {},
+        },
+    }
+
+    def get_run_message(message: dict) -> bytes:
+        invocation_method = message.get("invocationMethod")
+        run_id = message.get("runId")
+
+        if invocation_method is not None:
+            run_message["payload"]["action"]["invocationMethod"] = invocation_method
+        if run_id is not None:
+            run_message["context"]["runId"] = run_id
+
+        return json.dumps(run_message).encode()
+
+    return get_run_message
+
 
 @pytest.fixture
 def mock_gitlab_token(monkeypatch: MonkeyPatch) -> None:

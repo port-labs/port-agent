@@ -40,6 +40,16 @@ class KafkaToWebhookProcessor:
             )
             return
 
+        if invocation_method.get("synchronized", "") and not msg_value.get("context", {}).get("runId", ""):
+            logger.info(
+                "Skip process message" " from topic %s, partition %d, offset %d: %s",
+                topic,
+                msg.partition(),
+                msg.offset(),
+                "Run id was not provided for synchronized webhook invocation",
+            )
+            return
+
         webhook_invoker.invoke(msg_value, invocation_method)
         logger.info(
             "Successfully processed message from topic %s, partition %d, offset %d",
