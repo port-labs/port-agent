@@ -14,7 +14,7 @@ class WebhookInvoker(BaseInvoker):
         logger.info("WebhookInvoker - start - destination: %s", destination)
         synchronized = destination.get("synchronized", False)
         method = destination.get("method", "POST")
-        url = destination.get("url")
+        url = destination.get("url", "")
         run_id = body.get("context", {}).get("runId", "")
 
         if synchronized and run_id:

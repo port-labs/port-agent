@@ -99,6 +99,7 @@ def test_single_stream_skipped_due_to_not_supported_http_method(
             ]
         )
 
+
 @pytest.mark.parametrize(
     "mock_kafka",
     [

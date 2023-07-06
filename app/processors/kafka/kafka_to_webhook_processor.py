@@ -25,7 +25,6 @@ class KafkaToWebhookProcessor:
             )
             return
 
-
         if invocation_method.get("method", "POST") not in [
             "POST",
             "PUT",
