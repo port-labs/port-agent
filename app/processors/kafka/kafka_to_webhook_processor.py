@@ -40,7 +40,8 @@ class KafkaToWebhookProcessor:
             )
             return
 
-        if invocation_method.get("synchronized", "") and not msg_value.get("context", {}).get("runId", ""):
+        if invocation_method.get("synchronized", "") and\
+                not msg_value.get("context", {}).get("runId", ""):
             logger.info(
                 "Skip process message" " from topic %s, partition %d, offset %d: %s",
                 topic,

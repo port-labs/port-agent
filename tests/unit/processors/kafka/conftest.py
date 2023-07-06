@@ -253,6 +253,7 @@ def mock_gitlab_run_message() -> Callable[[dict], bytes]:
 
     return get_gitlab_run_message
 
+
 @pytest.fixture(scope="module")
 def mock_synchronized_webhook_run_message() -> Callable[[dict], bytes]:
     run_message: dict = {

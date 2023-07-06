@@ -141,6 +141,7 @@ def test_single_stream_skipped_due_to_not_url_not_provided(
             ]
         )
 
+
 @pytest.mark.parametrize(
     "mock_kafka",
     [
@@ -159,11 +160,11 @@ def test_single_stream_skipped_due_to_not_url_not_provided(
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
-indirect=True,
+    indirect=True,
 )
 def test_single_stream_skipped_due_to_no_run_id_in_synchronized(
     mock_kafka: None
-    ) -> None:
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
