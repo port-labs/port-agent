@@ -14,10 +14,10 @@ class WebhookInvoker(BaseInvoker):
         logger.info("WebhookInvoker - start - destination: %s", destination)
         synchronized = destination.get("synchronized", False)
         method = destination.get("method", "POST")
-        url = destination.get("url", "")
+        url = destination.get("url")
+        run_id = body.get("context", {}).get("runId", "")
 
-        if synchronized:
-            run_id = body.get("context", {}).get("runId", "")
+        if synchronized and run_id:
             port_client.send_run_log(
                 run_id, f"Initiating action. Sending a POST request to - {url}"
             )

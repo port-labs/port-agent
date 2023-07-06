@@ -15,6 +15,17 @@ class KafkaToWebhookProcessor:
         logger.info("Raw message value: %s", msg.value())
         msg_value = json.loads(msg.value().decode())
 
+        if invocation_method.get("url", "") == "":
+            logger.info(
+                "Skip process message" " from topic %s, partition %d, offset %d: %s",
+                topic,
+                msg.partition(),
+                msg.offset(),
+                "Webhook URL wasn't provided",
+            )
+            return
+
+
         if invocation_method.get("method", "POST") not in [
             "POST",
             "PUT",

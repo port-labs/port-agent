@@ -72,9 +72,13 @@ def send_run_log(run_id: str, message: str) -> None:
     body = {"message": message}
 
     # create run log
-    requests.post(
+    res = requests.post(
         f"{settings.PORT_API_URL}/actions/runs/{run_id}/logs",
         json=body,
         headers=headers,
     )
-    logger.info("Successfully created run log")
+
+    logger.info(
+        f"Send action run logs - status: {res.status_code}, "
+        f"body: {json.dumps(res.json())}"
+    )

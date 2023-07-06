@@ -98,3 +98,44 @@ def test_single_stream_skipped_due_to_not_supported_http_method(
                 ),
             ]
         )
+
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        (
+            "mock_gitlab_run_message",
+            {
+                "type": "WEBHOOK",
+                "agent": True,
+                "method": "GET",
+            },
+            settings.KAFKA_RUNS_TOPIC,
+        ),
+    ],
+    indirect=True,
+)
+def test_single_stream_skipped_due_to_not_url_not_provided(
+    mock_kafka: None, mock_gitlab_token: None
+) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
+        webhook_processor_logger, "info"
+    ) as mock_info:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_not_called()
+        mock_info.assert_has_calls(
+            [
+                call(ANY, ANY),
+                call(
+                    "Skip process message"
+                    " from topic %s, partition %d, offset %d: %s",
+                    ANY,
+                    0,
+                    0,
+                    "Webhook URL wasn't provided",
+                ),
+            ]
+        )
