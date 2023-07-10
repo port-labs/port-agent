@@ -3,13 +3,14 @@ import logging
 from typing import Literal, Union
 
 import requests
+from typing import Dict
 from core.config import settings
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-def get_port_api_token() -> str:
+def get_port_api_headers() -> Dict[str, str]:
     """
     Get a Port API access token
     This function uses CLIENT_ID and CLIENT_SECRET from config
@@ -24,7 +25,8 @@ def get_port_api_token() -> str:
         f"{settings.PORT_API_URL}/auth/access_token", json=credentials
     )
 
-    return token_response.json()["accessToken"]
+    return {"Authorization": f"Bearer {token_response.json()['accessToken']}",
+            "User-Agent": "port-agent"}
 
 
 def update_action_status(
@@ -34,8 +36,7 @@ def update_action_status(
     Reports to Port on the status of an action run
     """
 
-    token = get_port_api_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = get_port_api_headers()
     body = {"summary": summary, "status": status}
 
     logger.info(f"update action with: {json.dumps(body)}")
@@ -49,8 +50,7 @@ def update_action_status(
 
 
 def update_run_response(run_id: str, response: Union[str, dict]) -> None:
-    token = get_port_api_token()
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = get_port_api_headers()
     body = {"response": response}
 
     logger.info(f"update run response with: {response}")
@@ -66,12 +66,11 @@ def update_run_response(run_id: str, response: Union[str, dict]) -> None:
 
 
 def send_run_log(run_id: str, message: str) -> None:
-    token = get_port_api_token()
+    headers = get_port_api_headers()
 
-    headers = {"Authorization": f"Bearer {token}"}
     body = {"message": message}
 
-    # create run log
+    # Create run log
     res = requests.post(
         f"{settings.PORT_API_URL}/actions/runs/{run_id}/logs",
         json=body,
