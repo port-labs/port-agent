@@ -37,9 +37,9 @@ def test_single_stream_success(mock_requests: None, mock_kafka: None) -> None:
     ],
     indirect=True,
 )
-def test_single_stream_failed(mock_requests: None,
-                              mock_kafka: None,
-                              mock_gitlab_token: None) -> None:
+def test_single_stream_failed(
+    mock_requests: None, mock_kafka: None, mock_gitlab_token: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -60,17 +60,20 @@ def test_single_stream_failed(mock_requests: None,
     [
         (
             "mock_gitlab_run_message",
-            {"type": "GITLAB",
-             "agent": True,
-             "projectName": "project",
-             "groupName": ""},
+            {
+                "type": "GITLAB",
+                "agent": True,
+                "projectName": "project",
+                "groupName": "",
+            },
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
     indirect=True,
 )
 def test_single_stream_skipped_due_to_missing_group_name(
-        mock_kafka: None, mock_gitlab_token: None) -> None:
+    mock_kafka: None, mock_gitlab_token: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
@@ -89,7 +92,7 @@ def test_single_stream_skipped_due_to_missing_group_name(
                     ANY,
                     0,
                     0,
-                    "GitLab project path is missing"
+                    "GitLab project path is missing",
                 ),
             ]
         )
@@ -100,17 +103,20 @@ def test_single_stream_skipped_due_to_missing_group_name(
     [
         (
             "mock_gitlab_run_message",
-            {"type": "GITLAB",
-             "agent": True,
-             "groupName": "group",
-             "projectName": ""},
+            {
+                "type": "GITLAB",
+                "agent": True,
+                "groupName": "group",
+                "projectName": "",
+            },
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
     indirect=True,
 )
 def test_single_stream_skipped_due_to_missing_project_name(
-        mock_kafka: None, mock_gitlab_token: None) -> None:
+    mock_kafka: None, mock_gitlab_token: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
@@ -129,7 +135,7 @@ def test_single_stream_skipped_due_to_missing_project_name(
                     ANY,
                     0,
                     0,
-                    "GitLab project path is missing"
+                    "GitLab project path is missing",
                 ),
             ]
         )
@@ -140,17 +146,20 @@ def test_single_stream_skipped_due_to_missing_project_name(
     [
         (
             "mock_gitlab_run_message",
-            {"type": "GITLAB",
-             "agent": True,
-             "groupName": "notgroup",
-             "projectName": "notproject"},
+            {
+                "type": "GITLAB",
+                "agent": True,
+                "groupName": "notgroup",
+                "projectName": "notproject",
+            },
             settings.KAFKA_RUNS_TOPIC,
         ),
     ],
     indirect=True,
 )
 def test_single_stream_skipped_due_to_wrong_token(
-        mock_kafka: None, mock_gitlab_token: None) -> None:
+    mock_kafka: None, mock_gitlab_token: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
@@ -171,7 +180,7 @@ def test_single_stream_skipped_due_to_wrong_token(
                     0,
                     0,
                     ANY,
-                    ANY
+                    ANY,
                 ),
             ]
         )
