@@ -80,7 +80,7 @@ def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
                     ANY,
                     0,
                     0,
-                    "not for agent"
+                    "not for agent",
                 ),
             ]
         )
@@ -116,7 +116,7 @@ def test_single_stream_skipped_due_to_unsupported_invoker(mock_kafka: None) -> N
                     ANY,
                     0,
                     0,
-                    "Invocation type not found / not supported"
+                    "Invocation type not found / not supported",
                 ),
             ]
         )

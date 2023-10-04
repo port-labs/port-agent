@@ -21,12 +21,11 @@ class KafkaToGitLabProcessor:
 
         if not gitlab_project or not gitlab_group:
             logger.info(
-                "Skip process message"
-                " from topic %s, partition %d, offset %d: %s",
+                "Skip process message" " from topic %s, partition %d, offset %d: %s",
                 topic,
                 msg.partition(),
                 msg.offset(),
-                "GitLab project path is missing"
+                "GitLab project path is missing",
             )
             return
 
@@ -43,7 +42,7 @@ class KafkaToGitLabProcessor:
                 msg.partition(),
                 msg.offset(),
                 gitlab_group,
-                gitlab_project
+                gitlab_project,
             )
             return
 
@@ -54,8 +53,9 @@ class KafkaToGitLabProcessor:
 
         if not invocation_method.get("omitUserInputs"):
             # GitLab variables must be strings, to be sent to a GitLab pipeline
-            body.update({'variables': {key: str(value) for key,
-                                       value in user_inputs.items()}})
+            body.update(
+                {'variables': {key: str(value) for key, value in user_inputs.items()}}
+            )
 
         if not invocation_method.get("omitPayload"):
             body["port_payload"] = msg_value.copy()

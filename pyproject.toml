@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "port-agent"
+version = "0.3.1"
+description = "Execution agent provides you with a secure and convenient way to listen and act on invocations of Self-Service Actions and changes in the software catalog."
+authors = ["@talsabagport @matarpeles"]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{include = "port_agent"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+confluent-kafka = "1.9.2"
+pydantic = "1.10.2"
+requests = "2.28.1"
+
+
+[tool.poetry.group.test.dependencies]
+pytest = "7.2.0"
+pytest-cov = "4.0.0"
+
+
+[tool.poetry.group.lint.dependencies]
+mypy = "0.991"
+types-requests = "2.28.11.5"
+isort = "5.10.1"
+autoflake = "1.7.7"
+black = "22.10.0"
+flake8 = "5.0.4"
+pre-commit = "2.20.0"
+
+[tool.isort]
+profile = "black"
+
+[tool.black]
+skip-string-normalization = true
+line-length = 88
+target-version = ["py310"]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
