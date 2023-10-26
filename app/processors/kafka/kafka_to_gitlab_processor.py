@@ -32,7 +32,7 @@ class KafkaToGitLabProcessor:
 
         ref = user_inputs.get("ref", invocation_method.get("defaultRef", "main"))
 
-        trigger_token = os.environ.get(f'{gitlab_group}_{gitlab_project}', "")
+        trigger_token = os.environ.get(f'{gitlab_group}_{gitlab_project.replace("/", "_")}', "")
 
         if not trigger_token:
             logger.info(
