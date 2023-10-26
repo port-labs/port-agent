@@ -24,12 +24,11 @@ class KafkaStreamer(BaseStreamer):
         invocation_method_error = self.validate_invocation_method(invocation_method)
         if invocation_method_error != "":
             logger.info(
-                "Skip process message"
-                " from topic %s, partition %d, offset %d: %s",
+                "Skip process message" " from topic %s, partition %d, offset %d: %s",
                 topic,
                 msg.partition(),
                 msg.offset(),
-                invocation_method_error
+                invocation_method_error,
             )
             return
 
