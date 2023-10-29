@@ -205,9 +205,7 @@ def test_single_stream_with_subgroup_in_project_name(
 ) -> None:
     Timer(0.01, terminate_consumer).start()
 
-    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        gitlab_processor_logger, "info"
-    ) as mock_info:
+    with mock.patch.object(gitlab_processor_logger, "info") as mock_info:
 
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
@@ -249,9 +247,7 @@ def test_single_stream_with_subgroup_in_project_name_failure(
 ) -> None:
     Timer(0.01, terminate_consumer).start()
 
-    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        gitlab_processor_logger, "info"
-    ) as mock_info:
+    with mock.patch.object(gitlab_processor_logger, "info") as mock_info:
 
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
