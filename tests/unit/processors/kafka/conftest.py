@@ -17,9 +17,7 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
 
         def raise_for_status(self) -> None:
             if 400 <= self.status_code <= 599:
-                raise Exception(
-                    self.text
-                )
+                raise Exception(self.text)
 
     def mock_post(*args: Any, **kwargs: Any) -> MockResponse:
         return MockResponse()
@@ -234,7 +232,7 @@ def mock_gitlab_run_message() -> Callable[[dict], bytes]:
                     "agent": True,
                     "defaultRef": "main",
                     "projectName": "project",
-                    "groupName": "group"
+                    "groupName": "group",
                 },
                 "trigger": "CREATE",
                 "description": "",
@@ -259,3 +257,8 @@ def mock_gitlab_run_message() -> Callable[[dict], bytes]:
 @pytest.fixture
 def mock_gitlab_token(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("group_project", "token")
+
+
+@pytest.fixture
+def mock_gitlab_token_subgroup(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("group_subgroup_sub2_project", "token")
