@@ -62,9 +62,7 @@ class KafkaToGitLabProcessor:
         if not invocation_method.get("omitPayload"):
             body["port_payload"] = msg_value.copy()
 
-        gitlab_pipeline_invoker.invoke(
-            body, f'{gitlab_group}%2F{gitlab_project.replace("/", "%2F")}'
-        )
+        gitlab_pipeline_invoker.invoke(body, f"{gitlab_group}/{gitlab_project}")
 
         logger.info(
             "Successfully processed message from topic %s, partition %d, offset %d",

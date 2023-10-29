@@ -258,6 +258,7 @@ def mock_gitlab_run_message() -> Callable[[dict], bytes]:
 def mock_gitlab_token(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("group_project", "token")
 
+
 @pytest.fixture
 def mock_gitlab_token_subgroup(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("group_subgroup_sub2_project", "token")

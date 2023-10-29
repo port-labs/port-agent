@@ -1,4 +1,5 @@
 import logging
+import urllib.parse
 
 import requests
 from core.config import settings
@@ -13,7 +14,7 @@ class GitLabPipelineInvoker(BaseInvoker):
         logger.info("GitLabPipelineInvoker - start - project: %s", project_path)
 
         res = requests.post(
-            f"{settings.GITLAB_URL}/api/v4/projects/{project_path}/trigger/pipeline",
+            f"{settings.GITLAB_URL}/api/v4/projects/{urllib.parse.quote(project_path, safe='')}/trigger/pipeline",
             json=body,
             timeout=settings.GITLAB_PIPELINE_INVOKER_TIMEOUT,
         )
