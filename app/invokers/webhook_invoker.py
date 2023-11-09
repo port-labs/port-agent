@@ -43,7 +43,7 @@ class WebhookInvoker(BaseInvoker):
                     type(action_mapping.mapping.enabled) != bool
                     and self._jq_exec(action_mapping.mapping.enabled, context) is True
                 )
-                or action_mapping.mapping.enabled
+                or action_mapping.mapping.enabled is True
             ),
             None,
         )

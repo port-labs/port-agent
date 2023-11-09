@@ -79,7 +79,7 @@ def test_single_stream_success_control_the_payload(
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
-    monkeypatch.setattr(settings, "CONTROL_THE_PAYLOAD_CONFIG_PATH", "some value")
+    mocker.patch("pathlib.Path.is_file", side_effect=(True,))
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
         streamer = KafkaStreamer(Consumer())

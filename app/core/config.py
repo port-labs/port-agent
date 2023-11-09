@@ -62,6 +62,6 @@ settings = Settings()
 
 
 def load_control_the_payload_config() -> list[ControlThePayloadConfig] | None:
-    if (mapping_path := settings.CONTROL_THE_PAYLOAD_CONFIG_PATH).exists():
+    if (mapping_path := settings.CONTROL_THE_PAYLOAD_CONFIG_PATH).is_file():
         return parse_file_as(list[ControlThePayloadConfig], mapping_path)
     return None
