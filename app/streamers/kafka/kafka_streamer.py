@@ -5,10 +5,17 @@ from confluent_kafka import Consumer, Message
 from consumers.kafka_consumer import KafkaConsumer
 from core.config import settings
 from core.consts import consts
+from processors.kafka.kafka_to_gitlab_processor import KafkaToGitLabProcessor
+from processors.kafka.kafka_to_webhook_processor import KafkaToWebhookProcessor
 from streamers.base_streamer import BaseStreamer
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
+
+KAFKA_INVOCATIONS = {
+    "WEBHOOK": KafkaToWebhookProcessor,
+    "GITLAB": KafkaToGitLabProcessor,
+}
 
 
 class KafkaStreamer(BaseStreamer):
@@ -32,7 +39,7 @@ class KafkaStreamer(BaseStreamer):
             )
             return
 
-        kafka_processor = consts.KAFKA_INVOCATIONS[invocation_method.get("type")]
+        kafka_processor = KAFKA_INVOCATIONS[invocation_method.get("type")]
         kafka_processor.msg_process(msg, invocation_method, topic)
 
     @staticmethod
@@ -40,7 +47,7 @@ class KafkaStreamer(BaseStreamer):
         if not invocation_method.pop("agent", False):
             return "not for agent"
 
-        if invocation_method.get("type", "") not in consts.KAFKA_INVOCATIONS.keys():
+        if invocation_method.get("type", "") not in KAFKA_INVOCATIONS.keys():
             return "Invocation type not found / not supported"
 
         return ""

@@ -5,18 +5,17 @@ from typing import Any
 import pyjq as jq
 import requests
 from core.config import load_control_the_payload_config, settings
+from core.consts import consts
 from invokers.base_invoker import BaseInvoker
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-DEFAULT_INVOCATION_METHOD = "POST"
-
 
 class WebhookInvoker(BaseInvoker):
     def _jq_exec(self, expression: str, context: dict) -> dict | None:
         try:
-            return jq.compile(expression).first(context)
+            return jq.first(expression, context)
         except Exception as e:
             logger.warning(
                 "WebhookInvoker - jq error - expression: %s, error: %s", expression, e
@@ -30,7 +29,7 @@ class WebhookInvoker(BaseInvoker):
             return self._jq_exec(mapping, body)
 
     def _prepare_payload(
-        self, body: dict, invocation_method: dict
+            self, body: dict, invocation_method: dict
     ) -> tuple[str, str, dict, dict, dict]:
         control_the_payload_config = load_control_the_payload_config() or []
         context = {"body": body, "env": dict(os.environ)}
@@ -40,10 +39,10 @@ class WebhookInvoker(BaseInvoker):
                 action_mapping
                 for action_mapping in control_the_payload_config
                 if (
-                    type(action_mapping.mapping.enabled) != bool
-                    and self._jq_exec(action_mapping.mapping.enabled, context) is True
-                )
-                or action_mapping.mapping.enabled is True
+                           type(action_mapping.mapping.enabled) != bool
+                           and self._jq_exec(action_mapping.mapping.enabled, context) is True
+                   )
+                   or action_mapping.mapping.enabled is True
             ),
             None,
         )
@@ -51,12 +50,12 @@ class WebhookInvoker(BaseInvoker):
         url = invocation_method.get("url", "")
 
         if not action:
-            return DEFAULT_INVOCATION_METHOD, url, body, {}, {}
+            return consts.DEFAULT_HTTP_METHOD, url, body, {}, {}
 
         method = (
             self._apply_jq_on_field(action.mapping.method, context)
             if action.mapping.method
-            else DEFAULT_INVOCATION_METHOD
+            else consts.DEFAULT_HTTP_METHOD
         )
         url = (
             self._apply_jq_on_field(action.mapping.url, context)
