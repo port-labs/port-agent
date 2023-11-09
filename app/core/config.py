@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic import BaseModel, BaseSettings, parse_file_as, validator
@@ -34,7 +35,7 @@ class Settings(BaseSettings):
 
     KAFKA_RUNS_TOPIC: str = ""
 
-    CONTROL_THE_PAYLOAD_CONFIG_PATH: str | None = None
+    CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = './control_the_payload_config.json'
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
@@ -61,10 +62,6 @@ settings = Settings()
 
 
 def load_control_the_payload_config() -> list[ControlThePayloadConfig] | None:
-    control_the_payload_config: None | list[ControlThePayloadConfig] = None
-    if mapping_path := settings.CONTROL_THE_PAYLOAD_CONFIG_PATH:
-        control_the_payload_config = parse_file_as(
-            list[ControlThePayloadConfig], mapping_path
-        )
-
-    return control_the_payload_config
+    if (mapping_path := settings.CONTROL_THE_PAYLOAD_CONFIG_PATH).exists():
+        return parse_file_as(list[ControlThePayloadConfig], mapping_path)
+    return None
