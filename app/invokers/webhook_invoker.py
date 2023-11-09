@@ -29,7 +29,7 @@ class WebhookInvoker(BaseInvoker):
             return self._jq_exec(mapping, body)
 
     def _prepare_payload(
-            self, body: dict, invocation_method: dict
+        self, body: dict, invocation_method: dict
     ) -> tuple[str, str, dict, dict, dict]:
         control_the_payload_config = load_control_the_payload_config() or []
         context = {"body": body, "env": dict(os.environ)}
@@ -39,10 +39,10 @@ class WebhookInvoker(BaseInvoker):
                 action_mapping
                 for action_mapping in control_the_payload_config
                 if (
-                           type(action_mapping.mapping.enabled) != bool
-                           and self._jq_exec(action_mapping.mapping.enabled, context) is True
-                   )
-                   or action_mapping.mapping.enabled is True
+                    type(action_mapping.mapping.enabled) != bool
+                    and self._jq_exec(action_mapping.mapping.enabled, context) is True
+                )
+                or action_mapping.mapping.enabled is True
             ),
             None,
         )

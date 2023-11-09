@@ -4,7 +4,6 @@ import logging
 from confluent_kafka import Consumer, Message
 from consumers.kafka_consumer import KafkaConsumer
 from core.config import settings
-from core.consts import consts
 from processors.kafka.kafka_to_gitlab_processor import KafkaToGitLabProcessor
 from processors.kafka.kafka_to_webhook_processor import KafkaToWebhookProcessor
 from streamers.base_streamer import BaseStreamer

@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     KAFKA_RUNS_TOPIC: str = ""
 
-    CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = './control_the_payload_config.json'
+    CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = "./control_the_payload_config.json"
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
