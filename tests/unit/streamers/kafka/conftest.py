@@ -19,10 +19,14 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
             if 400 <= self.status_code <= 599:
                 raise Exception(self.text)
 
-    def mock_post(*args: Any, **kwargs: Any) -> MockResponse:
+    def mock_request(*args: Any, **kwargs: Any) -> MockResponse:
         return MockResponse()
 
-    monkeypatch.setattr(requests, "post", mock_post)
+    monkeypatch.setattr(requests, "request", mock_request)
+    monkeypatch.setattr(requests, "get", mock_request)
+    monkeypatch.setattr(requests, "post", mock_request)
+    monkeypatch.setattr(requests, "delete", mock_request)
+    monkeypatch.setattr(requests, "put", mock_request)
 
 
 def terminate_consumer() -> None:

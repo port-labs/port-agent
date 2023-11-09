@@ -7,6 +7,9 @@ import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
+from core.config import ControlThePayloadConfig
+from pydantic import parse_obj_as
+from pytest_mock import MockerFixture
 
 
 @pytest.fixture
@@ -19,10 +22,14 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
             if 400 <= self.status_code <= 599:
                 raise Exception(self.text)
 
-    def mock_post(*args: Any, **kwargs: Any) -> MockResponse:
+    def mock_request(*args: Any, **kwargs: Any) -> MockResponse:
         return MockResponse()
 
-    monkeypatch.setattr(requests, "post", mock_post)
+    monkeypatch.setattr(requests, "request", mock_request)
+    monkeypatch.setattr(requests, "get", mock_request)
+    monkeypatch.setattr(requests, "post", mock_request)
+    monkeypatch.setattr(requests, "delete", mock_request)
+    monkeypatch.setattr(requests, "put", mock_request)
 
 
 def terminate_consumer() -> None:
@@ -143,8 +150,8 @@ def mock_webhook_change_log_message() -> Callable[[dict], bytes]:
 
 
 @pytest.fixture(scope="module")
-def mock_webhook_run_message() -> Callable[[dict], bytes]:
-    run_message: dict = {
+def webhook_run_payload() -> dict:
+    return {
         "action": "Create",
         "resourceType": "run",
         "status": "TRIGGERED",
@@ -189,10 +196,15 @@ def mock_webhook_run_message() -> Callable[[dict], bytes]:
         },
     }
 
+
+@pytest.fixture(scope="module")
+def mock_webhook_run_message(webhook_run_payload: dict) -> Callable[[dict], bytes]:
     def get_run_message(invocation_method: dict) -> bytes:
         if invocation_method is not None:
-            run_message["payload"]["action"]["invocationMethod"] = invocation_method
-        return json.dumps(run_message).encode()
+            webhook_run_payload["payload"]["action"][
+                "invocationMethod"
+            ] = invocation_method
+        return json.dumps(webhook_run_payload).encode()
 
     return get_run_message
 
@@ -262,3 +274,36 @@ def mock_gitlab_token(monkeypatch: MonkeyPatch) -> None:
 @pytest.fixture
 def mock_gitlab_token_subgroup(monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setenv("group_subgroup_sub2_project", "token")
+
+
+@pytest.fixture()
+def mock_control_the_payload_config(
+    mocker: MockerFixture, monkeypatch: MonkeyPatch
+) -> list[dict[str, Any]]:
+    mapping = [
+        {
+            "mapping": {
+                "enabled": ".body.payload.non-existing-field",
+                "body": ".body",
+                "headers": {
+                    "MY-HEADER": ".body.payload.status",
+                },
+                "query": {},
+            }
+        },
+        {
+            "mapping": {
+                "enabled": True,
+                "body": ".body",
+                "headers": {
+                    "MY-HEADER": ".body.payload.action.identifier",
+                },
+                "query": {},
+            }
+        },
+    ]
+    control_the_payload_config = parse_obj_as(list[ControlThePayloadConfig], mapping)
+
+    mocker.patch("core.config.parse_file_as", return_value=control_the_payload_config)
+
+    return control_the_payload_config
