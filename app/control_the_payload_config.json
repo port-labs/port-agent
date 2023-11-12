@@ -2,7 +2,7 @@
   {
     "enabled": ".payload.action.invocationMethod.type == \"GITLAB\"",
     "name": "Gitlab",
-    "url": "($ENV.GITLAB_URL // \"https://gitlab.com\") as $baseUrl | (.payload.action.invocationMethod.groupName + .payload.action.invocationMethod.groupName) | @uri as $path | $baseUrl + \"/api/v4/projects/\" + $path + \"/trigger/pipeline\"",
+    "url": "($ENV.GITLAB_URL // \"https://gitlab.com\") as $baseUrl | (.payload.action.invocationMethod.groupName + \"/\" +.payload.action.invocationMethod.projectName) | @uri as $path | $baseUrl + \"/api/v4/projects/\" + $path + \"/trigger/pipeline\"",
     "body": {
       "ref": ".payload.properties.ref // .payload.action.invocationMethod.defaultRef // \"main\"",
       "token": ".payload.action.invocationMethod.groupName as $gitlab_group | .payload.action.invocationMethod.projectName as $gitlab_project | $ENV[($gitlab_group + \"_\" + ($gitlab_project | gsub(\"/\"; \"_\")))]"
