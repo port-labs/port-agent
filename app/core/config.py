@@ -13,17 +13,12 @@ class Mapping(BaseModel):
     query: dict[str, str] | str | None = None
 
 
-class ControlThePayloadConfig(BaseModel):
-    mapping: Mapping
-
-
 class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     STREAMER_NAME: str
 
     PORT_ORG_ID: str
-    GITLAB_URL: str = "https://gitlab.com/"
     KAFKA_CONSUMER_BROKERS: str = "localhost:9092"
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
@@ -35,7 +30,7 @@ class Settings(BaseSettings):
 
     KAFKA_RUNS_TOPIC: str = ""
 
-    CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = "./control_the_payload_config.json"
+    CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
@@ -55,13 +50,10 @@ class Settings(BaseSettings):
         case_sensitive = True
 
     WEBHOOK_INVOKER_TIMEOUT: int = 5
-    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5
 
 
 settings = Settings()
 
-
-def load_control_the_payload_config() -> list[ControlThePayloadConfig] | None:
-    if (mapping_path := settings.CONTROL_THE_PAYLOAD_CONFIG_PATH).is_file():
-        return parse_file_as(list[ControlThePayloadConfig], mapping_path)
-    return None
+control_the_payload_config: list[Mapping] = parse_file_as(
+    list[Mapping], settings.CONTROL_THE_PAYLOAD_CONFIG_PATH
+)

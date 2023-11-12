@@ -1,10 +1,9 @@
 import logging
-import os
 from typing import Any
 
 import pyjq as jq
 import requests
-from core.config import load_control_the_payload_config, settings
+from core.config import control_the_payload_config, settings
 from core.consts import consts
 from invokers.base_invoker import BaseInvoker
 
@@ -22,72 +21,64 @@ class WebhookInvoker(BaseInvoker):
             )
             return None
 
-    def _apply_jq_on_field(self, mapping: dict[str, str] | str, body: dict) -> Any:
+    def _apply_jq_on_field(
+        self, mapping: dict[str, str] | str | None, body: dict, default: Any
+    ) -> Any:
+        if mapping is None:
+            return default
+
         if isinstance(mapping, dict):
             return {key: self._jq_exec(value, body) for key, value in mapping.items()}
         else:
             return self._jq_exec(mapping, body)
 
-    def _prepare_payload(
-        self, body: dict, invocation_method: dict
-    ) -> tuple[str, str, dict, dict, dict]:
-        control_the_payload_config = load_control_the_payload_config() or []
-        context = {"body": body, "env": dict(os.environ)}
+    def _prepare_payload(self, body: dict) -> tuple[str, str | None, dict, dict, dict]:
+        default_payload: tuple[str, None, dict, dict, dict] = (
+            consts.DEFAULT_HTTP_METHOD,
+            None,
+            body,
+            {},
+            {},
+        )
 
         action = next(
             (
                 action_mapping
                 for action_mapping in control_the_payload_config
                 if (
-                    type(action_mapping.mapping.enabled) != bool
-                    and self._jq_exec(action_mapping.mapping.enabled, context) is True
+                    type(action_mapping.enabled) != bool
+                    and self._jq_exec(action_mapping.enabled, body) is True
                 )
-                or action_mapping.mapping.enabled is True
+                or action_mapping.enabled is True
             ),
             None,
         )
 
-        url = invocation_method.get("url", "")
-
         if not action:
-            return consts.DEFAULT_HTTP_METHOD, url, body, {}, {}
+            return default_payload
 
-        method = (
-            self._apply_jq_on_field(action.mapping.method, context)
-            if action.mapping.method
-            else consts.DEFAULT_HTTP_METHOD
-        )
-        url = (
-            self._apply_jq_on_field(action.mapping.url, context)
-            if action.mapping.url
-            else url
-        )
-        compiled_body = (
-            self._apply_jq_on_field(action.mapping.body, context)
-            if action.mapping.body
-            else body
-        )
-        headers = (
-            self._apply_jq_on_field(action.mapping.headers, context)
-            if action.mapping.headers
-            else {}
-        )
-        query = (
-            self._apply_jq_on_field(action.mapping.query, context)
-            if action.mapping.query
-            else {}
-        )
+        method = self._apply_jq_on_field(action.method, body, default_payload[0])
+        url = self._apply_jq_on_field(action.url, body, default_payload[1])
+        compiled_body = self._apply_jq_on_field(action.body, body, default_payload[2])
+        headers = self._apply_jq_on_field(action.headers, body, default_payload[3])
+        query = self._apply_jq_on_field(action.query, body, default_payload[4])
 
         return method, url, compiled_body, headers, query
 
-    def invoke(self, body: dict, destination: dict) -> None:
-        logger.info("WebhookInvoker - start - destination: %s", destination)
-        method, url, compiled_body, headers, query = self._prepare_payload(
-            body, destination
+    def invoke(self, body: dict, invocation_method: dict) -> None:
+        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
+        method, url, compiled_body, headers, query = self._prepare_payload(body)
+        logger.info(
+            "WebhookInvoker - request - method: %s, url: %s, body: %s, headers: %s, query: %s",
+            method,
+            url,
+            compiled_body,
+            headers,
+            query,
         )
         res = requests.request(
             method,
-            url,
+            url or str(invocation_method.get("url", "")),
             json=compiled_body,
             headers=headers,
             params=query,
@@ -95,7 +86,7 @@ class WebhookInvoker(BaseInvoker):
         )
         logger.info(
             "WebhookInvoker - done - destination: %s, status code: %s",
-            destination,
+            invocation_method,
             res.status_code,
         )
         res.raise_for_status()
