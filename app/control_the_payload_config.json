@@ -1,11 +1,35 @@
 [
   {
     "enabled": ".payload.action.invocationMethod.type == \"GITLAB\"",
-    "name": "Gitlab",
     "url": "($ENV.GITLAB_URL // \"https://gitlab.com\") as $baseUrl | (.payload.action.invocationMethod.groupName + \"/\" +.payload.action.invocationMethod.projectName) | @uri as $path | $baseUrl + \"/api/v4/projects/\" + $path + \"/trigger/pipeline\"",
     "body": {
       "ref": ".payload.properties.ref // .payload.action.invocationMethod.defaultRef // \"main\"",
       "token": ".payload.action.invocationMethod.groupName as $gitlab_group | .payload.action.invocationMethod.projectName as $gitlab_project | $ENV[($gitlab_group + \"_\" + ($gitlab_project | gsub(\"/\"; \"_\")))]"
+    }
+  },
+  {
+    "enabled": ".payload.action.invocationMethod.type == \"CIRCLE_CI\"",
+    "url": "($ENV.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | (.payload.action.invocationMethod.username + \"/\" +.payload.action.invocationMethod.projectName) | @uri as $path | $baseUrl + \"/api/v2/project/github/\" + $path + \"/pipeline\"",
+    "headers": {
+      "Circle-Token": "$ENV.CIRCLE_CI_TOKEN"
+    },
+    "body": {
+      "branch": ".payload.properties.branch // .payload.action.invocationMethod.defaultBranch // \"main\""
+    }
+  },
+  {
+    "enabled": ".payload.action.invocationMethod.type == \"TERRAFORM_CLOUD\"",
+    "url": "\"https://app.terraform.io/api/v2/organizations/\" + .payload.action.invocationMethod.organizationName + \"/workspaces/\" + .payload.action.invocationMethod.workspaceName + \"/runs\"",
+    "headers": {
+      "Authorization": "\"Bearer \" + $ENV.TF_TOKEN"
+    },
+    "body": {
+      "data": {
+        "attributes": {
+          "is-destroy": false
+        },
+        "type": "runs"
+      }
     }
   }
 ]
