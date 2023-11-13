@@ -5,7 +5,7 @@ from unittest.mock import ANY
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from consumers.kafka_consumer import logger as consumer_logger
-from core.config import ControlThePayloadConfig, settings
+from core.config import Mapping, settings
 from pytest_mock import MockFixture
 from streamers.kafka.kafka_streamer import KafkaStreamer
 
@@ -69,7 +69,7 @@ def test_single_stream_success_control_the_payload(
     mocker: MockFixture,
     mock_requests: None,
     mock_kafka: None,
-    mock_control_the_payload_config: list[ControlThePayloadConfig],
+    mock_control_the_payload_config: list[Mapping],
     webhook_run_payload: dict,
 ) -> None:
     expected_body = webhook_run_payload

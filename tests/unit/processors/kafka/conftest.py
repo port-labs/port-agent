@@ -7,7 +7,7 @@ import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
-from core.config import ControlThePayloadConfig
+from core.config import Mapping
 from pydantic import parse_obj_as
 from pytest_mock import MockerFixture
 
@@ -41,7 +41,7 @@ class Consumer(_Consumer):
         pass
 
     def subscribe(
-        self, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
+            self, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
     ) -> None:
         pass
 
@@ -74,7 +74,7 @@ def mock_kafka(monkeypatch: MonkeyPatch, request: Any) -> None:
             return request.getfixturevalue(request.param[0])(request.param[1])
 
     def mock_subscribe(
-        self: Any, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
+            self: Any, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
     ) -> None:
         pass
 
@@ -278,31 +278,27 @@ def mock_gitlab_token_subgroup(monkeypatch: MonkeyPatch) -> None:
 
 @pytest.fixture()
 def mock_control_the_payload_config(
-    mocker: MockerFixture, monkeypatch: MonkeyPatch
+        mocker: MockerFixture, monkeypatch: MonkeyPatch
 ) -> list[dict[str, Any]]:
     mapping = [
         {
-            "mapping": {
-                "enabled": ".body.payload.non-existing-field",
-                "body": ".body",
-                "headers": {
-                    "MY-HEADER": ".body.payload.status",
-                },
-                "query": {},
-            }
+            "enabled": ".body.payload.non-existing-field",
+            "body": ".body",
+            "headers": {
+                "MY-HEADER": ".body.payload.status",
+            },
+            "query": {},
         },
         {
-            "mapping": {
-                "enabled": True,
-                "body": ".body",
-                "headers": {
-                    "MY-HEADER": ".body.payload.action.identifier",
-                },
-                "query": {},
-            }
+            "enabled": True,
+            "body": ".body",
+            "headers": {
+                "MY-HEADER": ".body.payload.action.identifier",
+            },
+            "query": {},
         },
     ]
-    control_the_payload_config = parse_obj_as(list[ControlThePayloadConfig], mapping)
+    control_the_payload_config = parse_obj_as(list[Mapping], mapping)
 
     mocker.patch("core.config.parse_file_as", return_value=control_the_payload_config)
 

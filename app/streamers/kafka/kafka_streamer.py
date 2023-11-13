@@ -20,6 +20,16 @@ class KafkaStreamer(BaseStreamer):
         msg_value = json.loads(msg.value().decode())
         topic = msg.topic()
         invocation_method = self.get_invocation_method(msg_value, topic)
+
+        if not invocation_method.pop("agent", False):
+            logger.info(
+                "Skip process message" " from topic %s, partition %d, offset %d: not for agent",
+                topic,
+                msg.partition(),
+                msg.offset()
+            )
+            return
+
         KafkaToWebhookProcessor.msg_process(msg, invocation_method, topic)
 
     @staticmethod
