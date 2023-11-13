@@ -282,18 +282,18 @@ def mock_control_the_payload_config(
 ) -> list[dict[str, Any]]:
     mapping = [
         {
-            "enabled": ".body.payload.non-existing-field",
-            "body": ".body",
+            "enabled": ".payload.non-existing-field",
+            "body": ".",
             "headers": {
-                "MY-HEADER": ".body.payload.status",
+                "MY-HEADER": ".payload.status",
             },
             "query": {},
         },
         {
             "enabled": True,
-            "body": ".body",
+            "body": ".",
             "headers": {
-                "MY-HEADER": ".body.payload.action.identifier",
+                "MY-HEADER": ".payload.action.identifier",
             },
             "query": {},
         },
