@@ -75,7 +75,8 @@ class WebhookInvoker(BaseInvoker):
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         method, url, compiled_body, headers, query = self._prepare_payload(body)
         logger.info(
-            "WebhookInvoker - request - method: %s, url: %s, body: %s, headers: %s, query: %s",
+            "WebhookInvoker - request - "
+            "method: %s, url: %s, body: %s, headers: %s, query: %s",
             method,
             url,
             compiled_body,
