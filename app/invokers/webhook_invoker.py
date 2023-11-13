@@ -5,6 +5,7 @@ import pyjq as jq
 import requests
 from core.config import control_the_payload_config, settings
 from core.consts import consts
+from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
 
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -28,7 +29,12 @@ class WebhookInvoker(BaseInvoker):
             return default
 
         if isinstance(mapping, dict):
-            return {key: self._jq_exec(value, body) for key, value in mapping.items()}
+            flatten_dict = flatten(mapping)
+            parsed_jq = {
+                key: self._jq_exec(value, body) if type(value) == str else value
+                for key, value in flatten_dict.items()
+            }
+            return unflatten(parsed_jq)
         else:
             return self._jq_exec(mapping, body)
 

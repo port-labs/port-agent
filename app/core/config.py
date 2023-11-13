@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, BaseSettings, parse_file_as, validator
 
@@ -8,7 +8,7 @@ class Mapping(BaseModel):
     enabled: bool | str = True
     method: Literal["POST", "GET", "DELETE", "PUT"] | None = None
     url: str | None = None
-    body: dict[str, str] | str | None = None
+    body: dict[str, Any] | str | None = None
     headers: dict[str, str] | str | None = None
     query: dict[str, str] | str | None = None
 

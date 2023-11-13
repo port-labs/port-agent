@@ -19,16 +19,26 @@
   },
   {
     "enabled": ".payload.action.invocationMethod.type == \"TERRAFORM_CLOUD\"",
-    "url": "\"https://app.terraform.io/api/v2/organizations/\" + .payload.action.invocationMethod.organizationName + \"/workspaces/\" + .payload.action.invocationMethod.workspaceName + \"/runs\"",
+    "url": "\"https://app.terraform.io/api/v2/runs/\"",
     "headers": {
-      "Authorization": "\"Bearer \" + $ENV.TF_TOKEN"
+      "Authorization": "\"Bearer \" + $ENV.TF_TOKEN",
+      "Content-Type": "\"application/vnd.api+json\""
     },
     "body": {
       "data": {
         "attributes": {
-          "is-destroy": false
+          "is-destroy": false,
+          "message": "\"Triggered via Port\""
         },
-        "type": "runs"
+        "type": "\"runs\"",
+        "relationships": {
+          "workspace": {
+            "data": {
+              "type": "\"workspaces\"",
+              "id": ".payload.action.invocationMethod.workspaceId"
+            }
+          }
+        }
       }
     }
   }
