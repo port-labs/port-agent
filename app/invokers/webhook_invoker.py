@@ -1,15 +1,25 @@
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 import pyjq as jq
 import requests
-from core.config import get_control_the_payload_config, settings
+from core.config import Mapping, get_control_the_payload_config, settings
 from core.consts import consts
 from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class RequestPayload:
+    method: str
+    url: str
+    body: dict
+    headers: dict
+    query: dict
 
 
 class WebhookInvoker(BaseInvoker):
@@ -23,11 +33,8 @@ class WebhookInvoker(BaseInvoker):
             return None
 
     def _apply_jq_on_field(
-        self, mapping: dict[str, str] | str | None, body: dict, default: Any
+        self, mapping: dict[str, str] | str | None, body: dict
     ) -> Any:
-        if mapping is None:
-            return default
-
         if isinstance(mapping, dict):
             flatten_dict = flatten(mapping)
             parsed_jq = {
@@ -38,16 +45,16 @@ class WebhookInvoker(BaseInvoker):
         else:
             return self._jq_exec(mapping, body)
 
-    def _prepare_payload(self, body: dict) -> tuple[str, str | None, dict, dict, dict]:
-        default_payload: tuple[str, None, dict, dict, dict] = (
+    def _prepare_payload(self, body: dict, invocation_method: dict) -> RequestPayload:
+        request_payload: RequestPayload = RequestPayload(
             consts.DEFAULT_HTTP_METHOD,
-            None,
+            invocation_method.get("url", ""),
             body,
             {},
             {},
         )
 
-        action = next(
+        mapping: Mapping | None = next(
             (
                 action_mapping
                 for action_mapping in get_control_the_payload_config()
@@ -60,35 +67,31 @@ class WebhookInvoker(BaseInvoker):
             None,
         )
 
-        if not action:
-            return default_payload
+        if not mapping:
+            return request_payload
 
-        method = self._apply_jq_on_field(action.method, body, default_payload[0])
-        url = self._apply_jq_on_field(action.url, body, default_payload[1])
-        compiled_body = self._apply_jq_on_field(action.body, body, default_payload[2])
-        headers = self._apply_jq_on_field(action.headers, body, default_payload[3])
-        query = self._apply_jq_on_field(action.query, body, default_payload[4])
+        raw_mapping: dict = mapping.dict(exclude_none=True)
+        raw_mapping.pop("enabled")
+        for key, value in raw_mapping.items():
+            result = self._apply_jq_on_field(value, body)
+            setattr(request_payload, key, result)
 
-        return method, url, compiled_body, headers, query
+        return request_payload
 
     def invoke(self, body: dict, invocation_method: dict) -> None:
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
-        method, url, compiled_body, headers, query = self._prepare_payload(body)
+        request_payload = self._prepare_payload(body, invocation_method)
         logger.info(
-            "WebhookInvoker - request - "
-            "method: %s, url: %s, body: %s, headers: %s, query: %s",
-            method,
-            url,
-            compiled_body,
-            headers,
-            query,
+            "WebhookInvoker - request - " "method: %s, url: %s",
+            request_payload.method,
+            request_payload.url,
         )
         res = requests.request(
-            method,
-            url or str(invocation_method.get("url", "")),
-            json=compiled_body,
-            headers=headers,
-            params=query,
+            request_payload.method,
+            request_payload.url,
+            json=request_payload.body,
+            headers=request_payload.headers,
+            params=request_payload.query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
         )
         logger.info(
