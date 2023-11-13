@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-    WEBHOOK_INVOKER_TIMEOUT: int = 5
+    WEBHOOK_INVOKER_TIMEOUT: int = 30
 
 
 settings = Settings()

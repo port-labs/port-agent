@@ -9,7 +9,7 @@
   },
   {
     "enabled": ".payload.action.invocationMethod.type == \"CIRCLE_CI\"",
-    "url": "($ENV.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | (.payload.action.invocationMethod.username + \"/\" +.payload.action.invocationMethod.projectName) | @uri as $path | $baseUrl + \"/api/v2/project/github/\" + $path + \"/pipeline\"",
+    "url": "($ENV.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | .payload.action.invocationMethod.projectSlug | @uri as $path | $baseUrl + \"/api/v2/project/\" + $path + \"/pipeline\"",
     "headers": {
       "Circle-Token": "$ENV.CIRCLE_CI_TOKEN"
     },
