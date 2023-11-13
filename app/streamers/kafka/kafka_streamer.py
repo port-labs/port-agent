@@ -23,10 +23,11 @@ class KafkaStreamer(BaseStreamer):
 
         if not invocation_method.pop("agent", False):
             logger.info(
-                "Skip process message" " from topic %s, partition %d, offset %d: not for agent",
+                "Skip process message"
+                " from topic %s, partition %d, offset %d: not for agent",
                 topic,
                 msg.partition(),
-                msg.offset()
+                msg.offset(),
             )
             return
 

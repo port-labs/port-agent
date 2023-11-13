@@ -79,7 +79,7 @@ def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
                     " from topic %s, partition %d, offset %d: not for agent",
                     ANY,
                     0,
-                    0
+                    0,
                 ),
             ]
         )
