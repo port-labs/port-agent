@@ -32,9 +32,7 @@ class WebhookInvoker(BaseInvoker):
             )
             return None
 
-    def _apply_jq_on_field(
-        self, mapping: dict[str, str] | str | None, body: dict
-    ) -> Any:
+    def _apply_jq_on_field(self, mapping: dict[str, str] | str, body: dict) -> Any:
         if isinstance(mapping, dict):
             flatten_dict = flatten(mapping)
             parsed_jq = {
