@@ -8,42 +8,5 @@
       "variables": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({(.key): (.value | tostring)}) | add | if $invocationMethod.omitUserInputs then {} else . end",
       "port_payload": "if .payload.action.invocationMethod.omitPayload then {} else . end"
     }
-  },
-  {
-    "enabled": ".payload.action.invocationMethod.type == \"CIRCLE_CI\"",
-    "url": "($ENV.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | .payload.action.invocationMethod.projectSlug | @uri as $path | $baseUrl + \"/api/v2/project/\" + $path + \"/pipeline\"",
-    "headers": {
-      "Circle-Token": "$ENV.CIRCLE_CI_TOKEN"
-    },
-    "body": {
-      "branch": ".payload.properties.branch // .payload.action.invocationMethod.defaultBranch // \"main\"",
-      "parameters": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({(.key): (.value | tostring)}) | add | if $invocationMethod.omitUserInputs then {} else . end"
-    }
-  },
-  {
-    "enabled": ".payload.action.invocationMethod.type == \"TERRAFORM_CLOUD\"",
-    "url": "\"https://app.terraform.io/api/v2/runs/\"",
-    "headers": {
-      "Authorization": "\"Bearer \" + $ENV.TF_TOKEN",
-      "Content-Type": "\"application/vnd.api+json\""
-    },
-    "body": {
-      "data": {
-        "attributes": {
-          "is-destroy": false,
-          "message": "\"Triggered via Port\"",
-          "variables": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({key: .key, value: .value}) | if $invocationMethod.omitUserInputs then [] else . end"
-        },
-        "type": "\"runs\"",
-        "relationships": {
-          "workspace": {
-            "data": {
-              "type": "\"workspaces\"",
-              "id": ".payload.action.invocationMethod.workspaceId"
-            }
-          }
-        }
-      }
-    }
   }
 ]
