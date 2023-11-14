@@ -9,7 +9,6 @@ from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
 from core.config import Mapping
 from pydantic import parse_obj_as
-from pytest_mock import MockerFixture
 
 
 @pytest.fixture
@@ -277,9 +276,7 @@ def mock_gitlab_token_subgroup(monkeypatch: MonkeyPatch) -> None:
 
 
 @pytest.fixture()
-def mock_control_the_payload_config(
-    mocker: MockerFixture, monkeypatch: MonkeyPatch
-) -> list[dict[str, Any]]:
+def mock_control_the_payload_config(monkeypatch: MonkeyPatch) -> list[dict[str, Any]]:
     mapping = [
         {
             "enabled": ".payload.non-existing-field",
@@ -300,6 +297,9 @@ def mock_control_the_payload_config(
     ]
     control_the_payload_config = parse_obj_as(list[Mapping], mapping)
 
-    mocker.patch("core.config.parse_file_as", return_value=control_the_payload_config)
+    monkeypatch.setattr(
+        "invokers.webhook_invoker.control_the_payload_config",
+        control_the_payload_config,
+    )
 
     return control_the_payload_config

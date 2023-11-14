@@ -54,6 +54,6 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-
-def get_control_the_payload_config() -> list[Mapping]:
-    return parse_file_as(list[Mapping], settings.CONTROL_THE_PAYLOAD_CONFIG_PATH)
+control_the_payload_config = parse_file_as(
+    list[Mapping], settings.CONTROL_THE_PAYLOAD_CONFIG_PATH
+)

@@ -4,7 +4,7 @@ from typing import Any
 
 import pyjq as jq
 import requests
-from core.config import Mapping, get_control_the_payload_config, settings
+from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
 from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
@@ -57,7 +57,7 @@ class WebhookInvoker(BaseInvoker):
         mapping: Mapping | None = next(
             (
                 action_mapping
-                for action_mapping in get_control_the_payload_config()
+                for action_mapping in control_the_payload_config
                 if (
                     type(action_mapping.enabled) != bool
                     and self._jq_exec(action_mapping.enabled, body) is True
