@@ -76,47 +76,10 @@ def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
                 call(ANY, ANY),
                 call(
                     "Skip process message"
-                    " from topic %s, partition %d, offset %d: %s",
+                    " from topic %s, partition %d, offset %d: not for agent",
                     ANY,
                     0,
                     0,
-                    "not for agent",
-                ),
-            ]
-        )
-
-
-@pytest.mark.parametrize(
-    "mock_kafka",
-    [
-        (
-            "mock_webhook_run_message",
-            {"agent": True, "type": "UNSUPPORTED"},
-            settings.KAFKA_RUNS_TOPIC,
-        ),
-    ],
-    indirect=True,
-)
-def test_single_stream_skipped_due_to_unsupported_invoker(mock_kafka: None) -> None:
-    Timer(0.01, terminate_consumer).start()
-
-    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        streamer_logger, "info"
-    ) as mock_info:
-        streamer = KafkaStreamer(Consumer())
-        streamer.stream()
-
-        mock_error.assert_not_called()
-        mock_info.assert_has_calls(
-            [
-                call(ANY, ANY),
-                call(
-                    "Skip process message"
-                    " from topic %s, partition %d, offset %d: %s",
-                    ANY,
-                    0,
-                    0,
-                    "Invocation type not found / not supported",
                 ),
             ]
         )

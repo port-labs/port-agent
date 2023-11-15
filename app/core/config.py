@@ -1,6 +1,16 @@
-from typing import Optional
+from pathlib import Path
+from typing import Any, Literal, Optional
 
-from pydantic import BaseSettings, validator
+from pydantic import BaseModel, BaseSettings, parse_file_as, validator
+
+
+class Mapping(BaseModel):
+    enabled: bool | str = True
+    method: Literal["POST", "GET", "DELETE", "PUT"] | None = None
+    url: str | None = None
+    body: dict[str, Any] | str | None = None
+    headers: dict[str, str] | str | None = None
+    query: dict[str, str] | str | None = None
 
 
 class Settings(BaseSettings):
@@ -9,7 +19,6 @@ class Settings(BaseSettings):
     STREAMER_NAME: str
 
     PORT_ORG_ID: str
-    GITLAB_URL: str = "https://gitlab.com/"
     KAFKA_CONSUMER_BROKERS: str = "localhost:9092"
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
@@ -20,6 +29,8 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_GROUP_ID: str = ""
 
     KAFKA_RUNS_TOPIC: str = ""
+
+    CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
@@ -38,8 +49,11 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-    WEBHOOK_INVOKER_TIMEOUT: int = 5
-    GITLAB_PIPELINE_INVOKER_TIMEOUT: int = 5
+    WEBHOOK_INVOKER_TIMEOUT: int = 30
 
 
 settings = Settings()
+
+control_the_payload_config = parse_file_as(
+    list[Mapping], settings.CONTROL_THE_PAYLOAD_CONFIG_PATH
+)
