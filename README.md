@@ -237,7 +237,7 @@ helm install my-port-agent port-labs/port-agent \
     --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
     --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
     --set env.secret.TF_TOKEN=YOU_TERRAFORM_CLOUD_TOKEN \
-    --set controlThePayloadConfigFile=invocations.json
+    --set-file controlThePayloadConfig=./invocations.json
 ```
 
 
@@ -337,5 +337,5 @@ helm install my-port-agent port-labs/port-agent \
     --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
     --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
     --set env.secret.CIRCLE_CI_TOKEN=YOUR_CIRCLE_CI_PERSONAL_TOKEN \
-    --set controlThePayloadConfigFile=invocations.json
+    --set-file controlThePayloadConfig=./invocations.json
 ```
