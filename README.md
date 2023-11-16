@@ -4,16 +4,16 @@
 
 ## Control the payload of your self-service experiences
 
-Some of the 3rd party application that you may want to integrate with may not accept the raw payload incoming from port
+Some of the 3rd party applications that you may want to integrate with may not accept the raw payload incoming from port
 self-service actions. The port agent allows you to control the payload that is sent to the 3rd party application.
 
-By mounting a control the payload mapping file to the port agent, you can control the request that is sent to your 3rd
-party application.
+You can alter the requests sent to your third-party application by mounting the payload mapping config file with the 
+port-agent container.
 
 ### Control the payload mapping
 
-The payload mapping file is a json file that contains the mapping of the payload that is sent to the port agent to the
-payload that is sent to the 3rd party application.
+The payload mapping file is a JSON file that shows how the information sent to the port agent translated to the
+information sent to the third-party application.
 
 The payload mapping file is mounted to the port agent as a volume. The path to the payload mapping file is set in the
 `CONTROL_THE_PAYLOAD_CONFIG_PATH` environment variable. By default, the port agent will look for the payload mapping
@@ -304,7 +304,7 @@ Create the following blueprint, action and mapping to trigger a CircleCI pipelin
 <summary>Mapping</summary>
 
 ```json
-{
+{`
     "enabled": ".action == \"trigger_circle_ci_pipeline\"",
     "url": "(env.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | .payload.entity.properties.project_slug | @uri as $path | $baseUrl + \"/api/v2/project/\" + $path + \"/pipeline\"",
     "headers": {
