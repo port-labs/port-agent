@@ -1,10 +1,10 @@
 [
   {
     "enabled": ".payload.action.invocationMethod.type == \"GITLAB\"",
-    "url": "($ENV.GITLAB_URL // \"https://gitlab.com\") as $baseUrl | (.payload.action.invocationMethod.groupName + \"/\" +.payload.action.invocationMethod.projectName) | @uri as $path | $baseUrl + \"/api/v4/projects/\" + $path + \"/trigger/pipeline\"",
+    "url": "(env.GITLAB_URL // \"https://gitlab.com/\") as $baseUrl | (.payload.action.invocationMethod.groupName + \"/\" +.payload.action.invocationMethod.projectName) | @uri as $path | $baseUrl + \"api/v4/projects/\" + $path + \"/trigger/pipeline\"",
     "body": {
       "ref": ".payload.properties.ref // .payload.action.invocationMethod.defaultRef // \"main\"",
-      "token": ".payload.action.invocationMethod.groupName as $gitlab_group | .payload.action.invocationMethod.projectName as $gitlab_project | $ENV[($gitlab_group + \"_\" + ($gitlab_project | gsub(\"/\"; \"_\")))]",
+      "token": ".payload.action.invocationMethod.groupName as $gitlab_group | .payload.action.invocationMethod.projectName as $gitlab_project | env[($gitlab_group | gsub(\"/\"; \"_\")) + \"_\" + $gitlab_project]",
       "variables": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({(.key): (.value | tostring)}) | add | if $invocationMethod.omitUserInputs then {} else . end",
       "port_payload": "if .payload.action.invocationMethod.omitPayload then {} else . end"
     }
