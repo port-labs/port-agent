@@ -189,7 +189,7 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
 </details>
 
 <details>
-<summary>Mapping</summary>
+<summary>Mapping - (Should be saved as `invocations.json`)</summary>
 
 ```json
 {
@@ -210,7 +210,7 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
           "workspace": {
             "data": {
               "type": "\"workspaces\"",
-              "id": ".payload.entity.properties.workspaceId"
+              "id": ".payload.entity.properties.workspace_id"
             }
           }
         }
@@ -303,7 +303,7 @@ Create the following blueprint, action and mapping to trigger a CircleCI pipelin
 </details>
 
 <details>
-<summary>Mapping</summary>
+<summary>Mapping - (Should be saved as `invocations.json`)</summary>
 
 ```json
 {
