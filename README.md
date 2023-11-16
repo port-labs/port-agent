@@ -2,38 +2,40 @@
 
 ## [Documentation](https://docs.getport.io/create-self-service-experiences/setup-backend/port-execution-agent/)
 
-## Control the payload of your self-service experiences
+## Control the payload of your self-service actions
 
-Some of the 3rd party applications that you may want to integrate with may not accept the raw payload incoming from port
-self-service actions. The port agent allows you to control the payload that is sent to the 3rd party application.
+Some of the 3rd party applications that you may want to integrate with may not accept the raw payload incoming from Port's
+self-service actions. The Port agent allows you to control the payload that is sent to every 3rd party application.
 
-You can alter the requests sent to your third-party application by mounting the payload mapping config file with the 
-port-agent container.
+You can alter the requests sent to your third-party application by providing a payload mapping config file when deploying the 
+Port-agent container.
 
 ### Control the payload mapping
 
-The payload mapping file is a JSON file that shows how the information sent to the port agent translated to the
-information sent to the third-party application.
+The payload mapping file is a JSON file that specifies how to transform the request sent to the Port agent to the
+request that is sent to the third-party application.
 
-The payload mapping file is mounted to the port agent as a volume. The path to the payload mapping file is set in the
-`CONTROL_THE_PAYLOAD_CONFIG_PATH` environment variable. By default, the port agent will look for the payload mapping
+The payload mapping file is mounted to the Port agent as a volume. The path to the payload mapping file is set in the
+`CONTROL_THE_PAYLOAD_CONFIG_PATH` environment variable. By default, the Port agent will look for the payload mapping
 file
 at `~/control_the_payload_config.json`.
 
 The payload mapping file is a json file that contains a list of mappings. Each mapping contains the request fields that
 will be overridden and sent to the 3rd party application.
 
+You can see examples showing how to deploy the Port agent with different mapping configurations for various common use cases below.
+
 Each of the mapping fields can be constructed by JQ expressions. The JQ expression will be evaluated against the
 original payload that is sent to the port agent from Port and the result will be sent to the 3rd party application.
 
-The mapping file schema is as follows:
+Here is the mapping file schema:
 
 ```
 [ # Can have multiple mappings. Will use the first one it will find with enabled = True (Allows you to apply mapping over multiple actions at once)
   {
       "enabled": bool || JQ,
       "url": JQ, # Optional. default is the incoming url from port
-      "method": JQ, # Optional. default is POST. Should reutnr one of the following string values POST / PUT / DELETE / GET 
+      "method": JQ, # Optional. default is POST. Should return one of the following string values POST / PUT / DELETE / GET 
       "headers": dict[str, JQ], # Optional. default is {}
       "body": ".body", # Optional. default is the whole payload incoming from Port.
       "query": dict[str, JQ] # Optional. default is {}
@@ -218,7 +220,7 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
 ```
 </details>
 
-**Port agent installation**:
+**Port agent installation for Terraform cloud example**:
 
 ```sh
 helm repo add port-labs https://port-labs.github.io/helm-charts
@@ -230,7 +232,7 @@ helm install my-port-agent port-labs/port-agent \
     --set env.normal.PORT_ORG_ID=YOUR_ORG_ID \
     --set env.normal.KAFKA_CONSUMER_GROUP_ID=YOUR_KAFKA_CONSUMER_GROUP \
     --set env.secret.KAFKA_CONSUMER_USERNAME=YOUR_KAFKA_USERNAME \
-    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD
+    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD \
     --set env.normal.KAFKA_CONSUMER_BROKERS=PORT_KAFKA_BROKERS \
     --set env.normal.STREAMER_NAME=KAFKA \
     --set env.normal.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM=SCRAM-SHA-512 \
@@ -318,7 +320,7 @@ Create the following blueprint, action and mapping to trigger a CircleCI pipelin
 ```
 </details>
 
-**Port agent installation**:
+**Port agent installation for CircleCI example**:
 
 ```sh
 helm repo add port-labs https://port-labs.github.io/helm-charts
