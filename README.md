@@ -304,7 +304,7 @@ Create the following blueprint, action and mapping to trigger a CircleCI pipelin
 <summary>Mapping</summary>
 
 ```json
-{`
+{
     "enabled": ".action == \"trigger_circle_ci_pipeline\"",
     "url": "(env.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | .payload.entity.properties.project_slug | @uri as $path | $baseUrl + \"/api/v2/project/\" + $path + \"/pipeline\"",
     "headers": {
