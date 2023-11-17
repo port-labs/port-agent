@@ -192,7 +192,7 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
 <summary>Mapping - (Should be saved as `invocations.json`)</summary>
 
 ```json
-{
+[{
     "enabled": ".action == \"trigger_tf_run\"",
     "headers": {
       "Authorization": "\"Bearer \" + env.TF_TOKEN",
@@ -216,7 +216,7 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
         }
       }
     }
-  }
+  }]
 ```
 </details>
 
@@ -306,7 +306,7 @@ Create the following blueprint, action and mapping to trigger a CircleCI pipelin
 <summary>Mapping - (Should be saved as `invocations.json`)</summary>
 
 ```json
-{
+[{
     "enabled": ".action == \"trigger_circle_ci_pipeline\"",
     "url": "(env.CIRCLE_CI_URL // \"https://circleci.com\") as $baseUrl | .payload.entity.properties.project_slug | @uri as $path | $baseUrl + \"/api/v2/project/\" + $path + \"/pipeline\"",
     "headers": {
@@ -316,7 +316,7 @@ Create the following blueprint, action and mapping to trigger a CircleCI pipelin
       "branch": ".payload.properties.branch // \"main\"",
       "parameters": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({(.key): (.value | tostring)}) | add | if $invocationMethod.omitUserInputs then {} else . end"
     }
-  }
+  }]
 ```
 </details>
 
