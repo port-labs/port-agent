@@ -18,6 +18,14 @@ def get_port_api_headers() -> dict[str, str]:
         f"{settings.PORT_API_BASE_URL}/v1/auth/access_token", json=credentials
     )
 
+    if not token_response.ok:
+        logger.error(
+            f"Failed to get Port API access token - status: {token_response.status_code}, "
+            f"response: {token_response.text}"
+        )
+
+    token_response.raise_for_status()
+
     return {
         "Authorization": f"Bearer {token_response.json()['accessToken']}",
         "User-Agent": "port-agent",
