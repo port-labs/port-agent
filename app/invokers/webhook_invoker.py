@@ -7,7 +7,7 @@ from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
 from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
-from port_client import report_run_status, run_logger_factory
+from port_client import report_run_response, report_run_status, run_logger_factory
 from pydantic import BaseModel, Field
 from requests import Response
 from utils import get_invocation_method_object, response_to_dict
@@ -117,8 +117,9 @@ class WebhookInvoker(BaseInvoker):
             None,
         )
 
-    def request(
-        self, request_payload: RequestPayload, run_logger: Callable[[str], None]
+    @staticmethod
+    def _request(
+        request_payload: RequestPayload, run_logger: Callable[[str], None]
     ) -> Response:
         logger.info(
             "WebhookInvoker - request - " "method: %s, url: %s, body: %s",
@@ -158,8 +159,9 @@ class WebhookInvoker(BaseInvoker):
 
         return res
 
-    def report_run_status(
-        self, run_id: str, data_to_patch: dict, run_logger: Callable[[str], None]
+    @staticmethod
+    def _report_run_status(
+        run_id: str, data_to_patch: dict, run_logger: Callable[[str], None]
     ) -> Response:
         logger.info(
             "WebhookInvoker - report run - run_id: %s, data_to_patch: %s",
@@ -194,6 +196,23 @@ class WebhookInvoker(BaseInvoker):
 
         return res
 
+    @staticmethod
+    def _report_run_response(
+        run_id: str, response: Response, run_logger: Callable[[str], None]
+    ) -> Response:
+        logger.info(
+            "WebhookInvoker - report run response - run_id: %s, response: %s",
+            run_id,
+            response,
+        )
+        run_logger("Reporting the run response")
+
+        response_value = response.text
+        if response.headers.get("Content-Type", "").startswith("application/json"):
+            response_value = response.json()
+
+        return report_run_response(run_id, response_value)
+
     def invoke(self, body: dict, invocation_method: dict) -> None:
         run_id = body["context"]["runId"]
         run_logger = run_logger_factory(run_id)
@@ -208,12 +227,11 @@ class WebhookInvoker(BaseInvoker):
         )
         run_logger("Preparing the payload for the request")
         request_payload = self._prepare_payload(mapping, body, invocation_method)
-        res = self.request(request_payload, run_logger)
+        res = self._request(request_payload, run_logger)
 
-        logger.info(
-            "WebhookInvoker - report mapping - run_id: %s",
-            run_id,
-        )
+        if invocation_method.get("synchronized"):
+            self._report_run_response(run_id, res, run_logger)
+
         report_payload = self._prepare_report(
             mapping, res, request_payload.dict(), body
         )
@@ -222,7 +240,7 @@ class WebhookInvoker(BaseInvoker):
             report_payload.dict(exclude_none=True, by_alias=True),
         )
         if report_dict := report_payload.dict(exclude_none=True, by_alias=True):
-            self.report_run_status(run_id, report_dict, run_logger)
+            self._report_run_status(run_id, report_dict, run_logger)
         else:
             logger.info(
                 "WebhookInvoker - report mapping "

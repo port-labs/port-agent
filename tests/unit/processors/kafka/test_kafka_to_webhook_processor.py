@@ -1,6 +1,6 @@
 from threading import Timer
 from unittest import mock
-from unittest.mock import ANY
+from unittest.mock import ANY, call
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -162,11 +162,21 @@ def test_invocation_method_synchronized(
             params=expected_query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
         )
-        request_patch_mock.assert_called_once_with(
-            f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
-            f"{webhook_run_payload['context']['runId']}",
-            headers={},
-            json={"status": "SUCCESS"},
+        request_patch_mock.assert_has_calls(
+            calls=[
+                call(
+                    f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
+                    f"{webhook_run_payload['context']['runId']}/response",
+                    headers={},
+                    json=ANY,
+                ),
+                call(
+                    f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
+                    f"{webhook_run_payload['context']['runId']}",
+                    headers={},
+                    json={"status": "SUCCESS"},
+                ),
+            ]
         )
 
         mock_error.assert_not_called()
