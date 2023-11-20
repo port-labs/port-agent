@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any, Callable
 
@@ -207,9 +208,10 @@ class WebhookInvoker(BaseInvoker):
         )
         run_logger("Reporting the run response")
 
-        response_value = response.text
-        if response.headers.get("Content-Type", "").startswith("application/json"):
+        try:
             response_value = response.json()
+        except json.JSONDecodeError:
+            response_value = response.text
 
         return report_run_response(run_id, response_value)
 
