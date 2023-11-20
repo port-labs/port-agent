@@ -42,6 +42,7 @@ Here is the mapping file schema:
       "report" { # Optional. Used to report the run status back to Port right after the request is sent to the 3rd party application
         "status": JQ, # Optional. Should return the wanted runs status
         "link": JQ, # Optional. Should return the wanted link or a list of links
+        "summary": JQ, # Optional. Should return the wanted summary
         "externalRunId": JQ # Optional. Should return the wanted external run id
       }
   }
@@ -144,6 +145,7 @@ The report mapping can use the following fields:
 `.body` - The incoming message as mentioned [Above](#the-incoming-message-to-base-your-mapping-on)
 `.request` - The request that was calculated using the control the payload mapping and sent to the 3rd party application 
 `.response` - The response that was received from the 3rd party application
+
 
 ### Examples
 
