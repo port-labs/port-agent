@@ -17,6 +17,9 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
         status_code = request.param.get("status_code")
         text = "Invoker failed with status code: %d" % status_code
 
+        def json(self) -> dict:
+            return request.param.get("json")
+
         def raise_for_status(self) -> None:
             if 400 <= self.status_code <= 599:
                 raise Exception(self.text)
@@ -208,73 +211,6 @@ def mock_webhook_run_message(webhook_run_payload: dict) -> Callable[[dict], byte
     return get_run_message
 
 
-@pytest.fixture(scope="module")
-def mock_gitlab_run_message() -> Callable[[dict], bytes]:
-    run_message: dict = {
-        "action": "Create",
-        "resourceType": "run",
-        "status": "TRIGGERED",
-        "trigger": {
-            "by": {"orgId": "test_org", "userId": "test_user"},
-            "origin": "UI",
-            "at": "2022-11-16T16:31:32.447Z",
-        },
-        "context": {
-            "entity": None,
-            "blueprint": "Service",
-            "runId": "r_jE5FhDURh4Uen2Qr",
-        },
-        "payload": {
-            "entity": None,
-            "action": {
-                "id": "action_34aweFQtayw7SCVb",
-                "identifier": "Create",
-                "title": "Create",
-                "icon": "DefaultBlueprint",
-                "userInputs": {
-                    "properties": {
-                        "foo": {"type": "string", "description": "Description"},
-                        "bar": {"type": "number", "description": "Description"},
-                    },
-                    "required": [],
-                },
-                "invocationMethod": {
-                    "type": "GITLAB",
-                    "agent": True,
-                    "defaultRef": "main",
-                    "projectName": "project",
-                    "groupName": "group",
-                },
-                "trigger": "CREATE",
-                "description": "",
-                "blueprint": "Service",
-                "createdAt": "2022-11-15T09:58:52.863Z",
-                "createdBy": "test_user",
-                "updatedAt": "2022-11-15T09:58:52.863Z",
-                "updatedBy": "test_user",
-            },
-            "properties": {},
-        },
-    }
-
-    def get_gitlab_run_message(invocation_method: dict) -> bytes:
-        if invocation_method is not None:
-            run_message["payload"]["action"]["invocationMethod"] = invocation_method
-        return json.dumps(run_message).encode()
-
-    return get_gitlab_run_message
-
-
-@pytest.fixture
-def mock_gitlab_token(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setenv("group_project", "token")
-
-
-@pytest.fixture
-def mock_gitlab_token_subgroup(monkeypatch: MonkeyPatch) -> None:
-    monkeypatch.setenv("group_subgroup_sub2_project", "token")
-
-
 @pytest.fixture()
 def mock_control_the_payload_config(monkeypatch: MonkeyPatch) -> list[dict[str, Any]]:
     mapping = [
@@ -293,6 +229,7 @@ def mock_control_the_payload_config(monkeypatch: MonkeyPatch) -> list[dict[str, 
                 "MY-HEADER": ".payload.action.identifier",
             },
             "query": {},
+            "report": {"link": '"http://test.com"'},
         },
     ]
     control_the_payload_config = parse_obj_as(list[Mapping], mapping)

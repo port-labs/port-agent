@@ -1,7 +1,22 @@
 from pathlib import Path
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, BaseSettings, parse_file_as, validator
+from pydantic import (
+    AnyHttpUrl,
+    BaseModel,
+    BaseSettings,
+    Field,
+    parse_file_as,
+    parse_obj_as,
+    validator,
+)
+
+
+class ActionReport(BaseModel):
+    status: str | None = None
+    link: str | None = None
+    summary: str | None = None
+    external_run_id: str | None = Field(None, alias="externalRunId")
 
 
 class Mapping(BaseModel):
@@ -11,6 +26,7 @@ class Mapping(BaseModel):
     body: dict[str, Any] | str | None = None
     headers: dict[str, str] | str | None = None
     query: dict[str, str] | str | None = None
+    report: ActionReport | None = None
 
 
 class Settings(BaseSettings):
@@ -19,6 +35,9 @@ class Settings(BaseSettings):
     STREAMER_NAME: str
 
     PORT_ORG_ID: str
+    PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
+    PORT_CLIENT_ID: str
+    PORT_CLIENT_SECRET: str
     KAFKA_CONSUMER_BROKERS: str = "localhost:9092"
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
