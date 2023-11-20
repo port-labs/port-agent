@@ -8,12 +8,21 @@ import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
 
+import port_client
+
 
 @pytest.fixture
 def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
     class MockResponse:
         status_code = request.param.get("status_code")
         text = "Invoker failed with status code: %d" % status_code
+
+        def json(self) -> dict:
+            return request.param.get("json")
+
+        @property
+        def ok(self):
+            return 200 <= self.status_code <= 299
 
         def raise_for_status(self) -> None:
             if 400 <= self.status_code <= 599:
@@ -22,6 +31,7 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
     def mock_request(*args: Any, **kwargs: Any) -> MockResponse:
         return MockResponse()
 
+    monkeypatch.setattr(port_client, "get_port_api_headers", lambda *args: {})
     monkeypatch.setattr(requests, "request", mock_request)
     monkeypatch.setattr(requests, "get", mock_request)
     monkeypatch.setattr(requests, "post", mock_request)

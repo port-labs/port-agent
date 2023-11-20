@@ -58,7 +58,7 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
 
 @pytest.mark.parametrize(
     "mock_requests",
-    [{"status_code": 200, "json": {"accessToken": "test"}}],
+    [{"status_code": 200}],
     indirect=True,
 )
 @pytest.mark.parametrize(
@@ -105,7 +105,7 @@ def test_single_stream_success_control_the_payload(
         request_patch_mock.assert_called_once_with(
             f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
             f"{webhook_run_payload['context']['runId']}",
-            headers={"Authorization": "Bearer test", "User-Agent": "port-agent"},
+            headers={},
             json={"link": "http://test.com"},
         )
 
@@ -114,7 +114,7 @@ def test_single_stream_success_control_the_payload(
 
 @pytest.mark.parametrize(
     "mock_requests",
-    [{"status_code": 200, "json": {"accessToken": "test"}}],
+    [{"status_code": 200}],
     indirect=True,
 )
 @pytest.mark.parametrize(
@@ -165,7 +165,7 @@ def test_invocation_method_synchronized(
         request_patch_mock.assert_called_once_with(
             f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
             f"{webhook_run_payload['context']['runId']}",
-            headers={"Authorization": "Bearer test", "User-Agent": "port-agent"},
+            headers={},
             json={"status": "SUCCESS"},
         )
 

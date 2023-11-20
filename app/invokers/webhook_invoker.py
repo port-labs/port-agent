@@ -10,7 +10,7 @@ from requests import Response
 from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
 from invokers.base_invoker import BaseInvoker
-from port_client import report_run_status, send_run_log, run_logger_factory
+from port_client import report_run_status, run_logger_factory
 from utils import get_invocation_method_object, response_to_dict
 
 logging.basicConfig(level=settings.LOG_LEVEL)
