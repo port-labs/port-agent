@@ -3,14 +3,13 @@ import os
 from signal import SIGINT
 from typing import Any, Callable, Generator, Optional
 
+import port_client
 import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
-from pydantic import parse_obj_as
-
-import port_client
 from core.config import Mapping
+from pydantic import parse_obj_as
 
 
 @pytest.fixture
@@ -23,7 +22,7 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
             return request.param.get("json")
 
         @property
-        def ok(self):
+        def ok(self) -> bool:
             return 200 <= self.status_code <= 299
 
         def raise_for_status(self) -> None:
@@ -50,7 +49,7 @@ class Consumer(_Consumer):
         pass
 
     def subscribe(
-            self, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
+        self, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
     ) -> None:
         pass
 
@@ -83,7 +82,7 @@ def mock_kafka(monkeypatch: MonkeyPatch, request: Any) -> None:
             return request.getfixturevalue(request.param[0])(request.param[1])
 
     def mock_subscribe(
-            self: Any, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
+        self: Any, topics: Any, on_assign: Any = None, *args: Any, **kwargs: Any
     ) -> None:
         pass
 

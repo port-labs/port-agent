@@ -3,12 +3,11 @@ import os
 from signal import SIGINT
 from typing import Any, Callable, Generator, Optional
 
+import port_client
 import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
-
-import port_client
 
 
 @pytest.fixture
@@ -21,7 +20,7 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
             return request.param.get("json")
 
         @property
-        def ok(self):
+        def ok(self) -> bool:
             return 200 <= self.status_code <= 299
 
         def raise_for_status(self) -> None:

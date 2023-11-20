@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import Callable
 
 import requests
 from core.config import settings
@@ -19,7 +20,8 @@ def get_port_api_headers() -> dict[str, str]:
 
     if not token_response.ok:
         logger.error(
-            f"Failed to get Port API access token - status: {token_response.status_code}, "
+            f"Failed to get Port API access token - "
+            f"status: {token_response.status_code}, "
             f"response: {token_response.text}"
         )
 
@@ -31,11 +33,11 @@ def get_port_api_headers() -> dict[str, str]:
     }
 
 
-def run_logger_factory(run_id: str):
+def run_logger_factory(run_id: str) -> Callable[[str], None]:
     def send_run_log(message: str) -> None:
         headers = get_port_api_headers()
 
-        res = requests.post(
+        requests.post(
             f"{settings.PORT_API_BASE_URL}/v1/actions/runs/{run_id}/logs",
             json={"message": message},
             headers=headers,

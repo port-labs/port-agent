@@ -1,16 +1,15 @@
 import logging
-from typing import Any
+from typing import Any, Callable
 
 import pyjq as jq
 import requests
-from flatten_dict import flatten, unflatten
-from pydantic import BaseModel, Field
-from requests import Response
-
 from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
+from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
 from port_client import report_run_status, run_logger_factory
+from pydantic import BaseModel, Field
+from requests import Response
 from utils import get_invocation_method_object, response_to_dict
 
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -54,7 +53,7 @@ class WebhookInvoker(BaseInvoker):
             return self._jq_exec(mapping, body)
 
     def _prepare_payload(
-            self, mapping: Mapping | None, body: dict, invocation_method: dict
+        self, mapping: Mapping | None, body: dict, invocation_method: dict
     ) -> RequestPayload:
         request_payload: RequestPayload = RequestPayload(
             method=invocation_method.get("method", consts.DEFAULT_HTTP_METHOD),
@@ -76,11 +75,11 @@ class WebhookInvoker(BaseInvoker):
         return request_payload
 
     def _prepare_report(
-            self,
-            mapping: Mapping | None,
-            response_context: Response,
-            request_context: dict,
-            body_context: dict,
+        self,
+        mapping: Mapping | None,
+        response_context: Response,
+        request_context: dict,
+        body_context: dict,
     ) -> ReportPayload:
         default_status = (
             ("SUCCESS" if response_context.ok else "FAILURE")
@@ -110,15 +109,17 @@ class WebhookInvoker(BaseInvoker):
                 action_mapping
                 for action_mapping in control_the_payload_config
                 if (
-                           type(action_mapping.enabled) != bool
-                           and self._jq_exec(action_mapping.enabled, body) is True
-                   )
-                   or action_mapping.enabled is True
+                    type(action_mapping.enabled) != bool
+                    and self._jq_exec(action_mapping.enabled, body) is True
+                )
+                or action_mapping.enabled is True
             ),
             None,
         )
 
-    def request(self, request_payload: RequestPayload, run_logger) -> Response:
+    def request(
+        self, request_payload: RequestPayload, run_logger: Callable[[str], None]
+    ) -> Response:
         logger.info(
             "WebhookInvoker - request - " "method: %s, url: %s, body: %s",
             request_payload.method,
@@ -141,18 +142,25 @@ class WebhookInvoker(BaseInvoker):
                 "WebhookInvoker - request - status_code: %s",
                 res.status_code,
             )
-            run_logger(f"The request was successful with status code: {res.status_code}")
+            run_logger(
+                f"The request was successful with status code: {res.status_code}"
+            )
         else:
             logger.warning(
                 "WebhookInvoker - request - status_code: %s, response: %s",
                 res.status_code,
                 res.text,
             )
-            run_logger(f"The request failed with status code: {res.status_code} and response: {res.text}")
+            run_logger(
+                f"The request failed with status code: {res.status_code} "
+                f"and response: {res.text}"
+            )
 
         return res
 
-    def report_run_status(self, run_id: str, data_to_patch: dict, run_logger) -> Response:
+    def report_run_status(
+        self, run_id: str, data_to_patch: dict, run_logger: Callable[[str], None]
+    ) -> Response:
         logger.info(
             "WebhookInvoker - report run - run_id: %s, data_to_patch: %s",
             run_id,
@@ -167,15 +175,22 @@ class WebhookInvoker(BaseInvoker):
                 run_id,
                 res.status_code,
             )
-            run_logger(f"The run status was reported successfully with status code: {res.status_code}")
+            run_logger(
+                f"The run status was reported successfully "
+                f"with status code: {res.status_code}"
+            )
         else:
             logger.warning(
-                "WebhookInvoker - report run - run_id: %s, status_code: %s, response: %s",
+                "WebhookInvoker - report run - "
+                "run_id: %s, status_code: %s, response: %s",
                 run_id,
                 res.status_code,
                 res.text,
             )
-            run_logger(f"The run status failed to be reported with status code: {res.status_code} and response: {res.text}")
+            run_logger(
+                f"The run status failed to be reported "
+                f"with status code: {res.status_code} and response: {res.text}"
+            )
 
         return res
 
@@ -189,7 +204,7 @@ class WebhookInvoker(BaseInvoker):
 
         logger.info(
             "WebhookInvoker - mapping - mapping: %s",
-            mapping.dict() if mapping else None
+            mapping.dict() if mapping else None,
         )
         run_logger("Preparing the payload for the request")
         request_payload = self._prepare_payload(mapping, body, invocation_method)
@@ -210,7 +225,8 @@ class WebhookInvoker(BaseInvoker):
             self.report_run_status(run_id, report_dict, run_logger)
         else:
             logger.info(
-                "WebhookInvoker - report mapping - no report mapping found - run_id: %s",
+                "WebhookInvoker - report mapping "
+                "- no report mapping found - run_id: %s",
                 run_id,
             )
 
