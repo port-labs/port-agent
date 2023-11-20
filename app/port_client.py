@@ -32,19 +32,17 @@ def get_port_api_headers() -> dict[str, str]:
     }
 
 
-def send_run_log(run_id: str, message: str) -> None:
-    headers = get_port_api_headers()
+def run_logger_factory(run_id: str):
+    def send_run_log(message: str) -> None:
+        headers = get_port_api_headers()
 
-    res = requests.post(
-        f"{settings.PORT_API_BASE_URL}/actions/runs/{run_id}/logs",
-        json={"message": message},
-        headers=headers,
-    )
+        res = requests.post(
+            f"{settings.PORT_API_BASE_URL}/v1/actions/runs/{run_id}/logs",
+            json={"message": message},
+            headers=headers,
+        )
 
-    logger.info(
-        f"Send action run logs - status: {res.status_code}, "
-        f"body: {json.dumps(res.json())}"
-    )
+    return send_run_log
 
 
 def report_run_status(run_id: str, data_to_patch: dict) -> Response:
