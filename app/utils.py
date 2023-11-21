@@ -6,12 +6,12 @@ def response_to_dict(response: Response) -> dict:
         "statusCode": response.status_code,
         "headers": dict(response.headers),
         "text": response.text,
-        "jsonData": None,
+        "json": None,
     }
 
     if response.ok:
         try:
-            response_dict["jsonData"] = response.json()
+            response_dict["json"] = response.json()
         except ValueError:
             pass
 

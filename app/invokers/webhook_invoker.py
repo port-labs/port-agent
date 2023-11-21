@@ -164,11 +164,6 @@ class WebhookInvoker(BaseInvoker):
     def _report_run_status(
         run_id: str, data_to_patch: dict, run_logger: Callable[[str], None]
     ) -> Response:
-        logger.info(
-            "WebhookInvoker - report run - run_id: %s, data_to_patch: %s",
-            run_id,
-            data_to_patch,
-        )
         run_logger("Reporting the run status")
         res = report_run_status(run_id, data_to_patch)
 
