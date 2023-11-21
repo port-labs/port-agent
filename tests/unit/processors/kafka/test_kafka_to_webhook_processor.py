@@ -167,15 +167,17 @@ def test_invocation_method_synchronized(
                 call(
                     f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
                     f"{webhook_run_payload['context']['runId']}/response",
-                    headers={},
                     json=ANY,
+                    headers={},
                 ),
+                call().ok.__bool__(),
                 call(
                     f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
                     f"{webhook_run_payload['context']['runId']}",
-                    headers={},
                     json={"status": "SUCCESS"},
+                    headers={},
                 ),
+                call().ok.__bool__()
             ]
         )
 
