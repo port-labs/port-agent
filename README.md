@@ -38,7 +38,13 @@ Here is the mapping file schema:
       "method": JQ, # Optional. default is POST. Should return one of the following string values POST / PUT / DELETE / GET 
       "headers": dict[str, JQ], # Optional. default is {}
       "body": ".body", # Optional. default is the whole payload incoming from Port.
-      "query": dict[str, JQ] # Optional. default is {}
+      "query": dict[str, JQ] # Optional. default is {},
+      "report" { # Optional. Used to report the run status back to Port right after the request is sent to the 3rd party application
+        "status": JQ, # Optional. Should return the wanted runs status
+        "link": JQ, # Optional. Should return the wanted link or a list of links
+        "summary": JQ, # Optional. Should return the wanted summary
+        "externalRunId": JQ # Optional. Should return the wanted external run id
+      }
   }
 ]
 ```
@@ -128,6 +134,19 @@ Here is the mapping file schema:
 
 </details>
 
+
+### The report mapping
+
+After the request is sent to the 3rd party application, the Port agent can report the run status back to Port.
+The report mapping is used to construct the report that will be sent to Port.
+
+The report mapping can use the following fields:
+
+`.body` - The incoming message as mentioned [Above](#the-incoming-message-to-base-your-mapping-on)
+`.request` - The request that was calculated using the control the payload mapping and sent to the 3rd party application 
+`.response` - The response that was received from the 3rd party application
+
+
 ### Examples
 
 #### Terraform Cloud
@@ -147,10 +166,20 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
       "workspace_id": {
         "title": "Workspace Id",
         "type": "string"
+      },
+      "organization_name": {
+        "title": "Organization Name",
+        "type": "string"
+      },
+      "workspace_name": {
+        "title": "Workspace Name",
+        "type": "string"
       }
     },
     "required": [
-      "workspace_id"
+      "workspace_id",
+      "organization_name",
+      "workspace_name"
     ]
   },
   "mirrorProperties": {},
@@ -192,7 +221,8 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
 <summary>Mapping - (Should be saved as `invocations.json`)</summary>
 
 ```json
-[{
+[
+  {
     "enabled": ".action == \"trigger_tf_run\"",
     "headers": {
       "Authorization": "\"Bearer \" + env.TF_TOKEN",
@@ -215,8 +245,14 @@ Create the following blueprint, action and mapping to trigger a Terraform Cloud 
           }
         }
       }
+    },
+    "report": {
+      "status": "if .response.statusCode == 201 then \"SUCCESS\" else \"FAILURE\" end",
+      "link": "\"https://app.terraform.io/app/\" + .body.payload.entity.properties.organization_name + \"/workspaces/\" + .body.payload.entity.properties.workspace_name + \"/runs/\" + .response.json.data.id",
+      "externalRunId": ".response.json.data.id"
     }
-  }]
+  }
+]
 ```
 </details>
 
@@ -229,10 +265,10 @@ helm repo update
 
 helm install my-port-agent port-labs/port-agent \
     --create-namespace --namespace port-agent \
+    --set env.secret.PORT_CLIENT_ID=YOUR_PORT_CLIENT_ID \
+    --set env.secret.PORT_CLIENT_SECRET=YOUR_PORT_CLIENT_SECRET \
     --set env.normal.PORT_ORG_ID=YOUR_ORG_ID \
     --set env.normal.KAFKA_CONSUMER_GROUP_ID=YOUR_KAFKA_CONSUMER_GROUP \
-    --set env.secret.KAFKA_CONSUMER_USERNAME=YOUR_KAFKA_USERNAME \
-    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD \
     --set env.normal.KAFKA_CONSUMER_BROKERS=PORT_KAFKA_BROKERS \
     --set env.normal.STREAMER_NAME=KAFKA \
     --set env.normal.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM=SCRAM-SHA-512 \
@@ -329,10 +365,10 @@ helm repo update
 
 helm install my-port-agent port-labs/port-agent \
     --create-namespace --namespace port-agent \
+    --set env.secret.PORT_CLIENT_ID=YOUR_PORT_CLIENT_ID \
+    --set env.secret.PORT_CLIENT_SECRET=YOUR_PORT_CLIENT_SECRET \
     --set env.normal.PORT_ORG_ID=YOUR_ORG_ID \
     --set env.normal.KAFKA_CONSUMER_GROUP_ID=YOUR_KAFKA_CONSUMER_GROUP \
-    --set env.secret.KAFKA_CONSUMER_USERNAME=YOUR_KAFKA_USERNAME \
-    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD
     --set env.normal.KAFKA_CONSUMER_BROKERS=PORT_KAFKA_BROKERS \
     --set env.normal.STREAMER_NAME=KAFKA \
     --set env.normal.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM=SCRAM-SHA-512 \
