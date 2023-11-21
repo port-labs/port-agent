@@ -173,10 +173,7 @@ class WebhookInvoker(BaseInvoker):
                 run_id,
                 res.status_code,
             )
-            run_logger(
-                f"The run status was reported successfully "
-                f"with status code: {res.status_code}"
-            )
+            run_logger("The run status was reported successfully")
         else:
             logger.warning(
                 "WebhookInvoker - report run - "
@@ -208,7 +205,29 @@ class WebhookInvoker(BaseInvoker):
         except json.JSONDecodeError:
             response_value = response.text
 
-        return report_run_response(run_id, response_value)
+        res = report_run_response(run_id, response_value)
+
+        if res.ok:
+            logger.info(
+                "WebhookInvoker - report run response - " "run_id: %s, status_code: %s",
+                run_id,
+                res.status_code,
+            )
+            run_logger("The run response was reported successfully ")
+        else:
+            logger.warning(
+                "WebhookInvoker - report run response - "
+                "run_id: %s, status_code: %s, response: %s",
+                run_id,
+                res.status_code,
+                res.text,
+            )
+            run_logger(
+                f"The run response failed to be reported "
+                f"with status code: {res.status_code} and response: {res.text}"
+            )
+
+        return res
 
     def invoke(self, body: dict, invocation_method: dict) -> None:
         run_id = body["context"]["runId"]
@@ -232,11 +251,11 @@ class WebhookInvoker(BaseInvoker):
         report_payload = self._prepare_report(
             mapping, res, request_payload.dict(), body
         )
-        logger.info(
-            "WebhookInvoker - report mapping - report_payload: %s",
-            report_payload.dict(exclude_none=True, by_alias=True),
-        )
         if report_dict := report_payload.dict(exclude_none=True, by_alias=True):
+            logger.info(
+                "WebhookInvoker - report mapping - report_payload: %s",
+                report_payload.dict(exclude_none=True, by_alias=True),
+            )
             self._report_run_status(run_id, report_dict, run_logger)
         else:
             logger.info(
