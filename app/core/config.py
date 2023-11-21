@@ -41,8 +41,6 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_BROKERS: str = "localhost:9092"
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
-    KAFKA_CONSUMER_USERNAME: str = "local"
-    KAFKA_CONSUMER_PASSWORD: str = ""
     KAFKA_CONSUMER_SESSION_TIMEOUT_MS: int = 45000
     KAFKA_CONSUMER_AUTO_OFFSET_RESET: str = "earliest"
     KAFKA_CONSUMER_GROUP_ID: str = ""

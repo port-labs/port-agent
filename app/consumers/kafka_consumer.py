@@ -6,6 +6,7 @@ from confluent_kafka import Consumer, KafkaException, Message
 from consumers.base_consumer import BaseConsumer
 from core.config import settings
 from core.consts import consts
+from port_client import get_kafka_credentials
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -24,13 +25,15 @@ class KafkaConsumer(BaseConsumer):
         if consumer:
             self.consumer = consumer
         else:
+            logger.info("Getting Kafka credentials")
+            username, password = get_kafka_credentials()
             conf = {
                 "bootstrap.servers": settings.KAFKA_CONSUMER_BROKERS,
                 "client.id": consts.KAFKA_CONSUMER_CLIENT_ID,
                 "security.protocol": settings.KAFKA_CONSUMER_SECURITY_PROTOCOL,
                 "sasl.mechanism": settings.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM,
-                "sasl.username": settings.KAFKA_CONSUMER_USERNAME,
-                "sasl.password": settings.KAFKA_CONSUMER_PASSWORD,
+                "sasl.username": username,
+                "sasl.password": password,
                 "group.id": settings.KAFKA_CONSUMER_GROUP_ID,
                 "session.timeout.ms": settings.KAFKA_CONSUMER_SESSION_TIMEOUT_MS,
                 "auto.offset.reset": settings.KAFKA_CONSUMER_AUTO_OFFSET_RESET,
