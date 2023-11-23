@@ -4,13 +4,14 @@ from typing import Any, Callable
 
 import pyjq as jq
 import requests
-from core.config import Mapping, control_the_payload_config, settings
-from core.consts import consts
 from flatten_dict import flatten, unflatten
-from invokers.base_invoker import BaseInvoker
-from port_client import report_run_response, report_run_status, run_logger_factory
 from pydantic import BaseModel, Field
 from requests import Response
+
+from core.config import Mapping, control_the_payload_config, settings
+from core.consts import consts
+from invokers.base_invoker import BaseInvoker
+from port_client import report_run_response, report_run_status, run_logger_factory
 from utils import get_invocation_method_object, response_to_dict
 
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -42,16 +43,19 @@ class WebhookInvoker(BaseInvoker):
             )
             return None
 
-    def _apply_jq_on_field(self, mapping: dict[str, str] | str, body: dict) -> Any:
+    def _apply_jq_on_field(self, mapping: Any, body: dict) -> Any:
         if isinstance(mapping, dict):
             flatten_dict = flatten(mapping)
             parsed_jq = {
-                key: self._jq_exec(value, body) if type(value) == str else value
+                key: self._apply_jq_on_field(value, body)
                 for key, value in flatten_dict.items()
             }
             return unflatten(parsed_jq)
-        else:
+        elif isinstance(mapping, list):
+            return [self._apply_jq_on_field(item, body) for item in mapping]
+        elif isinstance(mapping, str):
             return self._jq_exec(mapping, body)
+        return mapping
 
     def _prepare_payload(
         self, mapping: Mapping | None, body: dict, invocation_method: dict
@@ -263,7 +267,6 @@ class WebhookInvoker(BaseInvoker):
                 "- no report mapping found - run_id: %s",
                 run_id,
             )
-
         res.raise_for_status()
         run_logger("Finished processing the action")
 
