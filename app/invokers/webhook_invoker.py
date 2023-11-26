@@ -201,7 +201,7 @@ class WebhookInvoker(BaseInvoker):
         logger.info(
             "WebhookInvoker - report run response - run_id: %s, response: %s",
             run_id,
-            response,
+            response.text,
         )
         run_logger("Reporting the run response")
 
