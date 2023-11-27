@@ -482,7 +482,7 @@ Create the following blueprint, action and mapping to trigger a Windmill job.
 ```json
 [
   {
-    "enabled": ".action == \"windmill_workflow_port_agent\"",
+    "enabled": ".action == \"trigger_windmill_pipeline\"",
     "url": "\"https://app.windmill.dev\" as $baseUrl | .payload.properties.workspace as $workspace | .payload.properties.file_path as $path | $baseUrl + \"/api/w/\" + $workspace + \"/jobs/run/f/\" + $path",
     "headers": {
       "Authorization": "\"Bearer \" + env.WINDMILL_TOKEN",
