@@ -1,18 +1,16 @@
-import json
 import logging
 from typing import Any, Callable
 
 import pyjq as jq
 import requests
-from flatten_dict import flatten, unflatten
-from pydantic import BaseModel, Field
-from requests import Response
-
 from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
+from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
 from port_client import report_run_response, report_run_status, run_logger_factory
-from utils import get_invocation_method_object, response_to_dict
+from pydantic import BaseModel, Field
+from requests import Response
+from utils import get_invocation_method_object, get_response_body, response_to_dict
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -196,21 +194,16 @@ class WebhookInvoker(BaseInvoker):
 
     @staticmethod
     def _report_run_response(
-        run_id: str, response: Response, run_logger: Callable[[str], None]
+        run_id: str, response_body: dict | str | None, run_logger: Callable[[str], None]
     ) -> Response:
         logger.info(
             "WebhookInvoker - report run response - run_id: %s, response: %s",
             run_id,
-            response.text,
+            response_body,
         )
         run_logger("Reporting the run response")
 
-        try:
-            response_value = response.json()
-        except json.JSONDecodeError:
-            response_value = response.text
-
-        res = report_run_response(run_id, response_value)
+        res = report_run_response(run_id, response_body)
 
         if res.ok:
             logger.info(
@@ -250,8 +243,9 @@ class WebhookInvoker(BaseInvoker):
         request_payload = self._prepare_payload(mapping, body, invocation_method)
         res = self._request(request_payload, run_logger)
 
-        if invocation_method.get("synchronized"):
-            self._report_run_response(run_id, res, run_logger)
+        response_body = get_response_body(res)
+        if invocation_method.get("synchronized") and response_body:
+            self._report_run_response(run_id, response_body, run_logger)
 
         report_payload = self._prepare_report(
             mapping, res, request_payload.dict(), body
