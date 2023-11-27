@@ -482,13 +482,18 @@ Create the following blueprint, action and mapping to trigger a Windmill job.
 ```json
 [
   {
-    "enabled": ".action == \"trigger_windmill_pipeline\"",
-    "url": "\"https://app.windmill.dev\" as $baseUrl | .payload.properties.workspace as $workspace | .payload.properties.file_path as $path | $baseUrl + \"/api/w/\" + $workspace + \"/jobs/run_wait_result/f/\" + $path",
+    "enabled": ".action == \"windmill_workflow_port_agent\"",
+    "url": "\"https://app.windmill.dev\" as $baseUrl | .payload.properties.workspace as $workspace | .payload.properties.file_path as $path | $baseUrl + \"/api/w/\" + $workspace + \"/jobs/run/f/\" + $path",
     "headers": {
       "Authorization": "\"Bearer \" + env.WINDMILL_TOKEN",
       "Content-Type": "\"application/json\""
     },
-    "body": ".payload.properties.job_data"
+    "body": ".payload.properties.job_data",
+    "report": {
+      "status": "if .response.statusCode == 201 and (.response.text != null) then \"SUCCESS\" else \"FAILURE\" end",
+      "link": "\"https://app.windmill.dev/api/w/\" + .body.payload.properties.workspace + \"/jobs/run/f/\" + .body.payload.properties.file_path",
+      "externalRunId": ".response.text"
+    }
   }
 ]
 ```
