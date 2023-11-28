@@ -649,7 +649,7 @@ Create the following blueprint, action and mapping to trigger a Windmill job.
     },
     "body": ".payload.properties.job_data",
     "report": {
-      "status": "if .response.statusCode == 201 and (.response.jsonData.error | not) then \"SUCCESS\" else \"FAILURE\" end",
+      "status": "if .response.statusCode == 201 and (.response.json.error | not) then \"SUCCESS\" else \"FAILURE\" end",
       "link": "\"https://app.windmill.dev/api/w/\" + .body.payload.properties.workspace + \"/jobs/run_wait_result/f/\" + .body.payload.properties.file_path"
     }
   }
