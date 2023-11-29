@@ -143,8 +143,9 @@ class WebhookInvoker(BaseInvoker):
 
         if res.ok:
             logger.info(
-                "WebhookInvoker - request - status_code: %s",
+                "WebhookInvoker - request - status_code: %s, body: %s",
                 res.status_code,
+                res.text,
             )
             run_logger(
                 f"The request was successful with status code: {res.status_code}"
