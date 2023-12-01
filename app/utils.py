@@ -20,3 +20,10 @@ def response_to_dict(response: Response) -> dict:
 
 def get_invocation_method_object(body: dict) -> dict:
     return body.get("payload", {}).get("action", {}).get("invocationMethod", {})
+
+
+def get_response_body(response: Response) -> dict | str | None:
+    try:
+        return response.json()
+    except ValueError:
+        return response.text

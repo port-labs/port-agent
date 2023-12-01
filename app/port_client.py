@@ -56,7 +56,7 @@ def report_run_status(run_id: str, data_to_patch: dict) -> Response:
     return res
 
 
-def report_run_response(run_id: str, response: dict | str) -> Response:
+def report_run_response(run_id: str, response: dict | str | None) -> Response:
     headers = get_port_api_headers()
     res = requests.patch(
         f"{settings.PORT_API_BASE_URL}/v1/actions/runs/{run_id}/response",
