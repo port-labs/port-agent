@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class KafkaConsumer(BaseConsumer):
     def __init__(
-        self, msg_process: Callable[[Message], None], consumer: Consumer = None
+            self, msg_process: Callable[[Message], None], consumer: Consumer = None
     ) -> None:
         self.running = False
         signal.signal(signal.SIGINT, self.exit_gracefully)
@@ -40,6 +40,14 @@ class KafkaConsumer(BaseConsumer):
                 "enable.auto.commit": "false",
             }
             self.consumer = Consumer(conf)
+
+    def _on_assign(self, consumer: Consumer, partitions: Any) -> None:
+        logger.info("Assignment: %s", partitions)
+        if not partitions:
+            logger.error(
+                "No partitions assigned. This usually means that there is already a consumer"
+                " with the same group id running. Closing this consumer...")
+            self.exit_gracefully()
 
     def start(self) -> None:
         try:
