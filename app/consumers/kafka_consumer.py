@@ -48,7 +48,8 @@ class KafkaConsumer(BaseConsumer):
                 "No partitions assigned. This usually means that there is"
                 " already a consumer with the same group id running. To run"
                 " another consumer please change the group id in the"
-                " `KAFKA_CONSUMER_GROUP_ID` environment variable."
+                " `KAFKA_CONSUMER_GROUP_ID` environment variable to a unique"
+                " value prefixed with your organization id."
             )
             self.exit_gracefully()
 
