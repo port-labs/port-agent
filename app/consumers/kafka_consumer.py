@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class KafkaConsumer(BaseConsumer):
     def __init__(
-        self, msg_process: Callable[[Message], None], consumer: Consumer = None
+            self, msg_process: Callable[[Message], None], consumer: Consumer = None
     ) -> None:
         self.running = False
         signal.signal(signal.SIGINT, self.exit_gracefully)
@@ -41,13 +41,23 @@ class KafkaConsumer(BaseConsumer):
             }
             self.consumer = Consumer(conf)
 
+    def _on_assign(self, consumer: Consumer, partitions: Any) -> None:
+        logger.info("Assignment: %s", partitions)
+        if not partitions:
+            logger.error(
+                "No partitions assigned. This usually means that there is"
+                " already a consumer with the same group id running. To run"
+                " another consumer please change the group id in the"
+                " `KAFKA_CONSUMER_GROUP_ID` environment variable to a unique"
+                " value prefixed with your organization id."
+            )
+            self.exit_gracefully()
+
     def start(self) -> None:
         try:
             self.consumer.subscribe(
                 [settings.KAFKA_RUNS_TOPIC, settings.KAFKA_CHANGE_LOG_TOPIC],
-                on_assign=lambda _, partitions: logger.info(
-                    "Assignment: %s", partitions
-                ),
+                on_assign=self._on_assign,
             )
             self.running = True
             while self.running:
