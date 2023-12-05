@@ -45,8 +45,8 @@ class KafkaConsumer(BaseConsumer):
         logger.info("Assignment: %s", partitions)
         if not partitions:
             logger.error(
-                "No partitions assigned. This usually means that there is "
-                "already a consumer with the same group id running. To run"
+                "No partitions assigned. This usually means that there is"
+                " already a consumer with the same group id running. To run"
                 " another consumer please change the group id in the"
                 " `KAFKA_CONSUMER_GROUP_ID` environment variable."
             )
