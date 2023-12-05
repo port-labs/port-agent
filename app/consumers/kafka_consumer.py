@@ -45,17 +45,18 @@ class KafkaConsumer(BaseConsumer):
         logger.info("Assignment: %s", partitions)
         if not partitions:
             logger.error(
-                "No partitions assigned. This usually means that there is already a consumer"
-                " with the same group id running. Closing this consumer...")
+                "No partitions assigned. This usually means that there is "
+                "already a consumer with the same group id running. To run"
+                " another consumer please change the group id in the"
+                " `KAFKA_CONSUMER_GROUP_ID` environment variable."
+            )
             self.exit_gracefully()
 
     def start(self) -> None:
         try:
             self.consumer.subscribe(
                 [settings.KAFKA_RUNS_TOPIC, settings.KAFKA_CHANGE_LOG_TOPIC],
-                on_assign=lambda _, partitions: logger.info(
-                    "Assignment: %s", partitions
-                ),
+                on_assign=self._on_assign,
             )
             self.running = True
             while self.running:
