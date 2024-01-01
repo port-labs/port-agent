@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class KafkaConsumer(BaseConsumer):
     def __init__(
-            self, msg_process: Callable[[Message], None], consumer: Consumer = None
+        self, msg_process: Callable[[Message], None], consumer: Consumer = None
     ) -> None:
         self.running = False
         signal.signal(signal.SIGINT, self.exit_gracefully)

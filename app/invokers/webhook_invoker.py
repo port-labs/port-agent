@@ -232,7 +232,8 @@ class WebhookInvoker(BaseInvoker):
         mapping = self._find_mapping(body)
         if mapping is None:
             logger.info(
-                "WebhookInvoker - Could not find suitable mapping for the event - run_id: %s, body: %s",
+                "WebhookInvoker - Could not find suitable mapping for the event"
+                " - run_id: %s, body: %s",
                 run_id,
                 body,
             )
