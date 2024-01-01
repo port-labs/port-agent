@@ -35,7 +35,7 @@ Here is the mapping file schema:
   {
       "enabled": bool || JQ,
       "url": JQ, # Optional. default is the incoming url from port
-      "method": JQ, # Optional. default is POST. Should return one of the following string values POST / PUT / DELETE / GET 
+      "method": JQ, # Optional. default is 'POST'. Should return one of the following string values 'POST' / 'PUT' / 'DELETE' / 'GET' 
       "headers": dict[str, JQ], # Optional. default is {}
       "body": ".body", # Optional. default is the whole payload incoming from Port.
       "query": dict[str, JQ] # Optional. default is {},
