@@ -10,9 +10,8 @@
     }
   },
   {
-    "enabled": "true",
+    "enabled": true,
     "url": ".payload.action.invocationMethod.url",
-    "method": ".payload.action.invocationMethod.method // 'POST'",
-    "body": "."
+    "method": ".payload.action.invocationMethod.method // 'POST'"
   }
 ]

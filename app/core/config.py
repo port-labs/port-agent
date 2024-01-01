@@ -21,7 +21,7 @@ class ActionReport(BaseModel):
 
 class Mapping(BaseModel):
     enabled: bool | str = True
-    method: Literal["POST", "GET", "DELETE", "PUT"] | None = None
+    method: str | None = None
     url: str | None = None
     body: dict[str, Any] | str | None = None
     headers: dict[str, str] | str | None = None
