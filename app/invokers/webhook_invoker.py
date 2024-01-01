@@ -227,7 +227,6 @@ class WebhookInvoker(BaseInvoker):
 
     def invoke(self, body: dict, invocation_method: dict) -> None:
         run_id = body["context"]["runId"]
-        run_logger = run_logger_factory(run_id)
 
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         mapping = self._find_mapping(body)
@@ -239,6 +238,7 @@ class WebhookInvoker(BaseInvoker):
             )
             return
 
+        run_logger = run_logger_factory(run_id)
         run_logger("An action message has been received")
 
         logger.info(
