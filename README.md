@@ -17,8 +17,7 @@ request that is sent to the third-party application.
 
 The payload mapping file is mounted to the Port agent as a volume. The path to the payload mapping file is set in the
 `CONTROL_THE_PAYLOAD_CONFIG_PATH` environment variable. By default, the Port agent will look for the payload mapping
-file
-at `~/control_the_payload_config.json`.
+file at `~/control_the_payload_config.json`.
 
 The payload mapping file is a json file that contains a list of mappings. Each mapping contains the request fields that
 will be overridden and sent to the 3rd party application.
