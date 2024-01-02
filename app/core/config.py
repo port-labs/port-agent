@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Optional
 
 from pydantic import (
     AnyHttpUrl,
