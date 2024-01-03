@@ -12,6 +12,6 @@
   {
     "enabled": true,
     "url": ".payload.action.invocationMethod.url",
-    "method": ".payload.action.invocationMethod.method // 'POST'"
+    "method": ".payload.action.invocationMethod.method // \"POST\""
   }
 ]
