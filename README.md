@@ -696,17 +696,17 @@ Run this action with some input
 ```
 #### Opsgenie Example
 
-This example helps internal developer teams to trigger [Opsgenie](https://www.atlassian.com/software/opsgenie) job using Port's self service actions. In particular, you will create a blueprint for `OpsgenieIncident` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Windmill job directly from Port using the sync execution method.
+This example helps internal developer teams to trigger [Opsgenie](https://www.atlassian.com/software/opsgenie) job using Port's self service actions. In particular, you will create a blueprint for `opsgenieIncident` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Windmill job directly from Port using the sync execution method.
 
 
-Create the following blueprint, action and mapping to trigger a Windmill job.
+Create the following blueprint, action and mapping to trigger a Obsgenie incident.
 
 <details>
 <summary>Blueprint</summary>
 
 ```json
 {
-  "identifier": "opsgenie_incident",
+  "identifier": "opsgenieIncident",
   "description": "This blueprint represent an incident in opsgenie",
   "title": "OpsGenie Incident",
   "icon": "OpsGenie",
