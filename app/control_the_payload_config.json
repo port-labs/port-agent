@@ -8,5 +8,10 @@
       "variables": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({(.key): (.value | tostring)}) | add | if $invocationMethod.omitUserInputs then {} else . end",
       "port_payload": "if .payload.action.invocationMethod.omitPayload then {} else . end"
     }
+  },
+  {
+    "enabled": true,
+    "url": ".payload.action.invocationMethod.url",
+    "method": ".payload.action.invocationMethod.method // \"POST\""
   }
 ]

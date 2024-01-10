@@ -56,7 +56,7 @@ class WebhookInvoker(BaseInvoker):
         return mapping
 
     def _prepare_payload(
-        self, mapping: Mapping | None, body: dict, invocation_method: dict
+        self, mapping: Mapping, body: dict, invocation_method: dict
     ) -> RequestPayload:
         request_payload: RequestPayload = RequestPayload(
             method=invocation_method.get("method", consts.DEFAULT_HTTP_METHOD),
@@ -65,8 +65,6 @@ class WebhookInvoker(BaseInvoker):
             headers={},
             query={},
         )
-        if not mapping:
-            return request_payload
 
         raw_mapping: dict = mapping.dict(exclude_none=True)
         raw_mapping.pop("enabled")
@@ -106,7 +104,7 @@ class WebhookInvoker(BaseInvoker):
 
         return report_payload
 
-    def _find_mapping(self, body: dict) -> Mapping:
+    def _find_mapping(self, body: dict) -> Mapping | None:
         return next(
             (
                 action_mapping
@@ -229,11 +227,20 @@ class WebhookInvoker(BaseInvoker):
 
     def invoke(self, body: dict, invocation_method: dict) -> None:
         run_id = body["context"]["runId"]
-        run_logger = run_logger_factory(run_id)
 
-        run_logger("An action message has been received")
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         mapping = self._find_mapping(body)
+        if mapping is None:
+            logger.info(
+                "WebhookInvoker - Could not find suitable mapping for the event"
+                " - run_id: %s, body: %s",
+                run_id,
+                body,
+            )
+            return
+
+        run_logger = run_logger_factory(run_id)
+        run_logger("An action message has been received")
 
         logger.info(
             "WebhookInvoker - mapping - mapping: %s",
