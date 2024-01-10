@@ -811,14 +811,14 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
 	  "body": {
 		"message": "\"Incident Triggered via Port\"",
 		"description": "\"This is a detailed description of the incident.\"",
-		"details": ".payload.properties.details",
+		"details": ".payload.entity.properties.details",
 		"priority": ".payload.entity.properties.priority"
 	  },
 	  "report": {
 		"status": "if .response.statusCode == 202 then \"SUCCESS\" else \"FAILURE\" end"
 	  }
 	}
-]
+  ]
 ```
 </details>
 
