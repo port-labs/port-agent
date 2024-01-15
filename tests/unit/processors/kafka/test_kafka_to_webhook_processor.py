@@ -77,7 +77,7 @@ def test_single_stream_success_control_the_payload(
     mock_control_the_payload_config: list[Mapping],
 ) -> None:
     expected_body = mock_kafka
-    expected_headers = {"MY-HEADER": "run"}
+    expected_headers = {"MY-HEADER": mock_kafka["resourceType"]}
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
@@ -132,7 +132,7 @@ def test_invocation_method_synchronized(
     webhook_run_payload: dict,
 ) -> None:
     expected_body = webhook_run_payload
-    expected_headers = {"MY-HEADER": "run"}
+    expected_headers = {"MY-HEADER": mock_kafka["resourceType"]}
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
@@ -207,7 +207,7 @@ def test_invocation_method_method_override(
     mock_control_the_payload_config: list[Mapping],
 ) -> None:
     expected_body = mock_kafka
-    expected_headers = {"MY-HEADER": "run"}
+    expected_headers = {"MY-HEADER": mock_kafka["resourceType"]}
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
