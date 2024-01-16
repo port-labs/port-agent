@@ -87,7 +87,9 @@ class WebhookInvoker(BaseInvoker):
         is_sync = get_invocation_method_object(body_context).get("synchronized")
         success_status = "SUCCESS" if is_sync else None
         default_status = success_status if response_context.ok else "FAILURE"
-        report_payload: ReportPayload = ReportPayload(status=default_status)
+
+        default_summary = None if response_context.ok else f"Failed to invoke the webhook with status code: {response_context.status_code}. Response: {response_context.text}."
+        report_payload: ReportPayload = ReportPayload(status=default_status, summary=default_summary)
         if not mapping or not mapping.report:
             return report_payload
 
