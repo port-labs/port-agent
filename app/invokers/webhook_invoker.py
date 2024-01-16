@@ -82,8 +82,10 @@ class WebhookInvoker(BaseInvoker):
         request_context: dict,
         body_context: dict,
     ) -> ReportPayload:
-        # We dont want to update the run status if the request succeeded and the invocation method is synchronized
-        success_status = "SUCCESS" if get_invocation_method_object(body_context).get("synchronized") else None
+        # We don't want to update the run status if the request succeeded and the
+        # invocation method is synchronized
+        is_sync = get_invocation_method_object(body_context).get("synchronized")
+        success_status = "SUCCESS" if is_sync else None
         default_status = success_status if response_context.ok else "FAILURE"
         report_payload: ReportPayload = ReportPayload(status=default_status)
         if not mapping or not mapping.report:
