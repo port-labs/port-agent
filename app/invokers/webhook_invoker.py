@@ -88,8 +88,14 @@ class WebhookInvoker(BaseInvoker):
         success_status = "SUCCESS" if is_sync else None
         default_status = success_status if response_context.ok else "FAILURE"
 
-        default_summary = None if response_context.ok else f"Failed to invoke the webhook with status code: {response_context.status_code}. Response: {response_context.text}."
-        report_payload: ReportPayload = ReportPayload(status=default_status, summary=default_summary)
+        failure_summary = (
+            f"Failed to invoke the webhook with status code: "
+            f"{response_context.status_code}. Response: {response_context.text}."
+        )
+        default_summary = None if response_context.ok else failure_summary
+        report_payload: ReportPayload = ReportPayload(
+            status=default_status, summary=default_summary
+        )
         if not mapping or not mapping.report:
             return report_payload
 
