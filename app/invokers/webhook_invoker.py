@@ -233,20 +233,9 @@ class WebhookInvoker(BaseInvoker):
 
         return res
 
-    def invoke(self, body: dict, invocation_method: dict) -> None:
-        run_id = body["context"]["runId"]
-
-        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
-        mapping = self._find_mapping(body)
-        if mapping is None:
-            logger.info(
-                "WebhookInvoker - Could not find suitable mapping for the event"
-                " - run_id: %s, body: %s",
-                run_id,
-                body,
-            )
-            return
-
+    def _invoke_run(
+        self, run_id: str, mapping: Mapping, body: dict, invocation_method: dict
+    ) -> None:
         run_logger = run_logger_factory(run_id)
         run_logger("An action message has been received")
 
@@ -279,6 +268,32 @@ class WebhookInvoker(BaseInvoker):
             )
         res.raise_for_status()
         run_logger("Finished processing the action")
+
+    def invoke(self, body: dict, invocation_method: dict) -> None:
+        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
+        run_id = body["context"].get("runId")
+
+        mapping = self._find_mapping(body)
+        if mapping is None:
+            logger.info(
+                "WebhookInvoker - Could not find suitable mapping for the event"
+                f" - body: {body} {', run_id: ' + run_id if run_id else ''}",
+            )
+            return
+
+        if run_id:
+            self._invoke_run(run_id, mapping, body, invocation_method)
+        # Used for changelog destination event trigger
+        elif invocation_method.get("url"):
+            request_payload = self._prepare_payload(mapping, body, invocation_method)
+            res = self._request(request_payload, lambda _: None)
+            res.raise_for_status()
+        else:
+            logger.warning(
+                "WebhookInvoker - Could not find suitable "
+                "invocation method for the event"
+            )
+        logger.info("Finished processing the event")
 
 
 webhook_invoker = WebhookInvoker()

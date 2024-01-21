@@ -106,6 +106,8 @@ def mock_kafka(monkeypatch: MonkeyPatch, request: Any) -> None:
     monkeypatch.setattr(Consumer, "poll", mock_poll)
     monkeypatch.setattr(Consumer, "commit", mock_commit)
     monkeypatch.setattr(Consumer, "close", mock_close)
+    result_fixture = request.getfixturevalue(request.param[0])
+    return json.loads(result_fixture(request.param[1]).decode("utf-8"))
 
 
 @pytest.fixture(scope="module")
@@ -224,7 +226,7 @@ def mock_control_the_payload_config(monkeypatch: MonkeyPatch) -> list[dict[str, 
             "enabled": ".payload.non-existing-field",
             "body": ".",
             "headers": {
-                "MY-HEADER": ".payload.status",
+                "MY-HEADER": ".resourceType",
             },
             "query": {},
         },
@@ -232,7 +234,7 @@ def mock_control_the_payload_config(monkeypatch: MonkeyPatch) -> list[dict[str, 
             "enabled": True,
             "body": ".",
             "headers": {
-                "MY-HEADER": ".payload.action.identifier",
+                "MY-HEADER": ".resourceType",
             },
             "query": {},
             "report": {"link": '"http://test.com"'},
