@@ -283,6 +283,7 @@ class WebhookInvoker(BaseInvoker):
 
         if run_id:
             self._invoke_run(run_id, mapping, body, invocation_method)
+        # Used for changelog destination event trigger
         elif invocation_method.get("url"):
             request_payload = self._prepare_payload(mapping, body, invocation_method)
             res = self._request(request_payload, lambda _: None)
