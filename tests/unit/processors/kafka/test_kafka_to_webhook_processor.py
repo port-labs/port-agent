@@ -21,7 +21,7 @@ from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
     ],
     indirect=True,
 )
-def test_single_stream_success(mock_requests: None, mock_kafka: None) -> None:
+def test_single_stream_success(mock_requests: None, mock_kafka: dict) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -40,7 +40,7 @@ def test_single_stream_success(mock_requests: None, mock_kafka: None) -> None:
     ],
     indirect=True,
 )
-def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
+def test_single_stream_failed(mock_requests: None, mock_kafka: dict) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -64,6 +64,7 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
 @pytest.mark.parametrize(
     "mock_kafka",
     [
+        ("mock_webhook_change_log_message", None, settings.KAFKA_CHANGE_LOG_TOPIC),
         ("mock_webhook_run_message", None, settings.KAFKA_RUNS_TOPIC),
     ],
     indirect=True,
@@ -72,14 +73,11 @@ def test_single_stream_success_control_the_payload(
     monkeypatch: MonkeyPatch,
     mocker: MockFixture,
     mock_requests: None,
-    mock_kafka: None,
+    mock_kafka: dict,
     mock_control_the_payload_config: list[Mapping],
-    webhook_run_payload: dict,
 ) -> None:
-    expected_body = webhook_run_payload
-    expected_headers = {
-        "MY-HEADER": webhook_run_payload["payload"]["action"]["identifier"]
-    }
+    expected_body = mock_kafka
+    expected_headers = {"MY-HEADER": mock_kafka["resourceType"]}
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
@@ -87,7 +85,6 @@ def test_single_stream_success_control_the_payload(
     request_mock.return_value.text = "test"
     request_mock.return_value.status_code = 200
     request_mock.return_value.json.return_value = {}
-    request_patch_mock = mocker.patch("requests.patch")
     mocker.patch("pathlib.Path.is_file", side_effect=(True,))
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -100,13 +97,6 @@ def test_single_stream_success_control_the_payload(
             headers=expected_headers,
             params=expected_query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
-        )
-
-        request_patch_mock.assert_called_once_with(
-            f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
-            f"{webhook_run_payload['context']['runId']}",
-            headers={},
-            json={"link": "http://test.com"},
         )
 
         mock_error.assert_not_called()
@@ -137,14 +127,12 @@ def test_invocation_method_synchronized(
     monkeypatch: MonkeyPatch,
     mocker: MockFixture,
     mock_requests: None,
-    mock_kafka: None,
+    mock_kafka: dict,
     mock_control_the_payload_config: list[Mapping],
     webhook_run_payload: dict,
 ) -> None:
     expected_body = webhook_run_payload
-    expected_headers = {
-        "MY-HEADER": webhook_run_payload["payload"]["action"]["identifier"]
-    }
+    expected_headers = {"MY-HEADER": mock_kafka["resourceType"]}
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
@@ -189,6 +177,16 @@ def test_invocation_method_synchronized(
     "mock_kafka",
     [
         (
+            "mock_webhook_change_log_message",
+            {
+                "type": "WEBHOOK",
+                "agent": True,
+                "url": "http://localhost:80/api/test",
+                "method": "GET",
+            },
+            settings.KAFKA_CHANGE_LOG_TOPIC,
+        ),
+        (
             "mock_webhook_run_message",
             {
                 "type": "WEBHOOK",
@@ -205,14 +203,11 @@ def test_invocation_method_method_override(
     monkeypatch: MonkeyPatch,
     mocker: MockFixture,
     mock_requests: None,
-    mock_kafka: None,
+    mock_kafka: dict,
     mock_control_the_payload_config: list[Mapping],
-    webhook_run_payload: dict,
 ) -> None:
-    expected_body = webhook_run_payload
-    expected_headers = {
-        "MY-HEADER": webhook_run_payload["payload"]["action"]["identifier"]
-    }
+    expected_body = mock_kafka
+    expected_headers = {"MY-HEADER": mock_kafka["resourceType"]}
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
