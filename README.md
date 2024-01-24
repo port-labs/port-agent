@@ -695,7 +695,7 @@ Run this action with some input
 ```
 #### Opsgenie Example
 
-This example helps internal developer teams to trigger [Opsgenie](https://www.atlassian.com/software/opsgenie) job using Port's self service actions. In particular, you will create a blueprint for `opsgenieIncident` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Windmill job directly from Port using the sync execution method.
+This example helps internal developer teams to trigger [Opsgenie](https://www.atlassian.com/software/opsgenie) incident using Port's self service actions. In particular, you will create a blueprint for `opsgenieIncident` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Obsgenie incident directly from Port using the sync execution method.
 
 
 Create the following blueprint, action and mapping to trigger a Obsgenie incident.
@@ -718,6 +718,14 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
       "description": {
         "title": "Description",
         "type": "string"
+      },
+      "details":{
+        "title": "Details",
+        "type": "object"
+      },
+      "priority":{
+        "title": "Priority",
+        "type" : "string"
       }
     },
     "required": []
@@ -742,27 +750,27 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
     "userInputs": {
       "properties": {
         "message": {
-          "title": "message",
+          "title": "Message",
           "description": "Message of the incident",
           "icon": "OpsGenie",
           "type": "string",
           "maxLength": 130
         },
         "description": {
+          "title": "Description",
+          "description": "Description field of the incident that is generally used to provide a detailed information about the incident",
           "icon": "OpsGenie",
-          "title": "description",
           "type": "string",
           "maxLength": 15000,
-          "description": "Description field of the incident that is generally used to provide a detailed information about the incident"
         },
         "details": {
-          "title": "details",
+          "title": "Details",
           "description": "Map of key-value pairs to use as custom properties of the incident",
           "icon": "OpsGenie",
           "type": "object"
         },
         "priority": {
-          "title": "priority",
+          "title": "Priority",
           "description": "Priority level of the incident. Possible values are P1, P2, P3, P4 and P5. Default value is P3.",
           "icon": "OpsGenie",
           "type": "string"
@@ -808,10 +816,10 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
 		"Content-Type": "\"application/json\""
 	  },
 	  "body": {
-		"message": "\"Incident Triggered via Port\"",
-		"description": "\"This is a detailed description of the incident.\"",
-		"details": ".payload.entity.properties.details",
-		"priority": ".payload.entity.properties.priority"
+		"message": ".payload.properties.message",
+		"description": ".payload.properties.description",
+		"details": ".payload.properties.details",
+		"priority": ".payload.properties.priority"
 	  },
 	  "report": {
 		"status": "if .response.statusCode == 202 then \"SUCCESS\" else \"FAILURE\" end"
@@ -844,3 +852,156 @@ helm install my-port-agent port-labs/port-agent \
     --set en.secret.OPSGENIE_API_KEY=YOUR_OPSGENIE_API_KEY \
     --set-file controlThePayloadConfig=./invocations.json
 ```
+
+#### ArgoWorkflow Example
+
+This example helps internal developer teams to submit an [Argoworkflow](https://argoproj.github.io/workflows/) using Port's self service actions. In particular, you will create a blueprint for `argoWorkflow` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and submit your Argo Workflow directly from Port using the sync execution method.
+
+
+Create the following blueprint, action and mapping to trigger the submition of a workflow.
+
+<details>
+<summary>Blueprint</summary>
+
+```json
+{
+  "identifier": "argoWorkflow",
+  "description": "This blueprint represents an Argo Workflow.",
+  "title": "Argo Workflow",
+  "icon": "Argo",
+  "schema": {
+    "properties": {
+      "metadata": {
+        "type": "object",
+        "title": "Metadata",
+        "description": "Metadata information for the Argo Workflow."
+      },
+      "spec": {
+        "type": "object",
+        "title": "Specification",
+        "description": "Specification details of the Argo Workflow."
+      },
+      "status": {
+        "type": "object",
+        "title": "Status",
+        "description": "Status information for the Argo Workflow."
+      }
+    },
+    "required": []
+  },
+  "mirrorProperties": {},
+  "calculationProperties": {},
+  "aggregationProperties": {},
+  "relations": {}
+}
+```
+</details>
+
+<details>
+<summary>Action</summary>
+
+```json
+[
+  {
+    "identifier": "trigger_argo_workflow",
+    "title": "trigger_argo_workflow",
+    "icon": "Argo",
+    "userInputs": {
+      "properties": {
+        "namespace": {
+          "title": "Namespace",
+          "description": "Name of the namespace",
+          "icon": "Argo",
+          "type": "string"
+        },
+        "workflow": {
+          "title": "Workflow",
+          "icon": "Argo",
+          "type": "object",
+          "description": "Workflow object"
+        },
+        "serverDryRun": {
+          "icon": "Argo",
+          "title": "Server Dry Run",
+          "description": "Server Dry Run",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "namespace",
+        "serverDryRun",
+        "workflow"
+      ],
+      "order": [
+        "namespace",
+        "serverDryRun",
+        "workflow"
+      ]
+    },
+    "invocationMethod": {
+      "type": "WEBHOOK",
+      "url": "https://l127.0.0.1:2746",
+      "agent": true,
+      "synchronized": true,
+      "method": "POST"
+    },
+    "trigger": "CREATE",
+    "description": "Trigger Argo Workflow",
+    "requiredApproval": false
+  }
+]
+```
+
+</details>
+
+<details>
+<summary>Mapping - (Should be saved as `invocations.json`)</summary>
+
+```json
+[
+	{
+	  "enabled": ".action == \"trigger_argo_workflow\"",
+	  "url": "env.ARGO_WORKFLOW_HOST $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\" + $namespace",
+	  "headers": {
+		"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
+		"Content-Type": "\"application/json\""
+	  },
+	  "body": {
+		"namespace": ".payload.properties.namespace",
+		"serverDryRun": ".payload.properties.serverDryRun",
+		"workflow": ".payload.properties.workflow"
+	  },
+	  "report": {
+		"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end"
+	  }
+	}
+]
+```
+</details>
+
+**Port agent installation for ArgoWorkflow example**:
+
+```sh
+helm repo add port-labs https://port-labs.github.io/helm-charts
+
+helm repo update
+
+helm install my-port-agent port-labs/port-agent \
+    --create-namespace --namespace port-agent \
+    --set env.normal.PORT_ORG_ID=YOUR_ORG_ID \
+    --set env.normal.PORT_CLIENT_ID=YOUR_CLIENT \
+    --set env.secret.PORT_CLIENT_SECRET=YOUR_PORT_CLIENT_SECRET \
+    --set env.normal.KAFKA_CONSUMER_GROUP_ID=YOUR_KAFKA_CONSUMER_GROUP \
+    --set env.secret.KAFKA_CONSUMER_USERNAME=YOUR_KAFKA_USERNAME \
+    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD
+    --set env.normal.KAFKA_CONSUMER_BROKERS=PORT_KAFKA_BROKERS \
+    --set env.normal.STREAMER_NAME=KAFKA \
+    --set env.normal.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM=SCRAM-SHA-512 \
+    --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
+    --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
+    --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
+    --set env.secret.ARGO_WORKFLOW_HOST=YOUR_ARGO_WORKFLOW_HOST \
+    --set-file controlThePayloadConfig=./invocations.json
+```
+
+
