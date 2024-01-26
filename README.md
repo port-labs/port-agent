@@ -904,7 +904,7 @@ Create the following blueprint, action and mapping to trigger the submition of a
 [
   {
     "identifier": "trigger_argo_workflow",
-    "title": "trigger_argo_workflow",
+    "title": "Trigger Argo Workflow",
     "icon": "Argo",
     "userInputs": {
       "properties": {
@@ -940,7 +940,7 @@ Create the following blueprint, action and mapping to trigger the submition of a
     },
     "invocationMethod": {
       "type": "WEBHOOK",
-      "url": "https://l127.0.0.1:2746",
+      "url": "https://{your-argo-workflow-domain}.com",
       "agent": true,
       "synchronized": true,
       "method": "POST"
@@ -972,7 +972,8 @@ Create the following blueprint, action and mapping to trigger the submition of a
 		"workflow": ".payload.properties.workflow"
 	  },
 	  "report": {
-		"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end"
+		"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
+    "link": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\"+ $namespace"
 	  }
 	}
 ]
