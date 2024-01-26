@@ -961,7 +961,7 @@ Create the following blueprint, action and mapping to trigger the submition of a
 [
 	{
 	  "enabled": ".action == \"trigger_argo_workflow\"",
-	  "url": "env.ARGO_WORKFLOW_HOST $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\" + $namespace",
+	  "url": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\"+ $namespace",
 	  "headers": {
 		"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
 		"Content-Type": "\"application/json\""
