@@ -695,10 +695,10 @@ Run this action with some input
 ```
 #### Opsgenie Example
 
-This example helps internal developer teams to trigger [Opsgenie](https://www.atlassian.com/software/opsgenie) incident using Port's self service actions. In particular, you will create a blueprint for `opsgenieIncident` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Obsgenie incident directly from Port using the sync execution method.
+This example helps internal developer teams to trigger [Opsgenie](https://www.atlassian.com/software/opsgenie) incidents using Port's self service actions. In particular, you will create a blueprint for `opsgenieIncident` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Opsgenie incident directly from Port using the sync execution method.
 
 
-Create the following blueprint, action and mapping to trigger a Obsgenie incident.
+Create the following blueprint, action and mapping to trigger a Opsgenie incident.
 
 <details>
 <summary>Blueprint</summary>
@@ -758,7 +758,7 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
         },
         "description": {
           "title": "Description",
-          "description": "Description field of the incident that is generally used to provide a detailed information about the incident",
+          "description": "Description field of the incident that is generally used to provide detailed information about the incident",
           "icon": "OpsGenie",
           "type": "string",
           "maxLength": 15000,
@@ -769,12 +769,32 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
           "icon": "OpsGenie",
           "type": "object"
         },
-        "priority": {
-          "title": "Priority",
-          "description": "Priority level of the incident. Possible values are P1, P2, P3, P4 and P5. Default value is P3.",
-          "icon": "OpsGenie",
+      "priority": {
+        "icon": "OpsGenie",
+        "title": "priority",
+        "description": "Priority level of the incident. Possible values are P1, P2, P3, P4 and P5. Default value is P3.",
+        "type": "array",
+        "default": [
+          "P3"
+        ],
+        "items": {
+          "enum": [
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5"
+          ],
+          "enumColors": {
+            "P1": "red",
+            "P2": "orange",
+            "P3": "yellow",
+            "P4": "green",
+            "P5": "green"
+          },
           "type": "string"
         }
+      }
       },
       "required": [
         "message",
@@ -810,7 +830,7 @@ Create the following blueprint, action and mapping to trigger a Obsgenie inciden
 [
 	{
 	  "enabled": ".action == \"create_opsgenie_incident\"",
-	  "url": "\"https://api.opsgenie.com/v1/incidents/create\"",
+	  "url": ".payload.action.url",
 	  "headers": {
 		"Authorization": "\"GenieKey \" + env.OPSGENIE_API_KEY",
 		"Content-Type": "\"application/json\""
@@ -855,10 +875,10 @@ helm install my-port-agent port-labs/port-agent \
 
 #### ArgoWorkflow Example
 
-This example helps internal developer teams to submit an [Argoworkflow](https://argoproj.github.io/workflows/) using Port's self service actions. In particular, you will create a blueprint for `argoWorkflow` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and submit your Argo Workflow directly from Port using the sync execution method.
+This example helps internal developer teams to submit an [Argo Workflow](https://argoproj.github.io/workflows/) using Port's self service actions. In particular, you will create a blueprint for `argoWorkflow` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and submit your Argo Workflow directly from Port using the sync execution method.
 
 
-Create the following blueprint, action and mapping to trigger the submition of a workflow.
+Create the following blueprint, action and mapping to trigger the submission of a workflow.
 
 <details>
 <summary>Blueprint</summary>
@@ -973,7 +993,7 @@ Create the following blueprint, action and mapping to trigger the submition of a
 	  },
 	  "report": {
 		"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-    "link": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\"+ $namespace"
+		"link": "env.ARGO_WORKFLOW_HOST as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
 	  }
 	}
 ]
@@ -1001,7 +1021,7 @@ helm install my-port-agent port-labs/port-agent \
     --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
     --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
     --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
-    --set env.secret.ARGO_WORKFLOW_HOST=YOUR_ARGO_WORKFLOW_HOST \
+    --set env.secret.ARGO_WORKFLOW_HOST=https://your-argo-workflow-host.com \
     --set-file controlThePayloadConfig=./invocations.json
 ```
 
