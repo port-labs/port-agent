@@ -1,4 +1,8 @@
+import logging
+
 from requests import Response
+
+logger = logging.getLogger(__name__)
 
 
 def response_to_dict(response: Response) -> dict:
@@ -9,11 +13,12 @@ def response_to_dict(response: Response) -> dict:
         "json": None,
     }
 
-    if response.ok:
-        try:
-            response_dict["json"] = response.json()
-        except ValueError:
-            pass
+    try:
+        response_dict["json"] = response.json()
+    except ValueError:
+        logger.debug(
+            "Failed to parse response body as JSON: Response is not JSON serializable"
+        )
 
     return response_dict
 
