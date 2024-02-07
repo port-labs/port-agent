@@ -742,83 +742,76 @@ Create the following blueprint, action and mapping to trigger a Opsgenie inciden
 <summary>Action</summary>
 
 ```json
-[
-  {
-    "identifier": "create_opsgenie_incident",
-    "title": "Create Opsgenie Incident",
-    "icon": "OpsGenie",
-    "userInputs": {
-      "properties": {
-        "message": {
-          "title": "Message",
-          "description": "Message of the incident",
-          "icon": "OpsGenie",
-          "type": "string",
-          "maxLength": 130
-        },
-        "description": {
-          "title": "Description",
-          "description": "Description field of the incident that is generally used to provide detailed information about the incident",
-          "icon": "OpsGenie",
-          "type": "string",
-          "maxLength": 15000,
-        },
-        "details": {
-          "title": "Details",
-          "description": "Map of key-value pairs to use as custom properties of the incident",
-          "icon": "OpsGenie",
-          "type": "object"
-        },
-      "priority": {
+{
+  "identifier": "create_opsgenie_incident",
+  "title": "Create Opsgenie Incident",
+  "icon": "OpsGenie",
+  "userInputs": {
+    "properties": {
+      "message": {
+        "title": "message",
+        "description": "Message of the incident",
         "icon": "OpsGenie",
-        "title": "priority",
+        "type": "string",
+        "maxLength": 130
+      },
+      "description": {
+        "icon": "OpsGenie",
+        "title": "description",
+        "type": "string",
+        "maxLength": 15000,
+        "description": "Description field of the incident that is generally used to provide a detailed information about the incident"
+      },
+      "details": {
+        "title": "details",
+        "description": "Map of key-value pairs to use as custom properties of the incident",
+        "icon": "OpsGenie",
+        "type": "object"
+      },
+      "priority": {
+        "title": "Priority",
         "description": "Priority level of the incident. Possible values are P1, P2, P3, P4 and P5. Default value is P3.",
-        "type": "array",
-        "default": [
-          "P3"
+        "icon": "OpsGenie",
+        "type": "string",
+        "default": "P3",
+        "enum": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5"
         ],
-        "items": {
-          "enum": [
-            "P1",
-            "P2",
-            "P3",
-            "P4",
-            "P5"
-          ],
-          "enumColors": {
-            "P1": "red",
-            "P2": "orange",
-            "P3": "yellow",
-            "P4": "green",
-            "P5": "green"
-          },
-          "type": "string"
+        "enumColors": {
+          "P1": "red",
+          "P2": "orange",
+          "P3": "yellow",
+          "P4": "green",
+          "P5": "green"
         }
       }
-      },
-      "required": [
-        "message",
-        "description"
-      ],
-      "order": [
-        "message",
-        "description",
-        "details",
-        "priority"
-      ]
     },
-    "invocationMethod": {
-      "type": "WEBHOOK",
-      "url": "https://api.opsgenie.com/v1/incidents/create",
-      "agent": true,
-      "synchronized": true,
-      "method": "POST"
-    },
-    "trigger": "CREATE",
-    "description": "Create Opsgenie incident",
-    "requiredApproval": false
-  }
-]
+    "required": [
+      "message",
+      "description"
+    ],
+    "order": [
+      "message",
+      "description",
+      "details",
+      "priority"
+    ]
+  },
+  "invocationMethod": {
+    "type": "WEBHOOK",
+    "url": "https://api.opsgenie.com/v1/incidents/create",
+    "agent": true,
+    "synchronized": true,
+    "method": "POST"
+  },
+  "trigger": "CREATE",
+  "description": "Create Opsgenie incident",
+  "requiredApproval": false
+}
 ```
 
 </details>
