@@ -977,7 +977,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 		},
 		"report": {
 			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-			"link": ".payload.action.invocationMethod.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
+			"link": ".request.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
 		}
 	}
 ]
