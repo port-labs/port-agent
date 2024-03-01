@@ -1005,6 +1005,5 @@ helm install my-port-agent port-labs/port-agent \
     --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
     --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
     --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
-    --set env.secret.ARGO_WORKFLOW_HOST=https://your-argo-workflow-host.com \
     --set-file controlThePayloadConfig=./invocations.json
 ```
