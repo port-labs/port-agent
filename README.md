@@ -919,7 +919,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 ```json
 {
   "identifier": "trigger_argo_workflow",
-  "title": "Trigger Argo Workflow",
+  "title": "Trigger A Workflow",
   "icon": "Argo",
   "userInputs": {
     "properties": {
@@ -927,41 +927,22 @@ Create the following blueprint, action and mapping to trigger a workflow.
         "title": "Namespace",
         "description": "Name of the namespace",
         "icon": "Argo",
-        "type": "string"
-      },
-      "spec": {
-        "title": "Specification",
-        "icon": "Argo",
-        "type": "object",
+        "type": "string",
         "default": {
-          "jqQuery": ".entity.properties.spec"
-        },
-        "description": "Workflow object"
-      },
-      "metadata": {
-        "title": "Metadata",
-        "description": "Argo Workflow template metadata",
-        "icon": "Argo",
-        "type": "object",
-        "default": {
-          "jqQuery": ".entity.properties.metadata"
+          "jqQuery": ".entity.properties.metadata.namespace"
         }
       },
-      "server_dry_run": {
-        "title": "Server Dry Run",
-        "description": " A boolean flag indicating whether the workflow submission should be a dry run on the server side",
+      "memoized": {
+        "title": "Memoized",
+        "description": "Turning on memoized enables all steps to be executed again regardless of previous outputs",
         "icon": "Argo",
         "type": "boolean",
-        "default": true
+        "default": false
       }
     },
-    "required": [
-      "namespace"
-    ],
+    "required": [],
     "order": [
-      "namespace",
-      "spec",
-      "metadata"
+      "memoized"
     ]
   },
   "invocationMethod": {
@@ -969,10 +950,9 @@ Create the following blueprint, action and mapping to trigger a workflow.
     "url": "https://{your-argo-workflow-domain}.com",
     "agent": true,
     "synchronized": true,
-    "method": "POST"
+    "method": "PUT"
   },
   "trigger": "DAY-2",
-  "description": "Trigger Argo Workflow",
   "requiredApproval": false
 }
 ```
@@ -986,24 +966,20 @@ Create the following blueprint, action and mapping to trigger a workflow.
 [
 	{
 		"enabled": ".action == \"trigger_argo_workflow\"",
-		"url": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\"+ $namespace",
+		"url": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | .payload.entity.title as $workflow_name | $baseUrl + \"/api/v1/workflows/\" + $namespace + \"/\" + $workflow_name + \"/resubmit\"",
 		"headers": {
 			"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
 			"Content-Type": "\"application/json\""
 		},
 		"body": {
-			"serverDryRun": ".payload.entity.properties.server_dry_run",
-			"workflow": {
-				"metadata": ".payload.entity.properties.metadata",
-				"spec": ".payload.entity.properties.spec"
-			},
-			"report": {
-				"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-				"link": "env.ARGO_WORKFLOW_HOST as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
-			}
+			"memoized": ".payload.properties.memoized"
+		},
+		"report": {
+			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
+			"link": "env.ARGO_WORKFLOW_HOST as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
 		}
 	}
-	]
+]
 ```
 </details>
 
