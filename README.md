@@ -897,10 +897,10 @@ Create the following blueprint, action and mapping to trigger a workflow.
         "type": "object"
       },
       "status": {
-        "type": "Argo",
+        "type": "object",
         "title": "Status",
         "description": "Status information for the Argo Workflow.",
-        "icon": "DefaultProperty"
+        "icon": "Argo"
       }
     },
     "required": []
@@ -953,6 +953,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
     "method": "PUT"
   },
   "trigger": "DAY-2",
+  "description": "Trigger the execution of an argo workflow",
   "requiredApproval": false
 }
 ```
@@ -965,8 +966,8 @@ Create the following blueprint, action and mapping to trigger a workflow.
 ```json
 [
 	{
-		"enabled": ".action == \"trigger_argo_workflow\"",
-		"url": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | .payload.entity.title as $workflow_name | $baseUrl + \"/api/v1/workflows/\" + $namespace + \"/\" + $workflow_name + \"/resubmit\"",
+		"enabled": ".action == \"trigger_a_workflow\"",
+		"url": ".payload.action.invocationMethod.url as $baseUrl | .payload.properties.namespace as $namespace | .payload.entity.title as $workflow_name | $baseUrl + \"/api/v1/workflows/\" + $namespace + \"/\" + $workflow_name + \"/resubmit\"",
 		"headers": {
 			"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
 			"Content-Type": "\"application/json\""
@@ -976,7 +977,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 		},
 		"report": {
 			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-			"link": "env.ARGO_WORKFLOW_HOST as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
+			"link": ".payload.action.invocationMethod.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
 		}
 	}
 ]
