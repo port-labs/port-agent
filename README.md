@@ -885,19 +885,19 @@ Create the following blueprint, action and mapping to trigger a workflow.
   "schema": {
     "properties": {
       "metadata": {
-        "icon": "DefaultProperty",
+        "icon": "Argo",
         "title": "Metadata",
         "description": "Metadata information for the Argo Workflow.",
         "type": "object"
       },
       "spec": {
-        "icon": "DefaultProperty",
+        "icon": "Argo",
         "title": "Specification",
         "description": "Specification details of the Argo Workflow.",
         "type": "object"
       },
       "status": {
-        "type": "object",
+        "type": "Argo",
         "title": "Status",
         "description": "Status information for the Argo Workflow.",
         "icon": "DefaultProperty"
