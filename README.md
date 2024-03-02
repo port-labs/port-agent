@@ -868,10 +868,10 @@ helm install my-port-agent port-labs/port-agent \
 
 #### ArgoWorkflow Example
 
-This example helps internal developer teams to submit an [Argo Workflow](https://argoproj.github.io/workflows/) using Port's self service actions. In particular, you will create a blueprint for `argoWorkflow` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and submit your Argo Workflow directly from Port using the sync execution method.
+This example helps internal developer teams to trigger an [Argo Workflow](https://argoproj.github.io/workflows/) using Port's self service actions. In particular, you will create a blueprint for `argoWorkflow` that will be connected to a backend action. You will then add some configuration files (`invocations.json`) to control the payload and trigger your Argo Workflow directly from Port using the sync execution method.
 
 
-Create the following blueprint, action and mapping to trigger the submission of a workflow.
+Create the following blueprint, action and mapping to trigger a workflow.
 
 <details>
 <summary>Blueprint</summary>
@@ -885,19 +885,22 @@ Create the following blueprint, action and mapping to trigger the submission of 
   "schema": {
     "properties": {
       "metadata": {
-        "type": "object",
+        "icon": "Argo",
         "title": "Metadata",
-        "description": "Metadata information for the Argo Workflow."
+        "description": "Metadata information for the Argo Workflow.",
+        "type": "object"
       },
       "spec": {
-        "type": "object",
+        "icon": "Argo",
         "title": "Specification",
-        "description": "Specification details of the Argo Workflow."
+        "description": "Specification details of the Argo Workflow.",
+        "type": "object"
       },
       "status": {
         "type": "object",
         "title": "Status",
-        "description": "Status information for the Argo Workflow."
+        "description": "Status information for the Argo Workflow.",
+        "icon": "Argo"
       }
     },
     "required": []
@@ -914,55 +917,45 @@ Create the following blueprint, action and mapping to trigger the submission of 
 <summary>Action</summary>
 
 ```json
-[
-  {
-    "identifier": "trigger_argo_workflow",
-    "title": "Trigger Argo Workflow",
-    "icon": "Argo",
-    "userInputs": {
-      "properties": {
-        "namespace": {
-          "title": "Namespace",
-          "description": "Name of the namespace",
-          "icon": "Argo",
-          "type": "string"
-        },
-        "workflow": {
-          "title": "Workflow",
-          "icon": "Argo",
-          "type": "object",
-          "description": "Workflow object"
-        },
-        "serverDryRun": {
-          "icon": "Argo",
-          "title": "Server Dry Run",
-          "description": "Server Dry Run",
-          "type": "boolean"
+{
+  "identifier": "trigger_argo_workflow",
+  "title": "Trigger A Workflow",
+  "icon": "Argo",
+  "userInputs": {
+    "properties": {
+      "namespace": {
+        "title": "Namespace",
+        "description": "Name of the namespace",
+        "icon": "Argo",
+        "type": "string",
+        "default": {
+          "jqQuery": ".entity.properties.metadata.namespace"
         }
       },
-      "required": [
-        "namespace",
-        "serverDryRun",
-        "workflow"
-      ],
-      "order": [
-        "namespace",
-        "serverDryRun",
-        "workflow"
-      ]
+      "memoized": {
+        "title": "Memoized",
+        "description": "Turning on memoized enables all steps to be executed again regardless of previous outputs",
+        "icon": "Argo",
+        "type": "boolean",
+        "default": false
+      }
     },
-    "invocationMethod": {
-      "type": "WEBHOOK",
-      "url": "https://{your-argo-workflow-domain}.com",
-      "agent": true,
-      "synchronized": true,
-      "method": "POST"
-    },
-    "trigger": "CREATE",
-    "description": "Trigger Argo Workflow",
-    "requiredApproval": false
-  }
-]
+    "required": [],
+    "order": [
+      "memoized"
+    ]
+  },
+  "invocationMethod": {
+    "type": "WEBHOOK",
+    "url": "https://{your-argo-workflow-domain}.com",
+    "agent": true,
+    "synchronized": true,
+    "method": "PUT"
+  },
+  "trigger": "DAY-2",
+  "description": "Trigger the execution of an argo workflow",
+  "requiredApproval": false
+}
 ```
 
 </details>
@@ -973,21 +966,19 @@ Create the following blueprint, action and mapping to trigger the submission of 
 ```json
 [
 	{
-	  "enabled": ".action == \"trigger_argo_workflow\"",
-	  "url": "env.ARGO_WORKFLOW_HOST as $baseUrl | .payload.properties.namespace as $namespace | $baseUrl + \"/api/v1/workflows/\"+ $namespace",
-	  "headers": {
-		"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
-		"Content-Type": "\"application/json\""
-	  },
-	  "body": {
-		"namespace": ".payload.properties.namespace",
-		"serverDryRun": ".payload.properties.serverDryRun",
-		"workflow": ".payload.properties.workflow"
-	  },
-	  "report": {
-		"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-		"link": "env.ARGO_WORKFLOW_HOST as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
-	  }
+		"enabled": ".action == \"trigger_a_workflow\"",
+		"url": ".payload.action.invocationMethod.url as $baseUrl | .payload.properties.namespace as $namespace | .payload.entity.title as $workflow_name | $baseUrl + \"/api/v1/workflows/\" + $namespace + \"/\" + $workflow_name + \"/resubmit\"",
+		"headers": {
+			"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
+			"Content-Type": "\"application/json\""
+		},
+		"body": {
+			"memoized": ".payload.properties.memoized"
+		},
+		"report": {
+			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
+			"link": ".request.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
+		}
 	}
 ]
 ```
@@ -1014,8 +1005,5 @@ helm install my-port-agent port-labs/port-agent \
     --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
     --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
     --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
-    --set env.secret.ARGO_WORKFLOW_HOST=https://your-argo-workflow-host.com \
     --set-file controlThePayloadConfig=./invocations.json
 ```
-
-
