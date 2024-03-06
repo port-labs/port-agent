@@ -918,7 +918,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 
 ```json
 {
-  "identifier": "trigger_argo_workflow",
+  "identifier": "trigger_a_workflow",
   "title": "Trigger A Workflow",
   "icon": "Argo",
   "userInputs": {
@@ -977,7 +977,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 		},
 		"report": {
 			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-			"link": ".request.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
+			"link": ".body.payload.action.invocationMethod.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
 		}
 	}
 ]
