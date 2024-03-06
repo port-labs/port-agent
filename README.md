@@ -1007,3 +1007,156 @@ helm install my-port-agent port-labs/port-agent \
     --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
     --set-file controlThePayloadConfig=./invocations.json
 ```
+
+>**Note** Register existing Argo Workflow in the catalog (this is a one time operation). The workflow should exist in your argo workflow deployment instance
+
+<details>
+<summary>Sample Argo Workflow</summary>
+
+```json
+{
+  "identifier": "f7d561c3-2791-4092-b960-8f2428ef9d79",
+  "title": "hello-world-x9w5h",
+  "icon": "Argo",
+  "team": [],
+  "properties": {
+    "metadata": {
+      "name": "hello-world-x9w5h",
+      "generateName": "hello-world-",
+      "namespace": "argo",
+      "uid": "f7d561c3-2791-4092-b960-8f2428ef9d79",
+      "resourceVersion": "484158",
+      "generation": 7,
+      "creationTimestamp": "2024-01-22T20:53:35Z",
+      "labels": {
+        "workflows.argoproj.io/completed": "false",
+        "workflows.argoproj.io/creator": "system-serviceaccount-argo-argo-server",
+        "workflows.argoproj.io/phase": "Failed"
+      },
+      "annotations": {
+        "workflows.argoproj.io/pod-name-format": "v2"
+      },
+      "managedFields": [
+        {
+          "manager": "argo",
+          "operation": "Update",
+          "apiVersion": "argoproj.io/v1alpha1",
+          "time": "2024-02-28T08:52:25Z",
+          "fieldsType": "FieldsV1",
+          "fieldsV1": {
+            "f:metadata": {
+              "f:generateName": {},
+              "f:labels": {
+                ".": {},
+                "f:workflows.argoproj.io/completed": {},
+                "f:workflows.argoproj.io/creator": {}
+              }
+            },
+            "f:spec": {}
+          }
+        },
+        {
+          "manager": "workflow-controller",
+          "operation": "Update",
+          "apiVersion": "argoproj.io/v1alpha1",
+          "time": "2024-02-28T08:52:35Z",
+          "fieldsType": "FieldsV1",
+          "fieldsV1": {
+            "f:metadata": {
+              "f:annotations": {
+                ".": {},
+                "f:workflows.argoproj.io/pod-name-format": {}
+              },
+              "f:labels": {
+                "f:workflows.argoproj.io/phase": {}
+              }
+            },
+            "f:status": {}
+          }
+        }
+      ]
+    },
+    "spec": {
+      "templates": [
+        {
+          "name": "whalesay",
+          "inputs": {},
+          "outputs": {},
+          "metadata": {},
+          "container": {
+            "name": "",
+            "image": "docker/whalesay:latest",
+            "command": [
+              "cowsay"
+            ],
+            "args": [
+              "hello world"
+            ],
+            "resources": {}
+          }
+        }
+      ],
+      "entrypoint": "whalesay",
+      "arguments": {},
+      "shutdown": "Stop"
+    },
+    "status": {
+      "phase": "Completed",
+      "startedAt": "2024-01-22T20:53:36Z",
+      "progress": "0/1",
+      "message": "Stopped with strategy 'Stop'",
+      "nodes": {
+        "hello-world-x9w5h": {
+          "id": "hello-world-x9w5h",
+          "name": "hello-world-x9w5h",
+          "displayName": "hello-world-x9w5h",
+          "type": "Pod",
+          "templateName": "whalesay",
+          "templateScope": "local/hello-world-x9w5h",
+          "phase": "Failed",
+          "message": "workflow shutdown with strategy:  Stop",
+          "startedAt": "2024-01-22T20:53:36Z",
+          "finishedAt": "2024-02-28T08:52:35Z",
+          "progress": "0/1",
+          "hostNodeName": "minikube"
+        }
+      },
+      "conditions": [
+        {
+          "type": "PodRunning",
+          "status": "False"
+        }
+      ],
+      "artifactRepositoryRef": {
+        "configMap": "artifact-repositories",
+        "key": "default-v1",
+        "namespace": "argo",
+        "artifactRepository": {
+          "archiveLogs": true,
+          "s3": {
+            "endpoint": "minio:9000",
+            "bucket": "my-bucket",
+            "insecure": true,
+            "accessKeySecret": {
+              "name": "my-minio-cred",
+              "key": "accesskey"
+            },
+            "secretKeySecret": {
+              "name": "my-minio-cred",
+              "key": "secretkey"
+            }
+          }
+        }
+      },
+      "artifactGCStatus": {
+        "notSpecified": true
+      },
+      "taskResultsCompletionStatus": {
+        "hello-world-x9w5h": false
+      }
+    }
+  },
+  "relations": {}
+}
+```
+</details>
