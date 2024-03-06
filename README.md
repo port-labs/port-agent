@@ -913,102 +913,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 ```
 </details>
 
->**Note** Register existing Argo Workflow in the catalog (this is a one time operation). The workflow should exist in your argo workflow deployment instance
-
-<details>
-<summary>Action</summary>
-
-```json
-{
-  "identifier": "trigger_a_workflow",
-  "title": "Trigger A Workflow",
-  "icon": "Argo",
-  "userInputs": {
-    "properties": {
-      "namespace": {
-        "title": "Namespace",
-        "description": "Name of the namespace",
-        "icon": "Argo",
-        "type": "string",
-        "default": {
-          "jqQuery": ".entity.properties.metadata.namespace"
-        }
-      },
-      "memoized": {
-        "title": "Memoized",
-        "description": "Turning on memoized enables all steps to be executed again regardless of previous outputs",
-        "icon": "Argo",
-        "type": "boolean",
-        "default": false
-      }
-    },
-    "required": [],
-    "order": [
-      "memoized"
-    ]
-  },
-  "invocationMethod": {
-    "type": "WEBHOOK",
-    "url": "https://{your-argo-workflow-domain}.com",
-    "agent": true,
-    "synchronized": true,
-    "method": "PUT"
-  },
-  "trigger": "DAY-2",
-  "description": "Trigger the execution of an argo workflow",
-  "requiredApproval": false
-}
-```
-
-</details>
-
-<details>
-<summary>Mapping - (Should be saved as `invocations.json`)</summary>
-
-```json
-[
-	{
-		"enabled": ".action == \"trigger_a_workflow\"",
-		"url": ".payload.action.invocationMethod.url as $baseUrl | .payload.properties.namespace as $namespace | .payload.entity.title as $workflow_name | $baseUrl + \"/api/v1/workflows/\" + $namespace + \"/\" + $workflow_name + \"/resubmit\"",
-		"headers": {
-			"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
-			"Content-Type": "\"application/json\""
-		},
-		"body": {
-			"memoized": ".payload.properties.memoized"
-		},
-		"report": {
-			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
-			"link": ".body.payload.action.invocationMethod.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
-		}
-	}
-]
-```
-</details>
-
-**Port agent installation for ArgoWorkflow example**:
-
-```sh
-helm repo add port-labs https://port-labs.github.io/helm-charts
-
-helm repo update
-
-helm install my-port-agent port-labs/port-agent \
-    --create-namespace --namespace port-agent \
-    --set env.normal.PORT_ORG_ID=YOUR_ORG_ID \
-    --set env.normal.PORT_CLIENT_ID=YOUR_CLIENT \
-    --set env.secret.PORT_CLIENT_SECRET=YOUR_PORT_CLIENT_SECRET \
-    --set env.normal.KAFKA_CONSUMER_GROUP_ID=YOUR_KAFKA_CONSUMER_GROUP \
-    --set env.secret.KAFKA_CONSUMER_USERNAME=YOUR_KAFKA_USERNAME \
-    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD
-    --set env.normal.KAFKA_CONSUMER_BROKERS=PORT_KAFKA_BROKERS \
-    --set env.normal.STREAMER_NAME=KAFKA \
-    --set env.normal.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM=SCRAM-SHA-512 \
-    --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
-    --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
-    --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
-    --set-file controlThePayloadConfig=./invocations.json
-```
+>**Note** Register an existing Argo Workflow in the catalog (this is a one time operation). The workflow should exist in your Argo workflow deployment instance
 
 <details>
 <summary>Blueprint Entity Example</summary>
@@ -1101,7 +1006,102 @@ helm install my-port-agent port-labs/port-agent \
       "shutdown": "Stop"
     },
     "status": {},
-  "relations": {}
+    "relations": {}
+  }
 }
 ```
 </details>
+
+<details>
+<summary>Action</summary>
+
+```json
+{
+  "identifier": "trigger_a_workflow",
+  "title": "Trigger A Workflow",
+  "icon": "Argo",
+  "userInputs": {
+    "properties": {
+      "namespace": {
+        "title": "Namespace",
+        "description": "Name of the namespace",
+        "icon": "Argo",
+        "type": "string",
+        "default": {
+          "jqQuery": ".entity.properties.metadata.namespace"
+        }
+      },
+      "memoized": {
+        "title": "Memoized",
+        "description": "Turning on memoized enables all steps to be executed again regardless of previous outputs",
+        "icon": "Argo",
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": [],
+    "order": [
+      "memoized"
+    ]
+  },
+  "invocationMethod": {
+    "type": "WEBHOOK",
+    "url": "https://{your-argo-workflow-domain}.com",
+    "agent": true,
+    "synchronized": true,
+    "method": "PUT"
+  },
+  "trigger": "DAY-2",
+  "description": "Trigger the execution of an argo workflow",
+  "requiredApproval": false
+}
+```
+</details>
+
+<details>
+<summary>Mapping - (Should be saved as `invocations.json`)</summary>
+
+```json
+[
+	{
+		"enabled": ".action == \"trigger_a_workflow\"",
+		"url": ".payload.action.invocationMethod.url as $baseUrl | .payload.properties.namespace as $namespace | .payload.entity.title as $workflow_name | $baseUrl + \"/api/v1/workflows/\" + $namespace + \"/\" + $workflow_name + \"/resubmit\"",
+		"headers": {
+			"Authorization": "\"Bearer \" + env.ARGO_WORKFLOW_TOKEN",
+			"Content-Type": "\"application/json\""
+		},
+		"body": {
+			"memoized": ".payload.properties.memoized"
+		},
+		"report": {
+			"status": "if .response.statusCode == 200 then \"SUCCESS\" else \"FAILURE\" end",
+			"link": ".body.payload.action.invocationMethod.url as $baseUrl | $baseUrl + \"/workflows/\"+ .response.json.metadata.namespace + \"/\" +.response.json.metadata.name"
+		}
+	}
+]
+```
+</details>
+
+**Port agent installation for ArgoWorkflow example**:
+
+```sh
+helm repo add port-labs https://port-labs.github.io/helm-charts
+
+helm repo update
+
+helm install my-port-agent port-labs/port-agent \
+    --create-namespace --namespace port-agent \
+    --set env.normal.PORT_ORG_ID=YOUR_ORG_ID \
+    --set env.normal.PORT_CLIENT_ID=YOUR_CLIENT \
+    --set env.secret.PORT_CLIENT_SECRET=YOUR_PORT_CLIENT_SECRET \
+    --set env.normal.KAFKA_CONSUMER_GROUP_ID=YOUR_KAFKA_CONSUMER_GROUP \
+    --set env.secret.KAFKA_CONSUMER_USERNAME=YOUR_KAFKA_USERNAME \
+    --set env.secret.KAFKA_CONSUMER_PASSWORD=YOUR_KAFKA_PASSWORD
+    --set env.normal.KAFKA_CONSUMER_BROKERS=PORT_KAFKA_BROKERS \
+    --set env.normal.STREAMER_NAME=KAFKA \
+    --set env.normal.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM=SCRAM-SHA-512 \
+    --set env.normal.KAFKA_CONSUMER_AUTO_OFFSET_RESET=earliest \
+    --set env.normal.KAFKA_CONSUMER_SECURITY_PROTOCOL=SASL_SSL \
+    --set en.secret.ARGO_WORKFLOW_TOKEN=YOUR_ARGO_WORKFLOW_TOKEN \
+    --set-file controlThePayloadConfig=./invocations.json
+```
