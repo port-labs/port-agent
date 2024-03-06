@@ -913,6 +913,8 @@ Create the following blueprint, action and mapping to trigger a workflow.
 ```
 </details>
 
+>**Note** Register existing Argo Workflow in the catalog (this is a one time operation). The workflow should exist in your argo workflow deployment instance
+
 <details>
 <summary>Action</summary>
 
@@ -1008,10 +1010,8 @@ helm install my-port-agent port-labs/port-agent \
     --set-file controlThePayloadConfig=./invocations.json
 ```
 
->**Note** Register existing Argo Workflow in the catalog (this is a one time operation). The workflow should exist in your argo workflow deployment instance
-
 <details>
-<summary>Sample Argo Workflow</summary>
+<summary>Blueprint Entity Example</summary>
 
 ```json
 {
@@ -1100,62 +1100,7 @@ helm install my-port-agent port-labs/port-agent \
       "arguments": {},
       "shutdown": "Stop"
     },
-    "status": {
-      "phase": "Completed",
-      "startedAt": "2024-01-22T20:53:36Z",
-      "progress": "0/1",
-      "message": "Stopped with strategy 'Stop'",
-      "nodes": {
-        "hello-world-x9w5h": {
-          "id": "hello-world-x9w5h",
-          "name": "hello-world-x9w5h",
-          "displayName": "hello-world-x9w5h",
-          "type": "Pod",
-          "templateName": "whalesay",
-          "templateScope": "local/hello-world-x9w5h",
-          "phase": "Failed",
-          "message": "workflow shutdown with strategy:  Stop",
-          "startedAt": "2024-01-22T20:53:36Z",
-          "finishedAt": "2024-02-28T08:52:35Z",
-          "progress": "0/1",
-          "hostNodeName": "minikube"
-        }
-      },
-      "conditions": [
-        {
-          "type": "PodRunning",
-          "status": "False"
-        }
-      ],
-      "artifactRepositoryRef": {
-        "configMap": "artifact-repositories",
-        "key": "default-v1",
-        "namespace": "argo",
-        "artifactRepository": {
-          "archiveLogs": true,
-          "s3": {
-            "endpoint": "minio:9000",
-            "bucket": "my-bucket",
-            "insecure": true,
-            "accessKeySecret": {
-              "name": "my-minio-cred",
-              "key": "accesskey"
-            },
-            "secretKeySecret": {
-              "name": "my-minio-cred",
-              "key": "secretkey"
-            }
-          }
-        }
-      },
-      "artifactGCStatus": {
-        "notSpecified": true
-      },
-      "taskResultsCompletionStatus": {
-        "hello-world-x9w5h": false
-      }
-    }
-  },
+    "status": {},
   "relations": {}
 }
 ```
