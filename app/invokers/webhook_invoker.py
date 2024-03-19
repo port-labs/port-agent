@@ -267,7 +267,14 @@ class WebhookInvoker(BaseInvoker):
                 run_id,
             )
         res.raise_for_status()
-        run_logger("Finished processing the action")
+        if report_payload.status not in ["SUCCESS", "FAILURE"]:
+            run_logger(
+                "The run status was not reported,"
+                " and should be reported manually in"
+                " the UI or using the API"
+            )
+        else:
+            run_logger("Finished processing the action")
 
     def invoke(self, body: dict, invocation_method: dict) -> None:
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
