@@ -7,6 +7,10 @@
       "token": ".payload.action.invocationMethod.groupName as $gitlab_group | .payload.action.invocationMethod.projectName as $gitlab_project | env[($gitlab_group | gsub(\"/\"; \"_\")) + \"_\" + $gitlab_project]",
       "variables": ".payload.action.invocationMethod as $invocationMethod | .payload.properties | to_entries | map({(.key): (.value | tostring)}) | add | if $invocationMethod.omitUserInputs then {} else . end",
       "port_payload": "if .payload.action.invocationMethod.omitPayload then {} else . end"
+    },
+    "report": {
+      "link": ".response.json.web_url",
+      "externalRunId": ".response.json.id | tostring"
     }
   },
   {
