@@ -173,7 +173,6 @@ class WebhookInvoker(BaseInvoker):
     def _report_run_status(
         run_id: str, data_to_patch: dict, run_logger: Callable[[str], None]
     ) -> Response:
-        run_logger("Reporting the run status")
         res = report_run_status(run_id, data_to_patch)
 
         if res.ok:
@@ -182,7 +181,6 @@ class WebhookInvoker(BaseInvoker):
                 run_id,
                 res.status_code,
             )
-            run_logger("The run status was reported successfully")
         else:
             logger.warning(
                 "WebhookInvoker - report run - "
@@ -192,7 +190,7 @@ class WebhookInvoker(BaseInvoker):
                 res.text,
             )
             run_logger(
-                f"The run status failed to be reported "
+                f"The run state failed to be reported "
                 f"with status code: {res.status_code} and response: {res.text}"
             )
 
@@ -267,14 +265,7 @@ class WebhookInvoker(BaseInvoker):
                 run_id,
             )
         res.raise_for_status()
-        if report_payload.status not in ["SUCCESS", "FAILURE"]:
-            run_logger(
-                "The run status was not reported,"
-                " and should be reported manually in"
-                " the UI or using the API"
-            )
-        else:
-            run_logger("Finished processing the action")
+        run_logger("Port agent finished processing the action run")
 
     def invoke(self, body: dict, invocation_method: dict) -> None:
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
