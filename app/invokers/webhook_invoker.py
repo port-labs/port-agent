@@ -280,12 +280,12 @@ class WebhookInvoker(BaseInvoker):
         res.raise_for_status()
         run_logger("Port agent finished processing the action run")
 
-    def validate_incoming_signature(self, msg: dict) -> bool:
-        if not msg.get("context", {}).get("runId"):
+    def validate_incoming_signature(self, msg: dict, run_id: str) -> bool:
+        if not run_id:
             return True
 
-        port_signature = msg.get("headers").get("X-Port-Signature")
-        port_timestamp = msg.get("headers").get("X-Port-Timestamp")
+        port_signature = msg.get("headers", {}).get("X-Port-Signature")
+        port_timestamp = msg.get("headers", {}).get("X-Port-Timestamp")
 
         if not port_signature or not port_timestamp:
             logger.warning(
@@ -308,12 +308,12 @@ class WebhookInvoker(BaseInvoker):
 
     def invoke(self, msg: dict, invocation_method: dict) -> None:
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
+        run_id = msg["context"].get("runId")
 
-        if not self.validate_incoming_signature(msg):
+        if not self.validate_incoming_signature(msg, run_id):
             return
 
         logger.info("WebhookInvoker - validating signature")
-        run_id = msg["context"].get("runId")
 
         mapping = self._find_mapping(msg)
         if mapping is None:
