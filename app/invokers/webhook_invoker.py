@@ -281,7 +281,7 @@ class WebhookInvoker(BaseInvoker):
         run_logger("Port agent finished processing the action run")
 
     def validate_incoming_signature(self, msg: dict) -> bool:
-        if not msg["context"].get("runId"):
+        if not msg.get("context", {}).get("runId"):
             return True
 
         port_signature = msg.get("headers").get("X-Port-Signature")
