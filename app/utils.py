@@ -1,4 +1,7 @@
+import base64
+import hmac
 import logging
+import hashlib
 
 from requests import Response
 
@@ -32,3 +35,11 @@ def get_response_body(response: Response) -> dict | str | None:
         return response.json()
     except ValueError:
         return response.text
+
+
+def sign_sha_256(input: str, secret: str, timestamp: str) -> str:
+    to_sign = f"{timestamp}.{input}"
+    new_hmac = hmac.new(bytes(secret, "utf-8"), digestmod=hashlib.sha256)
+    new_hmac.update(bytes(to_sign, "utf-8"))
+    signed = base64.b64encode(new_hmac.digest()).decode("utf-8")
+    return f"v1,{signed}"

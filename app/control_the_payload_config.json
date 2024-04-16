@@ -15,6 +15,9 @@
   },
   {
     "enabled": true,
+    "headers": {
+      "tryy": ".payload.action.invocationMethod.type"
+    },
     "url": ".payload.action.invocationMethod.url // .changelogDestination.url",
     "method": ".payload.action.invocationMethod.method // \"POST\""
   }
