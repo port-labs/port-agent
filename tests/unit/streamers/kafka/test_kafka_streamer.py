@@ -19,7 +19,10 @@ from tests.unit.streamers.kafka.conftest import Consumer, terminate_consumer
     ],
     indirect=True,
 )
-def test_single_stream_success(mock_requests: None, mock_kafka: None) -> None:
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_single_stream_success(
+    mock_requests: None, mock_kafka: None, mock_timestamp: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -37,7 +40,10 @@ def test_single_stream_success(mock_requests: None, mock_kafka: None) -> None:
     ],
     indirect=True,
 )
-def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_single_stream_failed(
+    mock_requests: None, mock_kafka: None, mock_timestamp: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -60,7 +66,10 @@ def test_single_stream_failed(mock_requests: None, mock_kafka: None) -> None:
     ],
     indirect=True,
 )
-def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_single_stream_skipped_due_to_agentless(
+    mock_kafka: None, mock_timestamp: None
+) -> None:
     Timer(0.01, terminate_consumer).start()
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
         streamer_logger, "info"
@@ -70,7 +79,6 @@ def test_single_stream_skipped_due_to_agentless(mock_kafka: None) -> None:
 
         mock_error.assert_not_called()
 
-        print(f"list: {mock_info.call_count}")
         mock_info.assert_has_calls(
             [
                 call(ANY, ANY),

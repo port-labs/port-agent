@@ -1,4 +1,6 @@
+import json
 import logging
+import time
 from typing import Any, Callable
 
 import pyjq as jq
@@ -10,7 +12,12 @@ from invokers.base_invoker import BaseInvoker
 from port_client import report_run_response, report_run_status, run_logger_factory
 from pydantic import BaseModel, Field
 from requests import Response
-from utils import get_invocation_method_object, get_response_body, response_to_dict
+from utils import (
+    get_invocation_method_object,
+    get_response_body,
+    response_to_dict,
+    sign_sha_256,
+)
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -137,6 +144,12 @@ class WebhookInvoker(BaseInvoker):
             request_payload.body,
         )
         run_logger("Sending the request")
+        request_payload.headers["X-Port-Timestamp"] = str(int(time.time()))
+        request_payload.headers["X-Port-Signature"] = sign_sha_256(
+            json.dumps(request_payload.body, separators=(",", ":")),
+            settings.PORT_CLIENT_SECRET,
+            request_payload.headers["X-Port-Timestamp"],
+        )
 
         res = requests.request(
             request_payload.method,
@@ -267,23 +280,58 @@ class WebhookInvoker(BaseInvoker):
         res.raise_for_status()
         run_logger("Port agent finished processing the action run")
 
-    def invoke(self, body: dict, invocation_method: dict) -> None:
-        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
-        run_id = body["context"].get("runId")
+    def validate_incoming_signature(self, msg: dict) -> bool:
+        if "changelogDestination" in msg:
+            return True
 
-        mapping = self._find_mapping(body)
+        port_signature = msg.get("headers", {}).get("X-Port-Signature")
+        port_timestamp = msg.get("headers", {}).get("X-Port-Timestamp")
+
+        if not port_signature or not port_timestamp:
+            logger.warning(
+                "WebhookInvoker - Could not find the required headers, skipping the"
+                " event invocation method for the event"
+            )
+            return False
+
+        # Remove the headers to avoid them being used in the signature verification
+        del msg["headers"]["X-Port-Signature"]
+        del msg["headers"]["X-Port-Timestamp"]
+
+        expected_sig = sign_sha_256(
+            json.dumps(msg, separators=(",", ":")),
+            settings.PORT_CLIENT_SECRET,
+            port_timestamp,
+        )
+        if expected_sig != port_signature:
+            logger.warning(
+                "WebhookInvoker - Could not verify signature, skipping the event"
+            )
+            return False
+        return True
+
+    def invoke(self, msg: dict, invocation_method: dict) -> None:
+        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
+        run_id = msg["context"].get("runId")
+
+        if not self.validate_incoming_signature(msg):
+            return
+
+        logger.info("WebhookInvoker - validating signature")
+
+        mapping = self._find_mapping(msg)
         if mapping is None:
             logger.info(
                 "WebhookInvoker - Could not find suitable mapping for the event"
-                f" - body: {body} {', run_id: ' + run_id if run_id else ''}",
+                f" - msg: {msg} {', run_id: ' + run_id if run_id else ''}",
             )
             return
 
         if run_id:
-            self._invoke_run(run_id, mapping, body, invocation_method)
+            self._invoke_run(run_id, mapping, msg, invocation_method)
         # Used for changelog destination event trigger
         elif invocation_method.get("url"):
-            request_payload = self._prepare_payload(mapping, body, invocation_method)
+            request_payload = self._prepare_payload(mapping, msg, invocation_method)
             res = self._request(request_payload, lambda _: None)
             res.raise_for_status()
         else:
