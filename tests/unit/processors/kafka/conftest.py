@@ -1,6 +1,3 @@
-import base64
-import hashlib
-import hmac
 import json
 import os
 from signal import SIGINT
@@ -210,7 +207,9 @@ def webhook_run_payload() -> dict:
             "properties": {},
         },
         "headers": {
-            "X-Port-Signature": "v1,uuBMfcio3oscejO5bOtL97K1AmiZjxDvou7sChjMNeE=",  # the real signature of this payload using the secret key test and the hardcoded timestamp mock
+            "X-Port-Signature": "v1,uuBMfcio3oscejO5bOtL97K1AmiZjxDvou7sChjMNeE=",
+            # the real signature of this payload using the secret
+            # key test and the hardcoded timestamp mock
             "X-Port-Timestamp": 1713277889,
         },
     }
@@ -223,7 +222,8 @@ def mock_webhook_run_message(webhook_run_payload: dict) -> Callable[[dict], byte
             webhook_run_payload["payload"]["action"][
                 "invocationMethod"
             ] = invocation_method
-            # When mutating the payload, we need to ensure that the headers are also updated
+            # When mutating the payload, we need to ensure that the
+            # headers are also updated
             timestamp = webhook_run_payload["headers"]["X-Port-Timestamp"]
             webhook_run_payload["headers"] = {}
             webhook_run_payload["headers"]["X-Port-Signature"] = sign_sha_256(
