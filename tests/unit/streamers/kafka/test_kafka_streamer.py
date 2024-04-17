@@ -79,7 +79,6 @@ def test_single_stream_skipped_due_to_agentless(
 
         mock_error.assert_not_called()
 
-        print(f"list: {mock_info.call_count}")
         mock_info.assert_has_calls(
             [
                 call(ANY, ANY),

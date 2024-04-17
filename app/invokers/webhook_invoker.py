@@ -303,8 +303,6 @@ class WebhookInvoker(BaseInvoker):
             settings.PORT_CLIENT_SECRET,
             port_timestamp,
         )
-        print(json.dumps(msg, separators=(",", ":")))
-        print(port_timestamp, expected_sig, port_signature)
         if expected_sig != port_signature:
             logger.warning(
                 "WebhookInvoker - Could not verify signature, skipping the event"
