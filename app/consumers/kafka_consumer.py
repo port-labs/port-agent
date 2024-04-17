@@ -26,14 +26,14 @@ class KafkaConsumer(BaseConsumer):
             self.consumer = consumer
         else:
             logger.info("Getting Kafka credentials")
-            username, password = get_kafka_credentials()
+            # username, password = get_kafka_credentials()
             conf = {
                 "bootstrap.servers": settings.KAFKA_CONSUMER_BROKERS,
                 "client.id": consts.KAFKA_CONSUMER_CLIENT_ID,
                 "security.protocol": settings.KAFKA_CONSUMER_SECURITY_PROTOCOL,
-                "sasl.mechanism": settings.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM,
-                "sasl.username": username,
-                "sasl.password": password,
+                # "sasl.mechanism": settings.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM,
+                # "sasl.username": username,
+                # "sasl.password": password,
                 "group.id": settings.KAFKA_CONSUMER_GROUP_ID,
                 "session.timeout.ms": settings.KAFKA_CONSUMER_SESSION_TIMEOUT_MS,
                 "auto.offset.reset": settings.KAFKA_CONSUMER_AUTO_OFFSET_RESET,

@@ -280,8 +280,8 @@ class WebhookInvoker(BaseInvoker):
         res.raise_for_status()
         run_logger("Port agent finished processing the action run")
 
-    def validate_incoming_signature(self, msg: dict, run_id: str) -> bool:
-        if not run_id:
+    def validate_incoming_signature(self, msg: dict) -> bool:
+        if "changelogDestination" in msg:
             return True
 
         port_signature = msg.get("headers", {}).get("X-Port-Signature")
@@ -293,15 +293,21 @@ class WebhookInvoker(BaseInvoker):
                 " event invocation method for the event"
             )
             return False
+
+        # Remove the headers to avoid them being used in the signature verification
+        del msg["headers"]["X-Port-Signature"]
+        del msg["headers"]["X-Port-Timestamp"]
+
         expected_sig = sign_sha_256(
-            json.dumps(msg["payload"], separators=(",", ":")),
+            json.dumps(msg, separators=(",", ":")),
             settings.PORT_CLIENT_SECRET,
             port_timestamp,
         )
+        print(json.dumps(msg, separators=(",", ":")))
+        print(port_timestamp, expected_sig, port_signature)
         if expected_sig != port_signature:
             logger.warning(
                 "WebhookInvoker - Could not verify signature, skipping the event"
-                "invocation method for the event"
             )
             return False
         return True
@@ -310,7 +316,7 @@ class WebhookInvoker(BaseInvoker):
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         run_id = msg["context"].get("runId")
 
-        if not self.validate_incoming_signature(msg, run_id):
+        if not self.validate_incoming_signature(msg):
             return
 
         logger.info("WebhookInvoker - validating signature")

@@ -1,8 +1,12 @@
+import base64
+import hashlib
+import hmac
 import json
 import os
 from signal import SIGINT
 from typing import Any, Callable, Generator, Optional
 
+from app.utils import sign_sha_256
 import port_client
 import pytest
 import requests
@@ -204,6 +208,10 @@ def webhook_run_payload() -> dict:
             },
             "properties": {},
         },
+        "headers": {
+            "X-Port-Signature": "v1,uuBMfcio3oscejO5bOtL97K1AmiZjxDvou7sChjMNeE=",  # the real signature of this payload using the secret key test and the hardcoded timestamp mock
+            "X-Port-Timestamp": 1713277889,
+        },
     }
 
 
@@ -214,6 +222,15 @@ def mock_webhook_run_message(webhook_run_payload: dict) -> Callable[[dict], byte
             webhook_run_payload["payload"]["action"][
                 "invocationMethod"
             ] = invocation_method
+            # When mutating the payload, we need to ensure that the headers are also updated
+            timestamp = webhook_run_payload["headers"]["X-Port-Timestamp"]
+            webhook_run_payload["headers"] = {}
+            webhook_run_payload["headers"]["X-Port-Signature"] = sign_sha_256(
+                json.dumps(webhook_run_payload, separators=(",", ":")),
+                "test",
+                str(timestamp),
+            )
+            webhook_run_payload["headers"]["X-Port-Timestamp"] = timestamp
         return json.dumps(webhook_run_payload).encode()
 
     return get_run_message
@@ -248,3 +265,11 @@ def mock_control_the_payload_config(monkeypatch: MonkeyPatch) -> list[dict[str, 
     )
 
     return control_the_payload_config
+
+
+@pytest.fixture
+def mock_timestamp(monkeypatch: MonkeyPatch, request: Any) -> None:
+    def mock_timestamp() -> int:
+        return 1713277889
+
+    monkeypatch.setattr("time.time", mock_timestamp)

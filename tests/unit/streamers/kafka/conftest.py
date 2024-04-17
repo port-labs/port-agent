@@ -1,13 +1,25 @@
+import base64
+import hashlib
+import hmac
 import json
 import os
 from signal import SIGINT
 from typing import Any, Callable, Generator, Optional
 
+from app.utils import sign_sha_256
 import port_client
 import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
+
+
+@pytest.fixture
+def mock_timestamp(monkeypatch: MonkeyPatch, request: Any) -> None:
+    def mock_timestamp() -> int:
+        return 1713277889
+
+    monkeypatch.setattr("time.time", mock_timestamp)
 
 
 @pytest.fixture
@@ -151,11 +163,25 @@ def mock_webhook_run_message() -> Callable[[dict], bytes]:
             },
             "properties": {},
         },
+        "headers": {
+            "X-Port-Signature": "v1,uuBMfcio3oscejO5bOtL97K1AmiZjxDvou7sChjMNeE=",  # the real signature of this payload using the secret key test and the hardcoded timestamp mock
+            "X-Port-Timestamp": 1713277889,
+        },
     }
 
     def get_run_message(invocation_method: dict) -> bytes:
         if invocation_method is not None:
             run_message["payload"]["action"]["invocationMethod"] = invocation_method
+            # When mutating the payload, we need to ensure that the headers are also updated
+            # When mutating the payload, we need to ensure that the headers are also updated
+            timestamp = run_message["headers"]["X-Port-Timestamp"]
+            run_message["headers"] = {}
+            run_message["headers"]["X-Port-Signature"] = sign_sha_256(
+                json.dumps(run_message, separators=(",", ":")),
+                "test",
+                str(timestamp),
+            )
+            run_message["headers"]["X-Port-Timestamp"] = timestamp
         return json.dumps(run_message).encode()
 
     return get_run_message
