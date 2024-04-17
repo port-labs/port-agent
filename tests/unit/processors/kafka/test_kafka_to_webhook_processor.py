@@ -259,7 +259,9 @@ def test_invocation_method_method_override(
         request_mock.assert_called_once_with(
             "GET",
             ANY,
-            json=expected_body,  # we are removing the signature headers from the body is it shouldn't concern the invoked webhook
+            json=expected_body,
+            # we are removing the signature headers from the
+            # body is it shouldn't concern the invoked webhook
             headers=expected_headers,
             params=expected_query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
