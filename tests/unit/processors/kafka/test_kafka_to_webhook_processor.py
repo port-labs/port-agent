@@ -1,18 +1,18 @@
-from copy import deepcopy
 import json
-from threading import Timer
 import time
+from copy import deepcopy
+from threading import Timer
 from unittest import mock
 from unittest.mock import ANY, call
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from app.utils import sign_sha_256
 from consumers.kafka_consumer import logger as consumer_logger
 from core.config import Mapping, settings
 from pytest_mock import MockFixture
 from streamers.kafka.kafka_streamer import KafkaStreamer
 
+from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 
 

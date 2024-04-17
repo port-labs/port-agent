@@ -6,12 +6,13 @@ import os
 from signal import SIGINT
 from typing import Any, Callable, Generator, Optional
 
-from app.utils import sign_sha_256
 import port_client
 import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from confluent_kafka import Consumer as _Consumer
+
+from app.utils import sign_sha_256
 
 
 @pytest.fixture

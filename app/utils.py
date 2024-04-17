@@ -1,7 +1,7 @@
 import base64
+import hashlib
 import hmac
 import logging
-import hashlib
 
 from requests import Response
 
