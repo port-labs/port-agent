@@ -297,9 +297,8 @@ class WebhookInvoker(BaseInvoker):
         # Remove the headers to avoid them being used in the signature verification
         del msg["headers"]["X-Port-Signature"]
         del msg["headers"]["X-Port-Timestamp"]
-
         expected_sig = sign_sha_256(
-            json.dumps(msg, separators=(",", ":")),
+            json.dumps(msg, separators=(",", ":"), ensure_ascii=False),
             settings.PORT_CLIENT_SECRET,
             port_timestamp,
         )
