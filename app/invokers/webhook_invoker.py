@@ -280,7 +280,9 @@ class WebhookInvoker(BaseInvoker):
         res.raise_for_status()
         run_logger("Port agent finished processing the action run")
 
-    def validate_incoming_signature(self, msg: dict, invocation_method_name: str) -> bool:
+    def validate_incoming_signature(self,
+                                    msg: dict,
+                                    invocation_method_name: str) -> bool:
         if "changelogDestination" in msg:
             return True
 

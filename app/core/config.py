@@ -14,6 +14,7 @@ from pydantic import (
 
 load_dotenv()
 
+
 class ActionReport(BaseModel):
     status: str | None = None
     link: str | None = None
