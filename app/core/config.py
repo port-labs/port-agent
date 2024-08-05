@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any, Optional
 
+from dotenv import load_dotenv
 from pydantic import (
     AnyHttpUrl,
     BaseModel,
@@ -11,6 +12,7 @@ from pydantic import (
     validator,
 )
 
+load_dotenv()
 
 class ActionReport(BaseModel):
     status: str | None = None
