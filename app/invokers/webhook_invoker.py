@@ -296,7 +296,7 @@ class WebhookInvoker(BaseInvoker):
             )
             return False
 
-        # Remove the headers to avoid them being used in the signature verification
+        # Remove Port's generated headers to avoid them being used in the signature verification
         if invocation_method_name == 'GITLAB':
             del msg["headers"]
         else:
