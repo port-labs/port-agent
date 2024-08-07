@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import Any, Optional
 
@@ -32,7 +31,7 @@ class Mapping(BaseModel):
 
 
 class Settings(BaseSettings):
-    RUNTIME: str = "local"
+    USING_LOCAL_PORT_INSTANCE: bool = False
     LOG_LEVEL: str = "INFO"
 
     STREAMER_NAME: str
