@@ -320,7 +320,7 @@ class WebhookInvoker(BaseInvoker):
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         run_id = msg["context"].get("runId")
 
-        if not self.validate_incoming_signature(msg, invocation_method['type']):
+        if not self.validate_incoming_signature(msg, invocation_method.get('type', 'WEBHOOK')):
             return
 
         logger.info("WebhookInvoker - validating signature")
