@@ -1,7 +1,8 @@
+import os
 from pathlib import Path
 from typing import Any, Optional
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv
 from pydantic import (
     AnyHttpUrl,
     BaseModel,
@@ -11,8 +12,6 @@ from pydantic import (
     parse_obj_as,
     validator,
 )
-
-load_dotenv()
 
 
 class ActionReport(BaseModel):
@@ -33,6 +32,7 @@ class Mapping(BaseModel):
 
 
 class Settings(BaseSettings):
+    RUNTIME: str = "local"
     LOG_LEVEL: str = "INFO"
 
     STREAMER_NAME: str
@@ -68,6 +68,8 @@ class Settings(BaseSettings):
 
     class Config:
         case_sensitive = True
+        env_file = find_dotenv()
+        env_file_encoding = "utf-8"
 
     WEBHOOK_INVOKER_TIMEOUT: int = 30
 
