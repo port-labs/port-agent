@@ -35,7 +35,7 @@ class KafkaConsumer(BaseConsumer):
                 "auto.offset.reset": settings.KAFKA_CONSUMER_AUTO_OFFSET_RESET,
                 "enable.auto.commit": "false",
             }
-            if settings.RUNTIME != 'local':
+            if not settings.USING_LOCAL_PORT_INSTANCE:
                 logger.info("Getting Kafka credentials")
                 username, password = get_kafka_credentials()
                 conf["sasl.username"] = username
