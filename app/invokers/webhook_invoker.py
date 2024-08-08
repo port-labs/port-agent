@@ -280,7 +280,9 @@ class WebhookInvoker(BaseInvoker):
         res.raise_for_status()
         run_logger("Port agent finished processing the action run")
 
-    def validate_incoming_signature(self, msg: dict) -> bool:
+    def validate_incoming_signature(self,
+                                    msg: dict,
+                                    invocation_method_name: str) -> bool:
         if "changelogDestination" in msg:
             return True
 
@@ -294,9 +296,14 @@ class WebhookInvoker(BaseInvoker):
             )
             return False
 
-        # Remove the headers to avoid them being used in the signature verification
-        del msg["headers"]["X-Port-Signature"]
-        del msg["headers"]["X-Port-Timestamp"]
+        # Remove Port's generated headers to avoid them being
+        # used in the signature verification
+        if invocation_method_name == 'GITLAB':
+            del msg["headers"]
+        else:
+            del msg["headers"]["X-Port-Signature"]
+            del msg["headers"]["X-Port-Timestamp"]
+
         expected_sig = sign_sha_256(
             json.dumps(msg, separators=(",", ":"), ensure_ascii=False),
             settings.PORT_CLIENT_SECRET,
@@ -313,7 +320,8 @@ class WebhookInvoker(BaseInvoker):
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         run_id = msg["context"].get("runId")
 
-        if not self.validate_incoming_signature(msg):
+        invocation_method_name = invocation_method.get('type', 'WEBHOOK')
+        if not self.validate_incoming_signature(msg, invocation_method_name):
             return
 
         logger.info("WebhookInvoker - validating signature")
