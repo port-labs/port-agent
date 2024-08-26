@@ -69,7 +69,7 @@ class WebhookInvoker(BaseInvoker):
             method=invocation_method.get("method", consts.DEFAULT_HTTP_METHOD),
             url=invocation_method.get("url", ""),
             body=body,
-            headers={},
+            headers=invocation_method.get("headers", {}),
             query={},
         )
 
