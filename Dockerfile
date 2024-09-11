@@ -1,6 +1,6 @@
 FROM python:3.11-alpine
 
-ENV LIBRDKAFKA_VERSION 1.9.2
+ENV LIBRDKAFKA_VERSION=1.9.2
 
 # Install system dependencies and libraries
 RUN apk add --no-cache \
@@ -13,19 +13,25 @@ RUN apk add --no-cache \
     make \
     autoconf \
     automake \
-    libtool
+    libtool \
+    curl
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Ensure Poetry's bin directory is in PATH
+ENV PATH="/root/.local/bin:$PATH"
 
 WORKDIR /app
 
-# Upgrade pip to the latest version
-RUN pip install --upgrade pip
+# Copy pyproject.toml and poetry.lock to the container
+COPY pyproject.toml poetry.lock ./
 
-# Copy and install Python dependencies
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies using Poetry
+RUN poetry install --no-root --no-interaction --no-ansi
 
 # Copy the application code
 COPY ./app .
 
 # Run the application
-CMD [ "python3", "main.py" ]
+CMD ["poetry", "run", "python3", "main.py"]
