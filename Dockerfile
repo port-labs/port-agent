@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM python:3.11-alpine AS base
 
 ENV LIBRDKAFKA_VERSION=1.9.2
 
@@ -14,7 +14,8 @@ RUN apk add --no-cache \
     autoconf \
     automake \
     libtool \
-    curl
+    curl \
+    libffi-dev  # Added libffi-dev for compatibility with some packages
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
@@ -27,11 +28,31 @@ WORKDIR /app
 # Copy pyproject.toml and poetry.lock to the container
 COPY pyproject.toml poetry.lock ./
 
+RUN poetry config virtualenvs.in-project true
+
 # Install Python dependencies using Poetry
-RUN poetry install --no-root --no-interaction --no-ansi
+RUN poetry install --without dev --no-ansi
+
+FROM python:3.11-alpine AS prod
+
+ENV LIBRDKAFKA_VERSION=1.9.2
+
+# Install only runtime dependencies
+RUN apk add --no-cache \
+    librdkafka-dev \
+    bash \
+    oniguruma-dev
+
+WORKDIR /app
+
+# Copy dependencies from the build stage
+COPY --from=base /app /app
 
 # Copy the application code
-COPY ./app .
+COPY ./app/. .
+
+# Clean up old setuptools
+RUN pip uninstall -y setuptools || true
 
 # Run the application
-CMD ["poetry", "run", "python3", "main.py"]
+CMD ["/app/.venv/bin/python", "main.py"]
