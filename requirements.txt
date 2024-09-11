@@ -1,7 +1,0 @@
-confluent-kafka~=2.1.1
-pydantic~=1.10.2
-requests~=2.31.2
-pyjq~=2.6.0
-flatten-dict~=0.4.2
-python-dotenv~=1.0.1
-setuptools~=70.0.0
