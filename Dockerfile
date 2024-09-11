@@ -26,7 +26,7 @@ ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /app
 
 # Copy pyproject.toml and poetry.lock to the container
-COPY pyproject.toml poetry.lock /app/
+COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.in-project true
 
@@ -49,7 +49,7 @@ WORKDIR /app
 COPY --from=base /app /app
 
 # Copy the application code
-COPY ./app/. /app
+COPY ./app/. .
 
 # Clean up old setuptools
 RUN pip uninstall -y setuptools || true
