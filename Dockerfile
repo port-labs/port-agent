@@ -1,16 +1,37 @@
-FROM python:3.10-slim-buster
+FROM python:3.11-alpine
 
-ENV LIBRDKAFKA_VERSION 1.9.2
+ENV LIBRDKAFKA_VERSION=1.9.2
+
+# Install system dependencies and libraries
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    librdkafka-dev \
+    build-base \
+    bash \
+    oniguruma-dev \
+    make \
+    autoconf \
+    automake \
+    libtool \
+    curl
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Ensure Poetry's bin directory is in PATH
+ENV PATH="/root/.local/bin:$PATH"
 
 WORKDIR /app
 
-RUN apt update && \
-    apt install -y wget make g++ libssl-dev autoconf automake libtool curl librdkafka-dev && \
-    apt-get clean
+# Copy pyproject.toml and poetry.lock to the container
+COPY pyproject.toml poetry.lock ./
 
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+# Install Python dependencies using Poetry
+RUN poetry install --no-root --no-interaction --no-ansi
 
+# Copy the application code
 COPY ./app .
 
-CMD [ "python3", "main.py"]
+# Run the application
+CMD ["poetry", "run", "python3", "main.py"]
