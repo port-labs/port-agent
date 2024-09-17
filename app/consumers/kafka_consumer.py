@@ -39,7 +39,7 @@ class KafkaConsumer(BaseConsumer):
                 brokers, username, password = get_kafka_credentials()
                 conf["sasl.username"] = username
                 conf["sasl.password"] = password
-                conf["bootstrap.servers"] = brokers
+                conf["bootstrap.servers"] = ','.join(brokers)
 
             self.consumer = Consumer(conf)
 
