@@ -40,7 +40,6 @@ class Settings(BaseSettings):
     PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
-    KAFKA_CONSUMER_BROKERS: str = "localhost:9092"
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
     KAFKA_CONSUMER_SESSION_TIMEOUT_MS: int = 45000

@@ -26,7 +26,6 @@ class KafkaConsumer(BaseConsumer):
             self.consumer = consumer
         else:
             conf = {
-                "bootstrap.servers": settings.KAFKA_CONSUMER_BROKERS,
                 "client.id": consts.KAFKA_CONSUMER_CLIENT_ID,
                 "security.protocol": settings.KAFKA_CONSUMER_SECURITY_PROTOCOL,
                 "sasl.mechanism": settings.KAFKA_CONSUMER_AUTHENTICATION_MECHANISM,
@@ -37,9 +36,10 @@ class KafkaConsumer(BaseConsumer):
             }
             if not settings.USING_LOCAL_PORT_INSTANCE:
                 logger.info("Getting Kafka credentials")
-                username, password = get_kafka_credentials()
+                brokers, username, password = get_kafka_credentials()
                 conf["sasl.username"] = username
                 conf["sasl.password"] = password
+                conf["bootstrap.servers"] = brokers
 
             self.consumer = Consumer(conf)
 

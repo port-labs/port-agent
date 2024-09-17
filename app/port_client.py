@@ -66,11 +66,11 @@ def report_run_response(run_id: str, response: dict | str | None) -> Response:
     return res
 
 
-def get_kafka_credentials() -> tuple[str, str]:
+def get_kafka_credentials() -> tuple[str, str, str]:
     headers = get_port_api_headers()
     res = requests.get(
         f"{settings.PORT_API_BASE_URL}/v1/kafka-credentials", headers=headers
     )
     res.raise_for_status()
     data = res.json()["credentials"]
-    return data["username"], data["password"]
+    return ','.join(data['brokers']), data["username"], data["password"]
