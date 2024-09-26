@@ -55,4 +55,4 @@ COPY ./app/. .
 RUN pip uninstall -y setuptools || true
 
 # Run the application
-CMD ["/app/.venv/bin/python", "main.py"]
+CMD ["sh", "-c", "update-ca-certificates && /app/.venv/bin/python main.py"]
