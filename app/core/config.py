@@ -69,7 +69,7 @@ class Settings(BaseSettings):
         env_file = find_dotenv()
         env_file_encoding = "utf-8"
 
-    WEBHOOK_INVOKER_TIMEOUT: int = 30
+    WEBHOOK_INVOKER_TIMEOUT: float = 30
 
 
 settings = Settings()
