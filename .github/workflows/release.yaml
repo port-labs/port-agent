@@ -34,7 +34,6 @@ jobs:
 
       - name: Update appVersion and chart version
         run: |
-          cd ${{ env.REPOSITORY }}
           sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${env.CHART_PATH}"
           sed -i "s/^version:.*/version: '${{ github.event.release.tag_name }}'/" "${env.CHART_PATH}"
           git add ${{ env.CHART_PATH }}
