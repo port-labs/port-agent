@@ -1,0 +1,62 @@
+name: Update Chart AppVersion
+
+on:
+  release:
+    types: [published]
+  push:
+    branches:
+      - feat-add-release-github-action
+
+jobs:
+  update-chart:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Git for PR
+        run: |
+          git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
+          git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
+        env:
+            GIT_COMMITTER_NAME: github-actions[bot]
+            GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+
+      - name: Clone chart repository
+        run: |
+          git clone https://github.com/${{ env.ORGANIZATION }}/${{ env.REPOSITORY }}.git
+          cd ${{ env.REPOSITORY }}
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORGANIZATION: port-labs
+          REPOSITORY: helm-charts
+
+      - name: Update appVersion and chart version
+        run: |
+          cd ${{ env.REPOSITORY }}
+          sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${env.CHART_PATH}"
+          sed -i "s/^version:.*/version: '${{ github.event.release.tag_name }}'/" "${env.CHART_PATH}"
+          git add ${{ env.CHART_PATH }}
+        env:
+            CHART_PATH: charts/port-agent/Chart.yaml
+            REPOSITORY: helm-charts
+      - name: Commit and Push Changes
+        run: |
+          cd ${{ env.REPOSITORY }}
+          BARNCH_NAME="update-app-version-${{ github.event.release.tag_name }}"
+
+          git checkout -b $BARNCH_NAME
+          git commit -m "Update appVersion to ${{ github.event.release.tag_name }}"
+          git push origin $BARNCH_NAME
+        env:
+            REPOSITORY: helm-charts
+
+      - name: Create Pull Request
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: main
+          pr_title: "Update appVersion to ${{ github.event.release.tag_name }}"
+          pr_body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
