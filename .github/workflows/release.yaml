@@ -34,8 +34,8 @@ jobs:
 
       - name: Update appVersion and chart version
         run: |
-          sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${env.CHART_PATH}"
-          sed -i "s/^version:.*/version: '${{ github.event.release.tag_name }}'/" "${env.CHART_PATH}"
+          sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${{ env.CHART_PATH }}"
+          sed -i "s/^version:.*/version: '${{ github.event.release.tag_name }}'/" "${{ env.CHART_PATH }}"
           git add ${{ env.CHART_PATH }}
         env:
             CHART_PATH: charts/port-agent/Chart.yaml
