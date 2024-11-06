@@ -32,6 +32,10 @@ jobs:
           ORGANIZATION: port-labs
           REPOSITORY: helm-charts
 
+      - name: Start a tmate session
+        uses: mxschmitt/action-tmate@v3
+
+
       - name: Update appVersion and chart version
         run: |
           pwd
