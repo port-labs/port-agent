@@ -24,17 +24,6 @@ jobs:
         env:
             GIT_COMMITTER_NAME: github-actions[bot]
             GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-    #   - name: Clone chart repository
-    #     run: |
-    #       git clone https://github.com/${{ env.ORGANIZATION }}/${{ env.REPOSITORY }}.git
-    #       cd ${{ env.REPOSITORY }}
-    #     env:
-    #       REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #       ORGANIZATION: port-labs
-    #       REPOSITORY: helm-charts
-
-      - name: Start a tmate session
-        uses: mxschmitt/action-tmate@v3
 
       - name: Update appVersion and chart version
         run: |
@@ -44,9 +33,12 @@ jobs:
         env:
             CHART_PATH: charts/port-agent/Chart.yaml
             REPOSITORY: helm-charts
+            
+      - name: Start a tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Commit and Push Changes
         run: |
-          cd ${{ env.REPOSITORY }}
           BARNCH_NAME="update-app-version-${{ github.event.release.tag_name }}"
 
           git checkout -b $BARNCH_NAME
