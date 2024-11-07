@@ -36,7 +36,7 @@ jobs:
 
       - name: Commit and Push Changes
         run: |
-          git checkout -b ${{ env.BRANCH_NAME }}
+          # git checkout -b ${{ env.BRANCH_NAME }}
           git commit -m "Update appVersion to ${{ github.event.release.tag_name }}"
         env:
             REPOSITORY: helm-charts
