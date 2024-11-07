@@ -3,9 +3,6 @@ name: Update Chart AppVersion
 on:
   release:
     types: [published]
-  push:
-    branches:
-      - feat-add-release-github-action
 
 jobs:          
   update-chart:
@@ -41,8 +38,8 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.HELM_CHART_WRITER }}
-          commit-message: "Update appVersion to ${{ github.event.release.tag_name }}"
-          title: "Update appVersion to ${{ github.event.release.tag_name }}"
-          body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
+          commit-message: "Update port-agent helm chart appVersion to ${{ github.event.release.tag_name }}"
+          title: "Update port-agent helm chart appVersion to ${{ github.event.release.tag_name }}"
+          body: "This is an automated PR to update the port-agent helm chart appVersion in the Helm chart to ${{ github.event.release.tag_name }}."
           branch: update-app-version-${{ github.event.release.tag_name }}
           base: main
