@@ -7,24 +7,8 @@ on:
     branches:
       - feat-add-release-github-action
 
-jobs:
-  set-version:
-    runs-on: ubuntu-latest
-    outputs:
-      APP_VERSION: ${{ steps.get_version.outputs.version }}
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
-      - name: Extract version from pyproject.toml
-        id: get_version
-        run: |
-          VERSION=$(grep -E '^version\s*=\s*' pyproject.toml | sed -E 's/version\s*=\s*"(.*)"/\1/')
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "::set-output name=APP_VERSION::$VERSION"
-          
+jobs:          
   update-chart:
-    needs: set-version
     runs-on: ubuntu-latest
 
     steps:
@@ -33,20 +17,23 @@ jobs:
         with:
           repository: port-labs/helm-charts
 
-      - name: Set up Git for PR
-        run: |
-          git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
-          git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
-        env:
-            GIT_COMMITTER_NAME: github-actions[bot]
-            GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+      # - name: Set up Git for PR
+      #   run: |
+      #     git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
+      #     git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
+      #   env:
+      #       GIT_COMMITTER_NAME: github-actions[bot]
+      #       GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
 
       - name: Update appVersion and chart version
         run: |
-          sed -i "s/^appVersion:.*/appVersion: '${{ env.APP_VERSION }}'/" "${{ env.CHART_PATH }}"
-          sed -i "s/^version:.*/version: '${{ env.APP_VERSION }}'/" "${{ env.CHART_PATH }}"
+          # Update appVersion and version in Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${{ env.CHART_PATH }}"
+          # Bump chart version
+          new_chart_version=$(yq eval '.version | split(".") | .[0] + "." + .[1] + "." + (.[2] | tonumber + 1 | tostring)' "${{ env.CHART_PATH }}")
+          sed -i '' -e "s/^version:.*/version: $new_chart_version/" "${{ env.CHART_PATH }}"
           git add ${{ env.CHART_PATH }}
-          git commit -m "Update appVersion to ${{ env.APP_VERSION }}"
+          git commit -m "Update appVersion to ${{ github.event.release.tag_name }}"
         env:
             CHART_PATH: charts/port-agent/Chart.yaml
 
@@ -54,8 +41,8 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.HELM_CHART_WRITER }}
-          commit-message: "Update appVersion to ${{ env.APP_VERSION }}"
-          title: "Update appVersion to ${{ env.APP_VERSION }}"
-          body: "This PR updates appVersion in Chart.yaml to ${{ env.APP_VERSION }}."
-          branch: update-app-version-${{ env.APP_VERSION }}
+          commit-message: "Update appVersion to ${{ github.event.release.tag_name }}"
+          title: "Update appVersion to ${{ github.event.release.tag_name }}"
+          body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
+          branch: update-app-version-${{ github.event.release.tag_name }}
           base: main
