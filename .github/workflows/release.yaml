@@ -34,25 +34,34 @@ jobs:
             CHART_PATH: charts/port-agent/Chart.yaml
             REPOSITORY: helm-charts
 
-      - name: Start a tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - name: Commit and Push Changes
         run: |
-          BARNCH_NAME="update-app-version-${{ github.event.release.tag_name }}"
-
           git checkout -b $BARNCH_NAME
           git commit -m "Update appVersion to ${{ github.event.release.tag_name }}"
         env:
             REPOSITORY: helm-charts
             BRANCH_NAME: update-app-version-${{ github.event.release.tag_name }}
 
+      # - name: Start a tmate session
+      #   uses: mxschmitt/action-tmate@v3
+
+
       - name: Create Pull Request
-        uses: repo-sync/pull-request@v2
+        uses: peter-evans/create-pull-request@v6
         with:
-          source_branch: update-app-version-${{ github.event.release.tag_name }}
-          destination_branch: main
-          pr_title: "Update appVersion to ${{ github.event.release.tag_name }}"
-          pr_body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
-        env:
-          GITHUB_TOKEN: ${{ secrets.HELM_CHART_WRITER }}
+          token: ${{ secrets.HELM_CHART_WRITER }}
+          commit-message: "Update appVersion to ${{ github.event.release.tag_name }}"
+          title: "Update appVersion to ${{ github.event.release.tag_name }}"
+          body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
+          branch: update-app-version-${{ github.event.release.tag_name }}
+          base: main
+
+      # - name: Create Pull Request
+      #   uses: repo-sync/pull-request@v2
+      #   with:
+      #     source_branch: update-app-version-${{ github.event.release.tag_name }}
+      #     destination_branch: main
+      #     pr_title: "Update appVersion to ${{ github.event.release.tag_name }}"
+      #     pr_body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.HELM_CHART_WRITER }}
