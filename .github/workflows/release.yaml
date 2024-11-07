@@ -17,13 +17,13 @@ jobs:
         with:
           repository: port-labs/helm-charts
 
-      # - name: Set up Git for PR
-      #   run: |
-      #     git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
-      #     git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
-      #   env:
-      #       GIT_COMMITTER_NAME: github-actions[bot]
-      #       GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+      - name: Set up Git for PR
+        run: |
+          git config --global user.name "${{ env.GIT_COMMITTER_NAME }}"
+          git config --global user.email "${{ env.GIT_COMMITTER_EMAIL }}"
+        env:
+            GIT_COMMITTER_NAME: github-actions[bot]
+            GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
 
       - name: Update appVersion and chart version
         run: |
