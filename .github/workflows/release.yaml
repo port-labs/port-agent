@@ -31,7 +31,7 @@ jobs:
           sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${{ env.CHART_PATH }}"
           # Bump chart version
           new_chart_version=$(yq eval '.version | split(".") | .[0] + "." + .[1] + "." + (.[2] | tonumber + 1 | tostring)' "${{ env.CHART_PATH }}")
-          sed -i '' -e "s/^version:.*/version: $new_chart_version/" "${{ env.CHART_PATH }}"
+          sed -i "s/^version:.*/version: $new_chart_version/" "${{ env.CHART_PATH }}"
           git add ${{ env.CHART_PATH }}
           git commit -m "Update appVersion to ${{ github.event.release.tag_name }}"
         env:
