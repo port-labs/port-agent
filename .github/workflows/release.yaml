@@ -8,7 +8,23 @@ on:
       - feat-add-release-github-action
 
 jobs:
+  set-version:
+    runs-on: ubuntu-latest
+    outputs:
+      APP_VERSION: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Extract version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^version\s*=\s*' pyproject.toml | sed -E 's/version\s*=\s*"(.*)"/\1/')
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=APP_VERSION::$VERSION"
+          
   update-chart:
+    needs: set-version
     runs-on: ubuntu-latest
 
     steps:
@@ -27,41 +43,19 @@ jobs:
 
       - name: Update appVersion and chart version
         run: |
-          sed -i "s/^appVersion:.*/appVersion: '${{ github.event.release.tag_name }}'/" "${{ env.CHART_PATH }}"
-          sed -i "s/^version:.*/version: '${{ github.event.release.tag_name }}'/" "${{ env.CHART_PATH }}"
+          sed -i "s/^appVersion:.*/appVersion: '${{ env.APP_VERSION }}'/" "${{ env.CHART_PATH }}"
+          sed -i "s/^version:.*/version: '${{ env.APP_VERSION }}'/" "${{ env.CHART_PATH }}"
           git add ${{ env.CHART_PATH }}
+          git commit -m "Update appVersion to ${{ env.APP_VERSION }}"
         env:
             CHART_PATH: charts/port-agent/Chart.yaml
-            REPOSITORY: helm-charts
-
-      - name: Commit and Push Changes
-        run: |
-          # git checkout -b ${{ env.BRANCH_NAME }}
-          git commit -m "Update appVersion to ${{ github.event.release.tag_name }}"
-        env:
-            REPOSITORY: helm-charts
-            BRANCH_NAME: update-app-version-${{ github.event.release.tag_name }}
-
-      # - name: Start a tmate session
-      #   uses: mxschmitt/action-tmate@v3
-
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.HELM_CHART_WRITER }}
-          commit-message: "Update appVersion to ${{ github.event.release.tag_name }}"
-          title: "Update appVersion to ${{ github.event.release.tag_name }}"
-          body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
-          branch: update-app-version-${{ github.event.release.tag_name }}
+          commit-message: "Update appVersion to ${{ env.APP_VERSION }}"
+          title: "Update appVersion to ${{ env.APP_VERSION }}"
+          body: "This PR updates appVersion in Chart.yaml to ${{ env.APP_VERSION }}."
+          branch: update-app-version-${{ env.APP_VERSION }}
           base: main
-
-      # - name: Create Pull Request
-      #   uses: repo-sync/pull-request@v2
-      #   with:
-      #     source_branch: update-app-version-${{ github.event.release.tag_name }}
-      #     destination_branch: main
-      #     pr_title: "Update appVersion to ${{ github.event.release.tag_name }}"
-      #     pr_body: "This PR updates appVersion in Chart.yaml to ${{ github.event.release.tag_name }}."
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.HELM_CHART_WRITER }}
