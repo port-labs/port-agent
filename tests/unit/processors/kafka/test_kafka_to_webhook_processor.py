@@ -246,7 +246,7 @@ def test_invocation_method_method_override(
 
     expected_headers["X-Port-Timestamp"] = str(time.time())
     expected_headers["X-Port-Signature"] = sign_sha_256(
-        json.dumps(expected_body, separators=(",", ":")), "test", time.time()
+        json.dumps(expected_body, separators=(",", ":")), "test", str(time.time())
     )
 
     expected_query: dict[str, ANY] = {}
