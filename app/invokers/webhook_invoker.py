@@ -166,8 +166,9 @@ class WebhookInvoker(BaseInvoker):
                 res.status_code,
                 res.text,
             )
-            run_logger(
-                f"Action invocation has completed successfully with status code: {res.status_code}"
+            logger(
+                f"Action invocation has completed successfully with "
+                f"status code: {res.status_code}"
             )
         else:
             logger.warning(
