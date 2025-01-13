@@ -18,7 +18,7 @@ RUN apk add --no-cache \
     libffi-dev  # Added libffi-dev for compatibility with some packages
 
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python3 -
 
 # Ensure Poetry's bin directory is in PATH
 ENV PATH="/root/.local/bin:$PATH"
