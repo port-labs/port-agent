@@ -13,9 +13,10 @@ confluent-kafka = ">=2.1.1,<2.2.0"
 pydantic = ">=1.10.2,<1.11.0"
 pyjq = ">=2.6.0,<2.7.0"
 flatten-dict = ">=0.4.2,<0.5.0"
-python-dotenv = ">=1.0.1,<1.1.0"
 requests = "^2.32.3"
 setuptools = "^74.1.2"
+python-dotenv = "^1.0.1"
+cryptography = "^44.0.2"
 
 
 [tool.poetry.group.dev.dependencies]

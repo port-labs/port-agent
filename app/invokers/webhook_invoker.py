@@ -17,6 +17,7 @@ from utils import (
     get_response_body,
     response_to_dict,
     sign_sha_256,
+    decrypt_payload_fields
 )
 
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -316,7 +317,7 @@ class WebhookInvoker(BaseInvoker):
             )
             return False
         return True
-
+    
     def invoke(self, msg: dict, invocation_method: dict) -> None:
         logger.info("WebhookInvoker - start - destination: %s", invocation_method)
         run_id = msg["context"].get("runId")
@@ -335,6 +336,8 @@ class WebhookInvoker(BaseInvoker):
             )
             return
 
+        self._replace_encrypted_fields(msg, mapping)
+
         if run_id:
             self._invoke_run(run_id, mapping, msg, invocation_method)
         # Used for changelog destination event trigger
@@ -344,10 +347,18 @@ class WebhookInvoker(BaseInvoker):
             res.raise_for_status()
         else:
             logger.warning(
-                "WebhookInvoker - Could not find suitable "
-                "invocation method for the event"
-            )
+                    "WebhookInvoker - Could not find suitable "
+                    "invocation method for the event"
+                    )
         logger.info("Finished processing the event")
 
+    def _replace_encrypted_fields(self, msg: dict, mapping) -> None:
+        fields_to_decrypt = self._apply_jq_on_field(mapping.fieldsToDecryptJQExpressions, msg)
+        logger.info("WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt)
+        
+        decryption_key = settings.PORT_CLIENT_SECRET
+        decrypted_payload = decrypt_payload_fields(msg, fields_to_decrypt, decryption_key)
+        
+        msg.update(decrypted_payload)
 
 webhook_invoker = WebhookInvoker()
