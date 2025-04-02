@@ -44,3 +44,9 @@ jobs:
       run: |
         export PATH="$HOME/.local/bin:$PATH"
         poetry run ./scripts/test.sh
+
+    - name: test
+      run: |
+        ls -la
+        ls -la term-missing
+        cat term-missing
