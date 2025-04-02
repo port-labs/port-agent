@@ -60,7 +60,7 @@ jobs:
     - name: Set repo code coverage percentage by the percentage of statements covered in the tests
       id: set-stmts-coverage
       run: |
-        stmts=$(jq '.totals.percent_covered | . * 100 | round | . / 100' coverage.json)
+        stmts=$(jq '.totals.percent_covered | . * 100 | round | . / 100' app/coverage.json)
         echo "STMTS_COVERAGE=$stmts" >> $GITHUB_OUTPUT
     - name: Comment PR with code coverage summary
       uses: actions/github-script@v7
