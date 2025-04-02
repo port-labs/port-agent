@@ -48,5 +48,5 @@ jobs:
     - name: test
       run: |
         ls -la app
-        coverage html
-        coverage json
+        python3 -m coverage html
+        python3 -m coverage json
