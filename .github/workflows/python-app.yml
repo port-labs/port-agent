@@ -53,7 +53,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: htmlcov
+        path: app/htmlcov
     - name: Set repo code coverage percentage by the percentage of statements covered in the tests
       id: set-stmts-coverage
       run: |
