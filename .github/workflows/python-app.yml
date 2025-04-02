@@ -62,6 +62,16 @@ jobs:
       run: |
         stmts=$(jq '.totals.percent_covered | . * 100 | round | . / 100' app/coverage.json)
         echo "STMTS_COVERAGE=$stmts" >> $GITHUB_OUTPUT
+    - name: Get PR_NUMBER
+      id: pr-number
+      run: |
+        if [ ! -z ${{ inputs.PR_NUMBER }} ]; then
+          echo "PR_NUMBER=${{ inputs.PR_NUMBER }}" >> $GITHUB_OUTPUT
+        elif [ ! -z ${{ github.event.pull_request.number }} ]; then
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+        else
+          echo "PR_NUMBER=0" >> $GITHUB_OUTPUT
+        fi
     - name: Comment PR with code coverage summary
       uses: actions/github-script@v7
       env:
