@@ -78,7 +78,7 @@ jobs:
         run: |
           cat trivy-vulnerability.txt
           cat trivy-vulnerability.txt | grep -i "total:" | awk '{print $2}'
-          echo "VULNERABILITIES_COUNT=$(cat trivy-vulnerability.txt | grep -i "total:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "VULNERABILITIES_COUNT=\"$(cat trivy-vulnerability.txt | grep -i "total:" | awk '{print $2}')\"" >> $GITHUB_ENV
           echo ${{ env.VULNERABILITIES_COUNT }}
 
       - name: Send slack alert if vulnerabilities found
