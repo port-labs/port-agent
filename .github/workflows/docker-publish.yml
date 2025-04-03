@@ -9,6 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  SKIP_PUSH: 'false'
 
 jobs:
   build:
@@ -19,6 +20,8 @@ jobs:
       packages: write
 
     steps:
+      - name: test
+        run: echo ${{ env.SKIP_PUSH }}
       - name: Checkout repository
         uses: actions/checkout@v3
         
