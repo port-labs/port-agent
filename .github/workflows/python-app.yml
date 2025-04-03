@@ -16,10 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: .github/workflows/docker-publish.yml
-      with:
-        skip_push: true
-
     - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
