@@ -58,17 +58,17 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-          output: trivy-${{ steps.meta.outputs.tags }}.txt
+          output: trivy-vulnerability.txt
 
       - name: Publish Trivy Output to Summary
         run: |
-          if [[ -s trivy-${{ steps.meta.outputs.tags }}.txt ]]; then
+          if [[ -s trivy-vulnerability.txt ]]; then
             {
               echo "### Security Output"
               echo "<details><summary>Click to expand</summary>"
               echo ""
               echo '```terraform'
-              cat trivy-${{ steps.meta.outputs.tags }}.txt
+              cat trivy-vulnerability.txt
               echo '```'
               echo "</details>"
             } >> $GITHUB_STEP_SUMMARY
@@ -76,7 +76,7 @@ jobs:
 
       - name: Set output for trivy results
         run: |
-          echo "VULNERABILITIES_COUNT=$(cat trivy-${{ steps.meta.outputs.tags }}.txt | grep -i "total:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "VULNERABILITIES_COUNT=$(cat trivy-vulnerability.txt | grep -i "total:" | awk '{print $2}')" >> $GITHUB_ENV
           echo ${{ env.VULNERABILITIES_COUNT }}
 
       - name: Send slack alert if vulnerabilities found
