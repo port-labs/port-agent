@@ -1,0 +1,89 @@
+name: Scan docker images
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Every day at midnight
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and scan Docker image
+        uses: ./.github/workflows/docker-publish.yml
+        with:
+          skip_push: true
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          output: trivy-${{ steps.meta.outputs.tags }}.txt
+
+      - name: Publish Trivy Output to Summary
+        run: |
+          if [[ -s trivy-${{ steps.meta.outputs.tags }}.txt ]]; then
+            {
+              echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```terraform'
+              cat trivy-${{ steps.meta.outputs.tags }}.txt
+              echo '```'
+              echo "</details>"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Set output for trivy results
+        run: |
+          echo "VULNERABILITIES_COUNT=$(cat trivy-${{ steps.meta.outputs.tags }}.txt | grep -i "total:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo ${{ env.VULNERABILITIES_COUNT }}
+
+      - name: Send slack alert if vulnerabilities found
+        if: ${{ env.VULNERABILITIES_COUNT != '0' }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Vulnerabilities found in `${{ steps.meta.outputs.tags }}` image",
+              "attachments": [
+                {
+                  "text": "${{ steps.meta.outputs.tags }} image has vulnerabilities",
+                  "fields": [
+                    {
+                      "title": "Image",
+                      "value": "${{ steps.meta.outputs.tags }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Vulnerabilities",
+                      "value": "Count: ${{ env.VULNERABILITIES_COUNT }}",
+                      "short": true
+                    },
+                    {
+                      "title": "link",
+                      "value": "https://github.com/port-labs/port-agent/actions/runs/${{ github.run_id }}",
+                      "short": true
+                    }
+                  ],
+
+                  "color": "#FF0000"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RND_ECOSYSTEM_DEPENDABOT_ALERTS_WEBHOOK_URL }}
