@@ -353,7 +353,11 @@ class WebhookInvoker(BaseInvoker):
         logger.info("Finished processing the event")
 
     def _replace_encrypted_fields(self, msg: dict, mapping) -> None:
-        fields_to_decrypt = self._apply_jq_on_field(mapping.fieldsToDecryptJQExpressions, msg)
+        try:
+            fields_to_decrypt_expr = mapping.fieldsToDecryptJQExpressions
+        except AttributeError:
+            fields_to_decrypt_expr = mapping["fieldsToDecryptJQExpressions"]
+        fields_to_decrypt = self._apply_jq_on_field(fields_to_decrypt_expr, msg)
         logger.info("WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt)
         
         decryption_key = settings.PORT_CLIENT_SECRET

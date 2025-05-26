@@ -16,7 +16,7 @@ flatten-dict = ">=0.4.2,<0.5.0"
 requests = "^2.32.3"
 setuptools = "^74.1.2"
 python-dotenv = "^1.0.1"
-cryptography = "^44.0.2"
+pycryptodome = "^3.23.0"
 
 
 [tool.poetry.group.dev.dependencies]
