@@ -1,4 +1,6 @@
 from unittest import mock
+import app.utils as utils
+from app.utils import decrypt_payload_fields
 
 from invokers.webhook_invoker import WebhookInvoker
 
@@ -85,3 +87,37 @@ def test_decrypt_with_complex_jq(_mock_decrypt: object) -> None:
         "nested": {"field2": "decrypted_encrypted_value2"},
         "field3": "plain_value3",
     }
+
+
+def test_decrypt_payload_fields_complex():
+    # Simulate a nested payload with encrypted fields
+    encrypted_value = 'U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+'
+    # This is not a real encrypted value, but for test, we will mock decrypt_field
+    payload = {
+        "level1": {
+            "level2": {
+                "secret": encrypted_value,
+                "other": "not encrypted"
+            },
+            "list": [
+                {"deep": {"secret": encrypted_value}},
+                {"deep": {"not_secret": "foo"}}
+            ]
+        },
+        "top_secret": encrypted_value
+    }
+    fields_to_decrypt = ["level1.level2.secret", "top_secret", "level1.list.0.deep.secret"]
+    key = "a" * 32
+
+    # Patch decrypt_field to just return 'decrypted' for test
+    original_decrypt_field = utils.decrypt_field
+    utils.decrypt_field = lambda v, k: "decrypted"
+    try:
+        result = decrypt_payload_fields(payload, fields_to_decrypt, key)
+        assert result["level1"]["level2"]["secret"] == "decrypted"
+        assert result["top_secret"] == "decrypted"
+        assert result["level1"]["list"][0]["deep"]["secret"] == "decrypted"
+        assert result["level1"]["level2"]["other"] == "not encrypted"
+        assert result["level1"]["list"][1]["deep"]["not_secret"] == "foo"
+    finally:
+        utils.decrypt_field = original_decrypt_field
