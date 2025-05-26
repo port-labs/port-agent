@@ -2,7 +2,8 @@ import base64
 import hashlib
 import hmac
 import logging
-from cryptography.fernet import Fernet
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
 from requests import Response
 
 logger = logging.getLogger(__name__)
@@ -41,9 +42,14 @@ def sign_sha_256(input: str, secret: str, timestamp: str) -> str:
     return f"v1,{signed}"
 
 def decrypt_field(encrypted_value: str, key: str) -> str:
-    fernet = Fernet(key)
-    decrypted_value = fernet.decrypt(encrypted_value.encode()).decode()
-    return decrypted_value
+    encrypted_data = base64.b64decode(encrypted_value)
+    iv = encrypted_data[:16]
+    ciphertext = encrypted_data[16:-16]
+    tag = encrypted_data[-16:]
+    key_bytes = key[:32].encode("utf-8")  # Port expects first 32 bytes of the secret
+    cipher = AES.new(key_bytes, AES.MODE_GCM, nonce=iv)
+    decrypted = cipher.decrypt_and_verify(ciphertext, tag)
+    return decrypted.decode("utf-8")
 
 def decrypt_payload_fields(payload: dict, fields_to_decrypt: list, key: str) -> dict:
     for field in fields_to_decrypt:
