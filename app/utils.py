@@ -66,48 +66,48 @@ def decrypt_field(encrypted_value: str, key: str) -> str:
     return decrypted.decode("utf-8")
 
 
-def get_nested(obj: Union[Dict, List], path: str) -> Optional[Any]:
-    parts = path.split(".")
+def get_nested(container: Union[Dict, List], key_path: str) -> Optional[Any]:
+    parts = key_path.split(".")
     for part in parts:
-        if isinstance(obj, dict):
-            if part not in obj:
+        if isinstance(container, dict):
+            if part not in container:
                 return None
-            obj = obj[part]
-        elif isinstance(obj, list):
+            container = container[part]
+        elif isinstance(container, list):
             try:
                 idx = int(part)
-                obj = obj[idx]
+                container = container[idx]
             except (ValueError, IndexError):
                 return None
         else:
             return None
-    return obj
+    return container
 
 
-def set_nested(obj: Union[Dict, List], path: str, value: Any) -> None:
-    parts = path.split(".")
+def set_nested(container: Union[Dict, List], key_path: str, value: Any) -> None:
+    parts = key_path.split(".")
     for part in parts[:-1]:
-        if isinstance(obj, dict):
-            if part not in obj or not isinstance(obj[part], (dict, list)):
+        if isinstance(container, dict):
+            if part not in container or not isinstance(container[part], (dict, list)):
                 return
-            obj = obj[part]
-        elif isinstance(obj, list):
+            container = container[part]
+        elif isinstance(container, list):
             try:
                 idx = int(part)
-                obj = obj[idx]
+                container = container[idx]
             except (ValueError, IndexError):
                 return
         else:
             return
 
     last = parts[-1]
-    if isinstance(obj, dict) and last in obj:
-        obj[last] = value
-    elif isinstance(obj, list):
+    if isinstance(container, dict) and last in container:
+        container[last] = value
+    elif isinstance(container, list):
         try:
             idx = int(last)
-            if 0 <= idx < len(obj):
-                obj[idx] = value
+            if 0 <= idx < len(container):
+                container[idx] = value
         except ValueError:
             return
 
@@ -115,12 +115,12 @@ def set_nested(obj: Union[Dict, List], path: str, value: Any) -> None:
 def decrypt_payload_fields(
     payload: Dict[str, Any], fields_to_decrypt: List[str], key: str
 ) -> Dict[str, Any]:
-    for path in fields_to_decrypt:
-        encrypted_value = get_nested(payload, path)
+    for key_path in fields_to_decrypt:
+        encrypted_value = get_nested(payload, key_path)
         if encrypted_value is not None:
             try:
                 decrypted_value = decrypt_field(encrypted_value, key)
-                set_nested(payload, path, decrypted_value)
+                set_nested(payload, key_path, decrypted_value)
             except Exception as e:
-                logger.warning(f"Decryption failed for '{path}': {e}")
+                logger.warning(f"Decryption failed for '{key_path}': {e}")
     return payload
