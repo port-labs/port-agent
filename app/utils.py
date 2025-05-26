@@ -2,7 +2,7 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Dict, Any, Optional, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 from Crypto.Cipher import AES
 from requests import Response
@@ -112,7 +112,9 @@ def set_nested(obj: Union[Dict, List], path: str, value: Any) -> None:
             return
 
 
-def decrypt_payload_fields(payload: Dict[str, Any], fields_to_decrypt: List[str], key: str) -> Dict[str, Any]:
+def decrypt_payload_fields(
+    payload: Dict[str, Any], fields_to_decrypt: List[str], key: str
+) -> Dict[str, Any]:
     for path in fields_to_decrypt:
         encrypted_value = get_nested(payload, path)
         if encrypted_value is not None:

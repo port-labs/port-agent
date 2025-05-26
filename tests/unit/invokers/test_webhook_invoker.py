@@ -1,23 +1,28 @@
+from typing import Any, Dict, List
 from unittest import mock
-import app.utils as utils
-from app.utils import decrypt_payload_fields
 
 from invokers.webhook_invoker import WebhookInvoker
 
+import app.utils as utils
+from app.utils import decrypt_payload_fields
 
-def inplace_decrypt_mock(payload: dict, fields: list[str], key: str) -> dict:
+
+def inplace_decrypt_mock(
+    payload: Dict[str, Any], fields: List[str], key: str
+) -> Dict[str, Any]:
     for field in fields:
         if not field:
             continue
         parts = field.split(".")
         d = payload
+        valid = True
         for p in parts[:-1]:
-            if p in d:
+            if isinstance(d, dict) and p in d:
                 d = d[p]
             else:
-                d = None
+                valid = False
                 break
-        if d is not None and parts[-1] in d:
+        if valid and d is not None and isinstance(d, dict) and parts[-1] in d:
             d[parts[-1]] = f"decrypted_{d[parts[-1]]}"
     return payload
 
@@ -27,7 +32,7 @@ def inplace_decrypt_mock(payload: dict, fields: list[str], key: str) -> dict:
 )
 def test_decrypt_simple_fields(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
-    msg = {"field1": "encrypted_value1", "field2": "encrypted_value2"}
+    msg: Dict[str, Any] = {"field1": "encrypted_value1", "field2": "encrypted_value2"}
     mapping = {"fieldsToDecryptPaths": ["field1", "field2"]}
     invoker._replace_encrypted_fields(msg, mapping)
     assert msg["field1"] == "decrypted_encrypted_value1"
@@ -39,7 +44,7 @@ def test_decrypt_simple_fields(_mock_decrypt: object) -> None:
 )
 def test_decrypt_complex_fields(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
-    msg = {
+    msg: Dict[str, Any] = {
         "nested": {"field1": "encrypted_value1", "field2": "encrypted_value2"},
         "field3": "encrypted_value3",
     }
@@ -55,7 +60,7 @@ def test_decrypt_complex_fields(_mock_decrypt: object) -> None:
 )
 def test_partial_decryption(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
-    msg = {
+    msg: Dict[str, Any] = {
         "field1": "encrypted_value1",
         "field2": "encrypted_value2",
         "field3": "plain_value3",
@@ -72,7 +77,7 @@ def test_partial_decryption(_mock_decrypt: object) -> None:
 )
 def test_decrypt_with_complex_jq(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
-    msg = {
+    msg: Dict[str, Any] = {
         "field1": "encrypted_value1",
         "nested": {"field2": "encrypted_value2"},
         "field3": "plain_value3",
@@ -89,27 +94,33 @@ def test_decrypt_with_complex_jq(_mock_decrypt: object) -> None:
     }
 
 
-def test_decrypt_payload_fields_complex():
+def test_decrypt_payload_fields_complex() -> None:
     # Simulate a nested payload with encrypted fields
-    encrypted_value = 'U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+'
-    # This is not a real encrypted value, but for test, we will mock decrypt_field
+    encrypted_value = (
+        "U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+"
+        "U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+"
+        "U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+"
+        "U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+"
+        "U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+"
+        "U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+U2FsdGVkX1+"
+        "U2FsdGVkX1+U2FsdGVkX1+"
+    )
     payload = {
         "level1": {
-            "level2": {
-                "secret": encrypted_value,
-                "other": "not encrypted"
-            },
+            "level2": {"secret": encrypted_value, "other": "not encrypted"},
             "list": [
                 {"deep": {"secret": encrypted_value}},
-                {"deep": {"not_secret": "foo"}}
-            ]
+                {"deep": {"not_secret": "foo"}},
+            ],
         },
-        "top_secret": encrypted_value
+        "top_secret": encrypted_value,
     }
-    fields_to_decrypt = ["level1.level2.secret", "top_secret", "level1.list.0.deep.secret"]
+    fields_to_decrypt = [
+        "level1.level2.secret",
+        "top_secret",
+        "level1.list.0.deep.secret",
+    ]
     key = "a" * 32
-
-    # Patch decrypt_field to just return 'decrypted' for test
     original_decrypt_field = utils.decrypt_field
     utils.decrypt_field = lambda v, k: "decrypted"
     try:
