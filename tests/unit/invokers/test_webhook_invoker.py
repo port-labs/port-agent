@@ -1,11 +1,9 @@
-from typing import Any, Dict, List
-from unittest import mock
 import pytest
-
-from invokers.webhook_invoker import WebhookInvoker
-
+from unittest import mock
 import app.utils as utils
 from app.utils import decrypt_payload_fields, get_nested, set_nested, decrypt_field
+from invokers.webhook_invoker import WebhookInvoker
+from typing import Any, Dict, List
 
 
 def inplace_decrypt_mock(
@@ -135,60 +133,71 @@ def test_decrypt_payload_fields_complex() -> None:
         utils.decrypt_field = original_decrypt_field
 
 
-def test_get_nested_non_dict_list():
+def test_get_nested_non_dict_list() -> None:
     assert get_nested(123, "a.b") is None
     assert get_nested(None, "a.b") is None
 
-def test_get_nested_missing_key():
+
+def test_get_nested_missing_key() -> None:
     assert get_nested({"a": {}}, "a.b") is None
 
-def test_get_nested_non_int_index():
+
+def test_get_nested_non_int_index() -> None:
     assert get_nested([1, 2, 3], "foo") is None
 
-def test_get_nested_out_of_bounds_index():
+
+def test_get_nested_out_of_bounds_index() -> None:
     assert get_nested([1, 2, 3], "5") is None
 
-def test_set_nested_non_dict_list():
+
+def test_set_nested_non_dict_list() -> None:
     set_nested(123, "a.b", "x")  # Should not raise
     set_nested(None, "a.b", "x")  # Should not raise
 
-def test_set_nested_missing_key():
+
+def test_set_nested_missing_key() -> None:
     d = {"a": {}}
     set_nested(d, "a.b.c", "x")
     assert d == {"a": {}}
 
-def test_set_nested_non_int_index():
+
+def test_set_nested_non_int_index() -> None:
     lst = [1, 2, 3]
     set_nested(lst, "foo", "x")  # Should not raise
     assert lst == [1, 2, 3]
 
-def test_set_nested_out_of_bounds_index():
+
+def test_set_nested_out_of_bounds_index() -> None:
     lst = [1, 2, 3]
     set_nested(lst, "5", "x")  # Should not raise
     assert lst == [1, 2, 3]
 
-def test_decrypt_field_too_short():
+
+def test_decrypt_field_too_short() -> None:
     with pytest.raises(ValueError, match="Encrypted data is too short"):
         decrypt_field("aGVsbG8=", "a" * 32)
 
-def test_decrypt_field_key_too_short():
+
+def test_decrypt_field_key_too_short() -> None:
     import base64
     # 32 bytes of data
     data = base64.b64encode(b"a" * 32).decode()
     with pytest.raises(ValueError, match="Encryption key must be at least 32 bytes"):
         decrypt_field(data, "short")
 
-def test_decrypt_field_decrypt_failure():
+
+def test_decrypt_field_decrypt_failure() -> None:
     import base64
     # 48 bytes: 16 IV + 16 ciphertext + 16 tag
     data = base64.b64encode(b"a" * 48).decode()
     with pytest.raises(Exception):
         decrypt_field(data, "a" * 32)
 
-def test_decrypt_payload_fields_decrypt_exception():
+
+def test_decrypt_payload_fields_decrypt_exception() -> None:
     payload = {"a": "encrypted"}
 
-    def bad_decrypt_field(val, key):
+    def bad_decrypt_field(val: str, key: str) -> None:
         raise Exception("fail")
 
     with mock.patch("app.utils.decrypt_field", bad_decrypt_field):
