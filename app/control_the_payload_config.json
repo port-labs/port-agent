@@ -17,6 +17,6 @@
     "enabled": true,
     "url": ".payload.action.invocationMethod.url // .changelogDestination.url",
     "method": ".payload.action.invocationMethod.method // \"POST\"",
-    "fieldsToDecryptJQExpressions": [] 
+    "fieldsToDecryptPaths": []
   }
 ]
