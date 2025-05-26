@@ -1084,7 +1084,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 </details>
 
 <details>
-<summary>fieldsToDecryptPaths</summary>
+<summary>Decrypting Encrypted Fields in Payloads</summary>
 
 ```json
 {
