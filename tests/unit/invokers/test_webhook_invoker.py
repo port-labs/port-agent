@@ -1,7 +1,7 @@
 from unittest import mock
 from invokers.webhook_invoker import WebhookInvoker
 
-def inplace_decrypt_mock(payload, fields, key):
+def inplace_decrypt_mock(payload: dict, fields: list[str], key: str) -> dict:
     for field in fields:
         if not field:
             continue
@@ -18,7 +18,7 @@ def inplace_decrypt_mock(payload, fields, key):
     return payload
 
 @mock.patch("invokers.webhook_invoker.decrypt_payload_fields", side_effect=inplace_decrypt_mock)
-def test_decrypt_simple_fields(_mock_decrypt):
+def test_decrypt_simple_fields(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
     msg = {
         "field1": "encrypted_value1",
@@ -32,7 +32,7 @@ def test_decrypt_simple_fields(_mock_decrypt):
     assert msg["field2"] == "decrypted_encrypted_value2"
 
 @mock.patch("invokers.webhook_invoker.decrypt_payload_fields", side_effect=inplace_decrypt_mock)
-def test_decrypt_complex_fields(_mock_decrypt):
+def test_decrypt_complex_fields(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
     msg = {
         "nested": {
@@ -50,7 +50,7 @@ def test_decrypt_complex_fields(_mock_decrypt):
     assert msg["field3"] == "decrypted_encrypted_value3"
 
 @mock.patch("invokers.webhook_invoker.decrypt_payload_fields", side_effect=inplace_decrypt_mock)
-def test_partial_decryption(_mock_decrypt):
+def test_partial_decryption(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
     msg = {
         "field1": "encrypted_value1",
@@ -66,7 +66,7 @@ def test_partial_decryption(_mock_decrypt):
     assert msg["field3"] == "plain_value3"
 
 @mock.patch("invokers.webhook_invoker.decrypt_payload_fields", side_effect=inplace_decrypt_mock)
-def test_decrypt_with_complex_jq(_mock_decrypt):
+def test_decrypt_with_complex_jq(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
     msg = {
         "field1": "encrypted_value1",
