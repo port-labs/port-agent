@@ -23,7 +23,10 @@ def inplace_decrypt_mock(
             else:
                 valid = False
                 break
-        if valid and d is not None and isinstance(d, dict) and parts[-1] in d:
+        if (
+            valid and d is not None and isinstance(d, dict)
+            and parts[-1] in d
+        ):
             d[parts[-1]] = f"decrypted_{d[parts[-1]]}"
     return payload
 
@@ -33,11 +36,11 @@ def inplace_decrypt_mock(
 )
 def test_decrypt_simple_fields(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
-    msg: Dict[str, Any] = {"field1": "encrypted_value1", "field2": "encrypted_value2"}
+    message: Dict[str, Any] = {"field1": "encrypted_value1", "field2": "encrypted_value2"}
     mapping = {"fieldsToDecryptPaths": ["field1", "field2"]}
-    invoker._replace_encrypted_fields(msg, mapping)
-    assert msg["field1"] == "decrypted_encrypted_value1"
-    assert msg["field2"] == "decrypted_encrypted_value2"
+    invoker._replace_encrypted_fields(message, mapping)
+    assert message["field1"] == "decrypted_encrypted_value1"
+    assert message["field2"] == "decrypted_encrypted_value2"
 
 
 @mock.patch(
@@ -167,3 +170,72 @@ def test_decrypt_payload_fields_decrypt_exception() -> None:
     with mock.patch("app.utils.decrypt_field", bad_decrypt_field):
         result = decrypt_payload_fields(payload, ["a"], "key")
         assert result["a"] == "encrypted"
+
+
+def test_get_nested_and_set_nested():
+    data = {
+        "a": {"b": [1, {"c": "value"}]},
+        "x": [0, {"y": "z"}],
+    }
+    # Test get_nested
+    assert utils.get_nested(data, "a.b.1.c") == "value"
+    assert utils.get_nested(data, "x.1.y") == "z"
+    assert utils.get_nested(data, "a.b.2") is None
+    assert utils.get_nested(data, "a.b.1.d") is None
+    # Test set_nested
+    assert utils.set_nested(data, "a.b.1.c", 42) is True
+    assert data["a"]["b"][1]["c"] == 42
+    assert utils.set_nested(data, "x.1.y", "changed") is True
+    assert data["x"][1]["y"] == "changed"
+    assert utils.set_nested(data, "a.b.2", "fail") is False
+    assert utils.set_nested(data, "a.b.1.d", "fail") is True
+    assert data["a"]["b"][1]["d"] == "fail"
+
+
+def test__traverse_path_basic():
+    from app.utils import _traverse_path
+    # Dict path
+    data = {"a": {"b": {"c": 1}}}
+    steps = list(_traverse_path(data, "a.b.c"))
+    assert steps[0][0] == data and steps[0][1] == "a" and not steps[0][2]
+    assert steps[1][1] == "b" and not steps[1][2]
+    assert steps[2][1] == "c" and steps[2][2]
+    # List path
+    data = {"a": [0, {"b": 2}]}
+    steps = list(_traverse_path(data, "a.1.b"))
+    assert steps[0][1] == "a"
+    assert steps[1][1] == "1"
+    assert steps[2][1] == "b"
+    # Invalid path: should stop at the first invalid index
+    data = {"a": [0]}
+    steps = list(_traverse_path(data, "a.2.b"))
+    # The last yielded parent is the list, part is '2', is_last is False
+    assert steps[-1][1] == "2" and not steps[-1][2]
+
+
+def test_get_nested_cases():
+    from app.utils import get_nested
+    data = {"a": {"b": [0, {"c": 3}]}}
+    assert get_nested(data, "a.b.1.c") == 3
+    assert get_nested(data, "a.b.0") == 0
+    assert get_nested(data, "a.b.2") is None
+    assert get_nested(data, "a.x") is None
+    assert get_nested([{"a": 1}], "0.a") == 1
+    assert get_nested([{"a": 1}], "1.a") is None
+
+
+def test_set_nested_cases():
+    from app.utils import set_nested
+    data = {"a": {"b": [0, {"c": 3}]}}
+    assert set_nested(data, "a.b.1.c", 42) is True
+    assert data["a"]["b"][1]["c"] == 42
+    assert set_nested(data, "a.b.0", 99) is True
+    assert data["a"]["b"][0] == 99
+    assert set_nested(data, "a.b.2", 5) is False
+    # Setting a new key in a dict should return True
+    assert set_nested(data, "a.x", 7) is True
+    assert data["a"]["x"] == 7
+    arr = [{"a": 1}]
+    assert set_nested(arr, "0.a", 2) is True
+    assert arr[0]["a"] == 2
+    assert set_nested(arr, "1.a", 3) is False
