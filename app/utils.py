@@ -66,22 +66,26 @@ def decrypt_field(encrypted_value: str, key: str) -> str:
     return decrypted.decode("utf-8")
 
 
-def access_nested(data: Union[Dict, List], path: str, set_value: Optional[Any] = None) -> Optional[Any]:
-    parts = path.split('.')
-    cur = data
+def access_nested(
+    data: Union[Dict[Any, Any], List[Any]],
+    path: str,
+    set_value: Optional[Any] = None,
+) -> Optional[Any]:
+    parts = path.split(".")
+    cur: Optional[Union[Dict[Any, Any], List[Any]]] = data
     for i, part in enumerate(parts):
         if isinstance(cur, dict):
             if set_value is not None and i == len(parts) - 1:
                 if part in cur:
                     cur[part] = set_value
-                return
+                return None
             cur = cur.get(part)
         elif isinstance(cur, list):
             try:
                 idx = int(part)
                 if set_value is not None and i == len(parts) - 1:
                     cur[idx] = set_value
-                    return
+                    return None
                 cur = cur[idx]
             except (ValueError, IndexError):
                 return None
@@ -90,8 +94,9 @@ def access_nested(data: Union[Dict, List], path: str, set_value: Optional[Any] =
     return cur
 
 
-def decrypt_payload_fields(payload: Dict[str, Any], fields: List[str], key: str
-    ) -> Dict[str, Any]:
+def decrypt_payload_fields(
+    payload: Dict[str, Any], fields: List[str], key: str
+) -> Dict[str, Any]:
     for path in fields:
         encrypted = access_nested(payload, path)
         if encrypted is not None:

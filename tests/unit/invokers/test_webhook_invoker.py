@@ -1,9 +1,11 @@
-import pytest
-from unittest import mock
-import app.utils as utils
-from app.utils import decrypt_payload_fields, decrypt_field
-from invokers.webhook_invoker import WebhookInvoker
 from typing import Any, Dict, List
+from unittest import mock
+
+import pytest
+from invokers.webhook_invoker import WebhookInvoker
+
+import app.utils as utils
+from app.utils import decrypt_field, decrypt_payload_fields
 
 
 def inplace_decrypt_mock(
@@ -140,6 +142,7 @@ def test_decrypt_field_too_short() -> None:
 
 def test_decrypt_field_key_too_short() -> None:
     import base64
+
     # 32 bytes of data
     data = base64.b64encode(b"a" * 32).decode()
     with pytest.raises(ValueError, match="Encryption key must be at least 32 bytes"):
@@ -148,6 +151,7 @@ def test_decrypt_field_key_too_short() -> None:
 
 def test_decrypt_field_decrypt_failure() -> None:
     import base64
+
     # 48 bytes: 16 IV + 16 ciphertext + 16 tag
     data = base64.b64encode(b"a" * 48).decode()
     with pytest.raises(Exception):
