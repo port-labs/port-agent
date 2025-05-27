@@ -3,6 +3,8 @@ from unittest import mock
 
 import pytest
 from invokers.webhook_invoker import WebhookInvoker
+from glom import glom, assign
+from glom.core import PathAssignError
 
 import app.utils as utils
 from app.utils import decrypt_field, decrypt_payload_fields
@@ -177,65 +179,18 @@ def test_get_nested_and_set_nested():
         "a": {"b": [1, {"c": "value"}]},
         "x": [0, {"y": "z"}],
     }
-    # Test get_nested
-    assert utils.get_nested(data, "a.b.1.c") == "value"
-    assert utils.get_nested(data, "x.1.y") == "z"
-    assert utils.get_nested(data, "a.b.2") is None
-    assert utils.get_nested(data, "a.b.1.d") is None
-    # Test set_nested
-    assert utils.set_nested(data, "a.b.1.c", 42) is True
+    # Test glom (get_nested)
+    assert glom(data, "a.b.1.c") == "value"
+    assert glom(data, "x.1.y") == "z"
+    assert glom(data, "a.b.2", default=None) is None
+    assert glom(data, "a.b.1.d", default=None) is None
+    # Test assign (set_nested)
+    assign(data, "a.b.1.c", 42)
     assert data["a"]["b"][1]["c"] == 42
-    assert utils.set_nested(data, "x.1.y", "changed") is True
+    assign(data, "x.1.y", "changed")
     assert data["x"][1]["y"] == "changed"
-    assert utils.set_nested(data, "a.b.2", "fail") is False
-    assert utils.set_nested(data, "a.b.1.d", "fail") is True
+    # assign will create missing keys in dicts, but not in lists
+    with pytest.raises(PathAssignError):
+        assign(data, "a.b.2", "fail")
+    assign(data, "a.b.1.d", "fail")
     assert data["a"]["b"][1]["d"] == "fail"
-
-
-def test__traverse_path_basic():
-    from app.utils import _traverse_path
-    # Dict path
-    data = {"a": {"b": {"c": 1}}}
-    steps = list(_traverse_path(data, "a.b.c"))
-    assert steps[0][0] == data and steps[0][1] == "a" and not steps[0][2]
-    assert steps[1][1] == "b" and not steps[1][2]
-    assert steps[2][1] == "c" and steps[2][2]
-    # List path
-    data = {"a": [0, {"b": 2}]}
-    steps = list(_traverse_path(data, "a.1.b"))
-    assert steps[0][1] == "a"
-    assert steps[1][1] == "1"
-    assert steps[2][1] == "b"
-    # Invalid path: should stop at the first invalid index
-    data = {"a": [0]}
-    steps = list(_traverse_path(data, "a.2.b"))
-    # The last yielded parent is the list, part is '2', is_last is False
-    assert steps[-1][1] == "2" and not steps[-1][2]
-
-
-def test_get_nested_cases():
-    from app.utils import get_nested
-    data = {"a": {"b": [0, {"c": 3}]}}
-    assert get_nested(data, "a.b.1.c") == 3
-    assert get_nested(data, "a.b.0") == 0
-    assert get_nested(data, "a.b.2") is None
-    assert get_nested(data, "a.x") is None
-    assert get_nested([{"a": 1}], "0.a") == 1
-    assert get_nested([{"a": 1}], "1.a") is None
-
-
-def test_set_nested_cases():
-    from app.utils import set_nested
-    data = {"a": {"b": [0, {"c": 3}]}}
-    assert set_nested(data, "a.b.1.c", 42) is True
-    assert data["a"]["b"][1]["c"] == 42
-    assert set_nested(data, "a.b.0", 99) is True
-    assert data["a"]["b"][0] == 99
-    assert set_nested(data, "a.b.2", 5) is False
-    # Setting a new key in a dict should return True
-    assert set_nested(data, "a.x", 7) is True
-    assert data["a"]["x"] == 7
-    arr = [{"a": 1}]
-    assert set_nested(arr, "0.a", 2) is True
-    assert arr[0]["a"] == 2
-    assert set_nested(arr, "1.a", 3) is False

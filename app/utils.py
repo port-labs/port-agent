@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from Crypto.Cipher import AES
 from requests import Response
+from glom import glom, assign
 
 logger = logging.getLogger(__name__)
 
@@ -66,72 +67,15 @@ def decrypt_field(encrypted_value: str, key: str) -> str:
     return decrypted.decode("utf-8")
 
 
-def _traverse_path(
-    data: Union[Dict[Any, Any], List[Any]], path: str
-):
-    parts = path.split(".")
-    cur = data
-    for i, part in enumerate(parts):
-        is_last = i == len(parts) - 1
-        yield cur, part, is_last
-        if isinstance(cur, dict):
-            cur = cur.get(part)
-        elif isinstance(cur, list):
-            try:
-                cur = cur[int(part)]
-            except (ValueError, IndexError):
-                cur = None
-        else:
-            cur = None
-        if cur is None and not is_last:
-            break
-
-
-def get_nested(
-    data: Union[Dict[Any, Any], List[Any]], path: str
-) -> Optional[Any]:
-    cur = data
-    for _, part, _ in _traverse_path(data, path):
-        if isinstance(cur, dict):
-            cur = cur.get(part)
-        elif isinstance(cur, list):
-            try:
-                cur = cur[int(part)]
-            except (ValueError, IndexError):
-                return None
-        else:
-            return None
-    return cur
-
-
-def set_nested(
-    data: Union[Dict[Any, Any], List[Any]], path: str, value: Any
-) -> bool:
-    for parent, part, is_last in _traverse_path(data, path):
-        if is_last:
-            if isinstance(parent, dict):
-                parent[part] = value
-                return True
-            elif isinstance(parent, list):
-                try:
-                    parent[int(part)] = value
-                    return True
-                except (ValueError, IndexError):
-                    return False
-            else:
-                return False
-    return False
-
-
 def decrypt_payload_fields(
     payload: Dict[str, Any], fields: List[str], key: str
 ) -> Dict[str, Any]:
     for path in fields:
-        encrypted = get_nested(payload, path)
+        encrypted = glom(payload, path, default=None)
         if encrypted is not None:
             try:
                 decrypted = decrypt_field(encrypted, key)
-                set_nested(payload, path, decrypted)
+                assign(payload, path, decrypted)
             except Exception as e:
                 logger.warning(f"Decryption failed for '{path}': {e}")
     return payload
