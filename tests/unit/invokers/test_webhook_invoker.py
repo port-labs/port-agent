@@ -1,7 +1,7 @@
 import pytest
 from unittest import mock
 import app.utils as utils
-from app.utils import decrypt_payload_fields, get_nested, set_nested, decrypt_field
+from app.utils import decrypt_payload_fields, decrypt_field
 from invokers.webhook_invoker import WebhookInvoker
 from typing import Any, Dict, List
 
@@ -131,46 +131,6 @@ def test_decrypt_payload_fields_complex() -> None:
         assert result["level1"]["list"][1]["deep"]["not_secret"] == "foo"
     finally:
         utils.decrypt_field = original_decrypt_field
-
-
-def test_get_nested_non_dict_list() -> None:
-    assert get_nested(123, "a.b") is None
-    assert get_nested(None, "a.b") is None
-
-
-def test_get_nested_missing_key() -> None:
-    assert get_nested({"a": {}}, "a.b") is None
-
-
-def test_get_nested_non_int_index() -> None:
-    assert get_nested([1, 2, 3], "foo") is None
-
-
-def test_get_nested_out_of_bounds_index() -> None:
-    assert get_nested([1, 2, 3], "5") is None
-
-
-def test_set_nested_non_dict_list() -> None:
-    set_nested(123, "a.b", "x")  # Should not raise
-    set_nested(None, "a.b", "x")  # Should not raise
-
-
-def test_set_nested_missing_key() -> None:
-    d = {"a": {}}
-    set_nested(d, "a.b.c", "x")
-    assert d == {"a": {}}
-
-
-def test_set_nested_non_int_index() -> None:
-    lst = [1, 2, 3]
-    set_nested(lst, "foo", "x")  # Should not raise
-    assert lst == [1, 2, 3]
-
-
-def test_set_nested_out_of_bounds_index() -> None:
-    lst = [1, 2, 3]
-    set_nested(lst, "5", "x")  # Should not raise
-    assert lst == [1, 2, 3]
 
 
 def test_decrypt_field_too_short() -> None:

@@ -66,61 +66,38 @@ def decrypt_field(encrypted_value: str, key: str) -> str:
     return decrypted.decode("utf-8")
 
 
-def get_nested(container: Union[Dict, List], key_path: str) -> Optional[Any]:
-    parts = key_path.split(".")
-    for part in parts:
-        if isinstance(container, dict):
-            if part not in container:
-                return None
-            container = container[part]
-        elif isinstance(container, list):
+def access_nested(data: Union[Dict, List], path: str, set_value: Optional[Any] = None) -> Optional[Any]:
+    parts = path.split('.')
+    cur = data
+    for i, part in enumerate(parts):
+        if isinstance(cur, dict):
+            if set_value is not None and i == len(parts) - 1:
+                if part in cur:
+                    cur[part] = set_value
+                return
+            cur = cur.get(part)
+        elif isinstance(cur, list):
             try:
                 idx = int(part)
-                container = container[idx]
+                if set_value is not None and i == len(parts) - 1:
+                    cur[idx] = set_value
+                    return
+                cur = cur[idx]
             except (ValueError, IndexError):
                 return None
         else:
             return None
-    return container
+    return cur
 
 
-def set_nested(container: Union[Dict, List], key_path: str, value: Any) -> None:
-    parts = key_path.split(".")
-    for part in parts[:-1]:
-        if isinstance(container, dict):
-            if part not in container or not isinstance(container[part], (dict, list)):
-                return
-            container = container[part]
-        elif isinstance(container, list):
+def decrypt_payload_fields(payload: Dict[str, Any], fields: List[str], key: str
+    ) -> Dict[str, Any]:
+    for path in fields:
+        encrypted = access_nested(payload, path)
+        if encrypted is not None:
             try:
-                idx = int(part)
-                container = container[idx]
-            except (ValueError, IndexError):
-                return
-        else:
-            return
-
-    last = parts[-1]
-    if isinstance(container, dict) and last in container:
-        container[last] = value
-    elif isinstance(container, list):
-        try:
-            idx = int(last)
-            if 0 <= idx < len(container):
-                container[idx] = value
-        except ValueError:
-            return
-
-
-def decrypt_payload_fields(
-    payload: Dict[str, Any], fields_to_decrypt: List[str], key: str
-) -> Dict[str, Any]:
-    for key_path in fields_to_decrypt:
-        encrypted_value = get_nested(payload, key_path)
-        if encrypted_value is not None:
-            try:
-                decrypted_value = decrypt_field(encrypted_value, key)
-                set_nested(payload, key_path, decrypted_value)
+                decrypted = decrypt_field(encrypted, key)
+                access_nested(payload, path, set_value=decrypted)
             except Exception as e:
-                logger.warning(f"Decryption failed for '{key_path}': {e}")
+                logger.warning(f"Decryption failed for '{path}': {e}")
     return payload
