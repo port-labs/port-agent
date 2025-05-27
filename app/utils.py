@@ -2,11 +2,11 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from Crypto.Cipher import AES
+from glom import assign, glom
 from requests import Response
-from glom import glom, assign
 
 logger = logging.getLogger(__name__)
 

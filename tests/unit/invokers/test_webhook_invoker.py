@@ -2,9 +2,9 @@ from typing import Any, Dict, List
 from unittest import mock
 
 import pytest
-from invokers.webhook_invoker import WebhookInvoker
-from glom import glom, assign
+from glom import assign, glom
 from glom.core import PathAssignError
+from invokers.webhook_invoker import WebhookInvoker
 
 import app.utils as utils
 from app.utils import decrypt_field, decrypt_payload_fields
@@ -13,23 +13,25 @@ from app.utils import decrypt_field, decrypt_payload_fields
 def inplace_decrypt_mock(
     payload: Dict[str, Any], fields: List[str], key: str
 ) -> Dict[str, Any]:
-    for field in fields:
-        if not field:
+    for field_path in fields:
+        if not field_path:
             continue
-        parts = field.split(".")
-        d = payload
+        parts = field_path.split(".")
+        current = payload
         valid = True
-        for p in parts[:-1]:
-            if isinstance(d, dict) and p in d:
-                d = d[p]
+        for part in parts[:-1]:
+            if isinstance(current, dict) and part in current:
+                current = current[part]
             else:
                 valid = False
                 break
         if (
-            valid and d is not None and isinstance(d, dict)
-            and parts[-1] in d
+            valid
+            and current is not None
+            and isinstance(current, dict)
+            and parts[-1] in current
         ):
-            d[parts[-1]] = f"decrypted_{d[parts[-1]]}"
+            current[parts[-1]] = f"decrypted_{current[parts[-1]]}"
     return payload
 
 
@@ -38,7 +40,10 @@ def inplace_decrypt_mock(
 )
 def test_decrypt_simple_fields(_mock_decrypt: object) -> None:
     invoker = WebhookInvoker()
-    message: Dict[str, Any] = {"field1": "encrypted_value1", "field2": "encrypted_value2"}
+    message: Dict[str, Any] = {
+        "field1": "encrypted_value1",
+        "field2": "encrypted_value2",
+    }
     mapping = {"fieldsToDecryptPaths": ["field1", "field2"]}
     invoker._replace_encrypted_fields(message, mapping)
     assert message["field1"] == "decrypted_encrypted_value1"
@@ -174,7 +179,7 @@ def test_decrypt_payload_fields_decrypt_exception() -> None:
         assert result["a"] == "encrypted"
 
 
-def test_get_nested_and_set_nested():
+def test_get_nested_and_set_nested() -> None:
     data = {
         "a": {"b": [1, {"c": "value"}]},
         "x": [0, {"y": "z"}],
