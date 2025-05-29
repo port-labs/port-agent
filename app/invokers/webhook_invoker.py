@@ -353,9 +353,9 @@ class WebhookInvoker(BaseInvoker):
         logger.info("Finished processing the event")
 
     def _replace_encrypted_fields(self, msg: dict, mapping: Mapping) -> None:
-        if not settings.PORT_CLIENT_SECRET or not mapping.fieldsToDecryptPaths:
+        fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", None)
+        if not settings.PORT_CLIENT_SECRET or not fields_to_decrypt:
             return
-        fields_to_decrypt = mapping.fieldsToDecryptPaths
         logger.info(
             "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
         )
