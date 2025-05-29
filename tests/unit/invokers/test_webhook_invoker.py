@@ -8,6 +8,7 @@ from invokers.webhook_invoker import WebhookInvoker
 
 import app.utils as utils
 from app.utils import decrypt_field, decrypt_payload_fields
+from app.core.config import Mapping
 
 
 def inplace_decrypt_mock(
@@ -44,7 +45,7 @@ def test_decrypt_simple_fields(_mock_decrypt: object) -> None:
         "field1": "encrypted_value1",
         "field2": "encrypted_value2",
     }
-    mapping = {"fieldsToDecryptPaths": ["field1", "field2"]}
+    mapping = Mapping.construct(fieldsToDecryptPaths=["field1", "field2"])
     invoker._replace_encrypted_fields(message, mapping)
     assert message["field1"] == "decrypted_encrypted_value1"
     assert message["field2"] == "decrypted_encrypted_value2"
@@ -59,7 +60,7 @@ def test_decrypt_complex_fields(_mock_decrypt: object) -> None:
         "nested": {"field1": "encrypted_value1", "field2": "encrypted_value2"},
         "field3": "encrypted_value3",
     }
-    mapping = {"fieldsToDecryptPaths": ["nested.field1", "nested.field2", "field3"]}
+    mapping = Mapping.construct(fieldsToDecryptPaths=["nested.field1", "nested.field2", "field3"])
     invoker._replace_encrypted_fields(msg, mapping)
     assert msg["nested"]["field1"] == "decrypted_encrypted_value1"
     assert msg["nested"]["field2"] == "decrypted_encrypted_value2"
@@ -76,7 +77,7 @@ def test_partial_decryption(_mock_decrypt: object) -> None:
         "field2": "encrypted_value2",
         "field3": "plain_value3",
     }
-    mapping = {"fieldsToDecryptPaths": ["field1", "field2"]}
+    mapping = Mapping.construct(fieldsToDecryptPaths=["field1", "field2"])
     invoker._replace_encrypted_fields(msg, mapping)
     assert msg["field1"] == "decrypted_encrypted_value1"
     assert msg["field2"] == "decrypted_encrypted_value2"
@@ -93,7 +94,7 @@ def test_decrypt_with_complex_jq(_mock_decrypt: object) -> None:
         "nested": {"field2": "encrypted_value2"},
         "field3": "plain_value3",
     }
-    mapping = {"fieldsToDecryptPaths": ["field1", "nested.field2"]}
+    mapping = Mapping.construct(fieldsToDecryptPaths=["field1", "nested.field2"])
     invoker._replace_encrypted_fields(msg, mapping)
     assert msg["field1"] == "decrypted_encrypted_value1"
     assert msg["nested"]["field2"] == "decrypted_encrypted_value2"

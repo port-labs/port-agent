@@ -45,7 +45,7 @@ Here is the mapping file schema:
         "externalRunId": JQ # Optional. Should return the wanted external run id
       },
       "fieldsToDecryptPaths": ["dot.separated.path"] # Optional. List of dot-separated string paths to fields to decrypt by PORT_CLIENT_SECRET
-# Supports both nested objects and arrays (lists), e.g., 'level1.list.0.deep.secret'
+# For top-level fields, use just the field name (e.g., "api_key"). For nested fields, use the full dot-separated path (e.g., "payload.entity.properties.api_key").
   }
 ]
 ```

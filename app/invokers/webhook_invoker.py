@@ -352,14 +352,8 @@ class WebhookInvoker(BaseInvoker):
             )
         logger.info("Finished processing the event")
 
-    def _replace_encrypted_fields(self, msg: dict, mapping: dict) -> None:
-        # Support both dict and Mapping (Pydantic model)
-        if hasattr(mapping, "fieldsToDecryptPaths"):
-            fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", [])
-        elif isinstance(mapping, dict):
-            fields_to_decrypt = mapping.get("fieldsToDecryptPaths", [])
-        else:
-            fields_to_decrypt = []
+    def _replace_encrypted_fields(self, msg: dict, mapping: Mapping) -> None:
+        fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", [])
         logger.info(
             "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
         )
