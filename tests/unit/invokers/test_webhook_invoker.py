@@ -4,11 +4,11 @@ from unittest import mock
 import pytest
 from glom import assign, glom
 from glom.core import PathAssignError
-from invokers.webhook_invoker import WebhookInvoker
 
 import app.utils as utils
-from app.utils import decrypt_field, decrypt_payload_fields
 from app.core.config import Mapping
+from app.utils import decrypt_field, decrypt_payload_fields
+from invokers.webhook_invoker import WebhookInvoker
 
 
 def inplace_decrypt_mock(
@@ -51,7 +51,9 @@ def test_decrypt_complex_fields(_mock_decrypt: object) -> None:
         "field3": "encrypted_value3",
     }
     mapping = Mapping.construct()
-    object.__setattr__(mapping, "fieldsToDecryptPaths", ["nested.field1", "nested.field2", "field3"])
+    object.__setattr__(
+        mapping, "fieldsToDecryptPaths", ["nested.field1", "nested.field2", "field3"]
+    )
     invoker._replace_encrypted_fields(msg, mapping)
     assert msg["nested"]["field1"] == "decrypted_encrypted_value1"
     assert msg["nested"]["field2"] == "decrypted_encrypted_value2"
@@ -100,9 +102,10 @@ def test_decrypt_with_complex_jq(_mock_decrypt: object) -> None:
 
 
 def encrypt_field(plain_text: str, key: str) -> str:
-    from Crypto.Cipher import AES
     import base64
     import os
+
+    from Crypto.Cipher import AES
 
     key_bytes = key.encode("utf-8")
     if len(key_bytes) < 32:
@@ -188,11 +191,11 @@ def test_get_nested_and_set_nested() -> None:
     assert glom(data, "a.b.1.d", default=None) is None
     # Test assign (set_nested)
     assign(data, "a.b.1.c", 42)
-    assert data["a"]["b"][1]["c"] == 42
+    assert dict(data["a"]["b"][1])["c"] == 42
     assign(data, "x.1.y", "changed")
-    assert data["x"][1]["y"] == "changed"
+    assert dict(data["x"][1])["y"] == "changed"
     # assign will create missing keys in dicts, but not in lists
     with pytest.raises(PathAssignError):
         assign(data, "a.b.2", "fail")
     assign(data, "a.b.1.d", "fail")
-    assert data["a"]["b"][1]["d"] == "fail"
+    assert dict(data["a"]["b"][1])["d"] == "fail"
