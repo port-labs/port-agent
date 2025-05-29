@@ -4,10 +4,10 @@ from unittest import mock
 import pytest
 from glom import assign, glom
 from glom.core import PathAssignError
+from invokers.webhook_invoker import WebhookInvoker
 
 from app.core.config import Mapping
 from app.utils import decrypt_field, decrypt_payload_fields
-from invokers.webhook_invoker import WebhookInvoker
 
 
 def inplace_decrypt_mock(
