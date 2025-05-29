@@ -5,7 +5,6 @@ import pytest
 from glom import assign, glom
 from glom.core import PathAssignError
 
-import app.utils as utils
 from app.core.config import Mapping
 from app.utils import decrypt_field, decrypt_payload_fields
 from invokers.webhook_invoker import WebhookInvoker
