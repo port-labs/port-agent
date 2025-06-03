@@ -28,6 +28,7 @@ class Mapping(BaseModel):
     headers: dict[str, str] | str | None = None
     query: dict[str, str] | str | None = None
     report: ActionReport | None = None
+    fieldsToDecryptPaths: list[str] = []
 
 
 class Settings(BaseSettings):
