@@ -77,6 +77,7 @@ class WebhookInvoker(BaseInvoker):
         raw_mapping: dict = mapping.dict(exclude_none=True)
         raw_mapping.pop("enabled")
         raw_mapping.pop("report", None)
+        raw_mapping.pop("fieldsToDecryptPaths", None)
         for key, value in raw_mapping.items():
             result = self._apply_jq_on_field(value, body)
             setattr(request_payload, key, result)
