@@ -43,7 +43,9 @@ Here is the mapping file schema:
         "link": JQ, # Optional. Should return the wanted link or a list of links
         "summary": JQ, # Optional. Should return the wanted summary
         "externalRunId": JQ # Optional. Should return the wanted external run id
-      }
+      },
+      "fieldsToDecryptPaths": ["dot.separated.path"] # Optional. List of dot-separated string paths to fields to decrypt by PORT_CLIENT_SECRET
+# For top-level fields, use just the field name (e.g., "api_key"). For nested fields, use the full dot-separated path (e.g., "payload.entity.properties.api_key").
   }
 ]
 ```
@@ -1080,6 +1082,80 @@ Create the following blueprint, action and mapping to trigger a workflow.
 	}
 ]
 ```
+</details>
+
+<details>
+<summary>Decrypting Encrypted Fields in Payloads</summary>
+
+```json
+{
+  "action": "deploy_service",
+  "resourceType": "service",
+  "status": "TRIGGERED",
+  "trigger": {
+    "by": {
+      "orgId": "org_123",
+      "userId": "auth0|abc123",
+      "user": {
+        "email": "user@example.com",
+        "firstName": "Alice",
+        "lastName": "Smith"
+      }
+    },
+    "origin": "UI",
+    "at": "2024-06-01T12:00:00.000Z"
+  },
+  "context": {
+    "entity": "e_456",
+    "blueprint": "microservice",
+    "runId": "r_789"
+  },
+  "payload": {
+    "entity": {
+      "identifier": "e_456",
+      "title": "My Service",
+      "blueprint": "microservice",
+      "team": ["devops"],
+      "properties": {
+        "api_key": "<ENCRYPTED_VALUE>",
+        "db_password": "<ENCRYPTED_VALUE>",
+        "region": "us-east-1"
+      }
+    },
+    "action": {
+      "invocationMethod": {
+        "type": "WEBHOOK",
+        "agent": true,
+        "synchronized": false,
+        "method": "POST",
+        "url": "https://myservice.com/deploy"
+      },
+      "trigger": "DEPLOY"
+    },
+    "properties": {},
+    "censoredProperties": []
+  }
+}
+```
+
+To have the agent automatically decrypt the `api_key` and `db_password` fields, add their dot-separated paths to `fieldsToDecryptPaths` in your mapping configuration:
+
+```json
+[
+  {
+    "fieldsToDecryptPaths": [
+      "payload.entity.properties.api_key",
+      "payload.entity.properties.db_password"
+    ],
+    // ... other mapping fields ...
+  }
+]
+```
+
+**How it works:**
+- The agent will look for the fields at `payload.entity.properties.api_key` and `payload.entity.properties.db_password` in the event.
+- If it finds encrypted values there, it will decrypt them using your configured secret.
+- You can add more fields to the list as needed.
 </details>
 
 **Port agent installation for ArgoWorkflow example**:

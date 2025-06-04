@@ -13,6 +13,7 @@ from port_client import report_run_response, report_run_status, run_logger_facto
 from pydantic import BaseModel, Field
 from requests import Response
 from utils import (
+    decrypt_payload_fields,
     get_invocation_method_object,
     get_response_body,
     response_to_dict,
@@ -76,6 +77,7 @@ class WebhookInvoker(BaseInvoker):
         raw_mapping: dict = mapping.dict(exclude_none=True)
         raw_mapping.pop("enabled")
         raw_mapping.pop("report", None)
+        raw_mapping.pop("fieldsToDecryptPaths", None)
         for key, value in raw_mapping.items():
             result = self._apply_jq_on_field(value, body)
             setattr(request_payload, key, result)
@@ -335,6 +337,8 @@ class WebhookInvoker(BaseInvoker):
             )
             return
 
+        self._replace_encrypted_fields(msg, mapping)
+
         if run_id:
             self._invoke_run(run_id, mapping, msg, invocation_method)
         # Used for changelog destination event trigger
@@ -348,6 +352,19 @@ class WebhookInvoker(BaseInvoker):
                 "invocation method for the event"
             )
         logger.info("Finished processing the event")
+
+    def _replace_encrypted_fields(self, msg: dict, mapping: Mapping) -> None:
+        fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", None)
+        if not settings.PORT_CLIENT_SECRET or not fields_to_decrypt:
+            return
+        logger.info(
+            "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
+        )
+        decryption_key = settings.PORT_CLIENT_SECRET
+        decrypted_payload = decrypt_payload_fields(
+            msg, fields_to_decrypt, decryption_key
+        )
+        msg.update(decrypted_payload)
 
 
 webhook_invoker = WebhookInvoker()

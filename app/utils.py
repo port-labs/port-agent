@@ -2,7 +2,10 @@ import base64
 import hashlib
 import hmac
 import logging
+from typing import Any, Dict, List
 
+from Crypto.Cipher import AES
+from glom import assign, glom
 from requests import Response
 
 logger = logging.getLogger(__name__)
@@ -43,3 +46,36 @@ def sign_sha_256(input: str, secret: str, timestamp: str) -> str:
     new_hmac.update(bytes(to_sign, "utf-8"))
     signed = base64.b64encode(new_hmac.digest()).decode("utf-8")
     return f"v1,{signed}"
+
+
+def decrypt_field(encrypted_value: str, key: str) -> str:
+    encrypted_data = base64.b64decode(encrypted_value)
+    if len(encrypted_data) < 32:
+        raise ValueError("Encrypted data is too short")
+
+    iv = encrypted_data[:16]
+    ciphertext = encrypted_data[16:-16]
+    tag = encrypted_data[-16:]
+
+    key_bytes = key.encode("utf-8")
+    if len(key_bytes) < 32:
+        raise ValueError("Encryption key must be at least 32 bytes")
+    key_bytes = key_bytes[:32]
+
+    cipher = AES.new(key_bytes, AES.MODE_GCM, nonce=iv)
+    decrypted = cipher.decrypt_and_verify(ciphertext, tag)
+    return decrypted.decode("utf-8")
+
+
+def decrypt_payload_fields(
+    payload: Dict[str, Any], fields: List[str], key: str
+) -> Dict[str, Any]:
+    for path in fields:
+        encrypted = glom(payload, path, default=None)
+        if encrypted is not None:
+            try:
+                decrypted = decrypt_field(encrypted, key)
+                assign(payload, path, decrypted)
+            except Exception as e:
+                logger.warning(f"Decryption failed for '{path}': {e}")
+    return payload
