@@ -149,7 +149,7 @@ The report mapping can use the following fields:
 
 ### Decrypting Encrypted Fields in Payloads
 
-When working with sensitive data like API keys, passwords, or tokens in your payload mappings, the Port agent can automatically decrypt encrypted fields before sending requests to third-party applications. This allows you to securely store encrypted values in Port while ensuring they are properly decrypted when needed for integrations.
+When using `secret` type input fields in your actions to store sensitive data like API keys, passwords, or tokens in your payload mappings, the Port agent can automatically decrypt those encrypted input fields before sending requests to third-party applications. This allows you to securely store encrypted values in Port while ensuring they are properly decrypted when needed for integrations.
 
 <details>
 <summary>Example and Configuration</summary>
