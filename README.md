@@ -147,6 +147,83 @@ The report mapping can use the following fields:
 `.request` - The request that was calculated using the control the payload mapping and sent to the 3rd party application 
 `.response` - The response that was received from the 3rd party application
 
+### Decrypting Encrypted Fields in Payloads
+
+When using `secret` type input fields in your actions to store sensitive data like API keys, passwords, or tokens in your payload mappings, the Port agent can automatically decrypt those encrypted input fields before sending requests to third-party applications. This allows you to securely store encrypted values in Port while ensuring they are properly decrypted when needed for integrations.
+
+<details>
+<summary>Example and Configuration</summary>
+
+```json
+{
+  "action": "deploy_service",
+  "resourceType": "service",
+  "status": "TRIGGERED",
+  "trigger": {
+    "by": {
+      "orgId": "org_123",
+      "userId": "auth0|abc123",
+      "user": {
+        "email": "user@example.com",
+        "firstName": "Alice",
+        "lastName": "Smith"
+      }
+    },
+    "origin": "UI",
+    "at": "2024-06-01T12:00:00.000Z"
+  },
+  "context": {
+    "entity": "e_456",
+    "blueprint": "microservice",
+    "runId": "r_789"
+  },
+  "payload": {
+    "entity": {
+      "identifier": "e_456",
+      "title": "My Service",
+      "blueprint": "microservice",
+      "team": ["devops"],
+      "properties": {
+        "api_key": "<ENCRYPTED_VALUE>",
+        "db_password": "<ENCRYPTED_VALUE>",
+        "region": "us-east-1"
+      }
+    },
+    "action": {
+      "invocationMethod": {
+        "type": "WEBHOOK",
+        "agent": true,
+        "synchronized": false,
+        "method": "POST",
+        "url": "https://myservice.com/deploy"
+      },
+      "trigger": "DEPLOY"
+    },
+    "properties": {},
+    "censoredProperties": []
+  }
+}
+```
+
+To have the agent automatically decrypt the `api_key` and `db_password` fields, add their dot-separated paths to `fieldsToDecryptPaths` in your mapping configuration:
+
+```json
+[
+  {
+    "fieldsToDecryptPaths": [
+      "payload.entity.properties.api_key",
+      "payload.entity.properties.db_password"
+    ],
+    // ... other mapping fields ...
+  }
+]
+```
+
+**How it works:**
+- The agent will look for the fields at `payload.entity.properties.api_key` and `payload.entity.properties.db_password` in the event.
+- If it finds encrypted values there, it will decrypt them using your configured secret.
+- You can add more fields to the list as needed.
+</details>
 
 ### Examples
 
@@ -1084,79 +1161,7 @@ Create the following blueprint, action and mapping to trigger a workflow.
 ```
 </details>
 
-<details>
-<summary>Decrypting Encrypted Fields in Payloads</summary>
 
-```json
-{
-  "action": "deploy_service",
-  "resourceType": "service",
-  "status": "TRIGGERED",
-  "trigger": {
-    "by": {
-      "orgId": "org_123",
-      "userId": "auth0|abc123",
-      "user": {
-        "email": "user@example.com",
-        "firstName": "Alice",
-        "lastName": "Smith"
-      }
-    },
-    "origin": "UI",
-    "at": "2024-06-01T12:00:00.000Z"
-  },
-  "context": {
-    "entity": "e_456",
-    "blueprint": "microservice",
-    "runId": "r_789"
-  },
-  "payload": {
-    "entity": {
-      "identifier": "e_456",
-      "title": "My Service",
-      "blueprint": "microservice",
-      "team": ["devops"],
-      "properties": {
-        "api_key": "<ENCRYPTED_VALUE>",
-        "db_password": "<ENCRYPTED_VALUE>",
-        "region": "us-east-1"
-      }
-    },
-    "action": {
-      "invocationMethod": {
-        "type": "WEBHOOK",
-        "agent": true,
-        "synchronized": false,
-        "method": "POST",
-        "url": "https://myservice.com/deploy"
-      },
-      "trigger": "DEPLOY"
-    },
-    "properties": {},
-    "censoredProperties": []
-  }
-}
-```
-
-To have the agent automatically decrypt the `api_key` and `db_password` fields, add their dot-separated paths to `fieldsToDecryptPaths` in your mapping configuration:
-
-```json
-[
-  {
-    "fieldsToDecryptPaths": [
-      "payload.entity.properties.api_key",
-      "payload.entity.properties.db_password"
-    ],
-    // ... other mapping fields ...
-  }
-]
-```
-
-**How it works:**
-- The agent will look for the fields at `payload.entity.properties.api_key` and `payload.entity.properties.db_password` in the event.
-- If it finds encrypted values there, it will decrypt them using your configured secret.
-- You can add more fields to the list as needed.
-</details>
 
 **Port agent installation for ArgoWorkflow example**:
 
