@@ -290,7 +290,6 @@ For payloads containing arrays of objects with encrypted values, you must specif
 // If the field is named 'secrets' (lowercase), this won't work:
 "fieldsToDecryptPaths": ["payload.action.invocationMethod.body.Secrets.0.value"]
 ```
-</details>
 
 **How it works:**
 - The agent will look for the fields at the specified paths in the incoming message.
