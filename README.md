@@ -286,8 +286,9 @@ For payloads containing arrays of objects with encrypted values, you must specif
 // ❌ Leading dot is incorrect
 "fieldsToDecryptPaths": [".payload.action.invocationMethod.body.secrets.0.value"]
 
-// ❌ Wrong path structure
-"fieldsToDecryptPaths": ["payload.body.secrets.0.value"]
+// ❌ Case sensitive - field names must match exactly
+// If the field is named 'secrets' (lowercase), this won't work:
+"fieldsToDecryptPaths": ["payload.action.invocationMethod.body.Secrets.0.value"]
 ```
 </details>
 
