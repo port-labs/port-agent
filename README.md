@@ -151,8 +151,13 @@ The report mapping can use the following fields:
 
 When using `secret` type input fields in your actions to store sensitive data like API keys, passwords, or tokens in your payload mappings, the Port agent can automatically decrypt those encrypted input fields before sending requests to third-party applications. This allows you to securely store encrypted values in Port while ensuring they are properly decrypted when needed for integrations.
 
+**Important Notes:**
+- **Path Format**: Use dot-separated paths WITHOUT a leading dot (`.`). The paths should start directly with the field name.
+- **Array Elements**: For arrays, you must specify the exact index (e.g., `secrets.0.value`, `secrets.1.value`) rather than using wildcards like `secrets[*].value`.
+- **Path Context**: The paths are relative to the root of the incoming message structure, not relative to the `.body` field used in other mappings.
+
 <details>
-<summary>Example and Configuration</summary>
+<summary>Basic Example - Simple Fields</summary>
 
 ```json
 {
@@ -218,10 +223,77 @@ To have the agent automatically decrypt the `api_key` and `db_password` fields, 
   }
 ]
 ```
+</details>
+
+<details>
+<summary>Advanced Example - Array Elements</summary>
+
+For payloads containing arrays of objects with encrypted values, you must specify each array element individually by its index:
+
+```json
+{
+  "payload": {
+    "action": {
+      "invocationMethod": {
+        "body": {
+          "secrets": [
+            {
+              "key": "porttest123",
+              "value": "<ENCRYPTED_VALUE>"
+            },
+            {
+              "key": "porttest456", 
+              "value": "<ENCRYPTED_VALUE>"
+            }
+          ],
+          "users": [
+            {
+              "username": "user1",
+              "password": "<ENCRYPTED_VALUE>"
+            },
+            {
+              "username": "user2",
+              "password": "<ENCRYPTED_VALUE>"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+**Correct Configuration** (specify each array index individually):
+```json
+[
+  {
+    "fieldsToDecryptPaths": [
+      "payload.action.invocationMethod.body.secrets.0.value",
+      "payload.action.invocationMethod.body.secrets.1.value",
+      "payload.action.invocationMethod.body.users.0.password",
+      "payload.action.invocationMethod.body.users.1.password"
+    ],
+    // ... other mapping fields ...
+  }
+]
+```
+
+**Incorrect Configurations** (these will NOT work):
+```json
+// ❌ Wildcards are not supported
+"fieldsToDecryptPaths": ["payload.action.invocationMethod.body.secrets[*].value"]
+
+// ❌ Leading dot is incorrect
+"fieldsToDecryptPaths": [".payload.action.invocationMethod.body.secrets.0.value"]
+
+// ❌ Wrong path structure
+"fieldsToDecryptPaths": ["payload.body.secrets.0.value"]
+```
+</details>
 
 **How it works:**
-- The agent will look for the fields at `payload.entity.properties.api_key` and `payload.entity.properties.db_password` in the event.
-- If it finds encrypted values there, it will decrypt them using your configured secret.
+- The agent will look for the fields at the specified paths in the incoming message.
+- If it finds encrypted values there, it will decrypt them using your configured `PORT_CLIENT_SECRET`.
 - You can add more fields to the list as needed.
 </details>
 
