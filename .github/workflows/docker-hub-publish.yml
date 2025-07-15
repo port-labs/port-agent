@@ -1,0 +1,144 @@
+name: Docker Hub Publish
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  # Update this to your Docker Hub username
+  DOCKER_HUB_USERNAME: christensen143
+  IMAGE_NAME: port-agent-jack
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Log into Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract metadata and determine version
+        id: meta
+        run: |
+          # Default version
+          VERSION="latest"
+          
+          # If it's a tag, use the tag as version
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          # If it's main branch, use latest + short SHA
+          elif [[ $GITHUB_REF == refs/heads/main ]]; then
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            VERSION="latest"
+            ADDITIONAL_TAG="${SHORT_SHA}"
+          # For PR, create PR-specific tag
+          elif [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
+            VERSION="pr-${{ github.event.pull_request.number }}"
+          fi
+          
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "ADDITIONAL_TAG=$ADDITIONAL_TAG" >> $GITHUB_OUTPUT
+          
+          # Generate Docker tags
+          TAGS="${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:${VERSION}"
+          if [[ ! -z "$ADDITIONAL_TAG" ]]; then
+            TAGS="$TAGS,${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:${ADDITIONAL_TAG}"
+          fi
+          
+          # For version tags, also tag as latest
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            TAGS="$TAGS,${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+          fi
+          
+          echo "TAGS=$TAGS" >> $GITHUB_OUTPUT
+          echo "Generated tags: $TAGS"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.TAGS }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            VERSION=${{ steps.meta.outputs.VERSION }}
+            VCS_REF=${{ github.sha }}
+
+      - name: Update Docker Hub Description
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          repository: ${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}
+          readme-filepath: ./README.md
+          short-description: "Port Agent with environment filtering support"
+
+  # Job to create GitHub release when pushing tags
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## Docker Images
+            
+            This release is available on Docker Hub:
+            ```bash
+            docker pull ${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+            docker pull ${{ env.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ```
+            
+            ## What's Changed
+            
+            See the [full changelog](https://github.com/${{ github.repository }}/compare/previous-tag...${{ github.ref_name }})
+            
+            ## Environment Filtering Support
+            
+            This version includes environment-specific filtering for multi-environment deployments.
+          draft: false
+          prerelease: false

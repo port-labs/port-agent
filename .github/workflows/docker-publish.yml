@@ -1,10 +1,14 @@
-name: Docker
+name: Docker (GitHub Container Registry)
+
+# This workflow publishes to GitHub Container Registry (ghcr.io)
+# For Docker Hub publishing, see docker-hub-publish.yml
 
 on:
-  push:
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:  # Only run manually
+  # push:
+  #   tags: [ 'v*.*.*' ]
+  # pull_request:
+  #   branches: [ "main" ]
 
 env:
   REGISTRY: ghcr.io
