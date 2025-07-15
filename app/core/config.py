@@ -65,6 +65,14 @@ class Settings(BaseSettings):
             return v
         return f"{values.get('PORT_ORG_ID')}.change.log"
 
+    AGENT_ENVIRONMENTS: list[str] = Field(default_factory=list)
+
+    @validator("AGENT_ENVIRONMENTS", pre=True)
+    def parse_environments(cls, v):
+        if isinstance(v, str):
+            return [e.strip() for e in v.split(",") if e.strip()]
+        return v or []
+
     class Config:
         case_sensitive = True
         env_file = find_dotenv()
