@@ -1,5 +1,6 @@
+import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from dotenv import find_dotenv
 from pydantic import (
@@ -51,6 +52,19 @@ class Settings(BaseSettings):
 
     CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 
+    AGENT_ENVIRONMENTS: Union[str, list[str]] = Field(default="")
+
+    @validator("AGENT_ENVIRONMENTS", always=True)
+    def parse_environments(cls, v: Any) -> list[str]:
+        """Parse comma-separated environment list from env var"""
+        if v is None or v == "":
+            return []
+        if isinstance(v, str):
+            return [e.strip() for e in v.split(",") if e.strip()]
+        if isinstance(v, list):
+            return v
+        return []
+
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
         if isinstance(v, str) and v:
@@ -69,6 +83,14 @@ class Settings(BaseSettings):
         case_sensitive = True
         env_file = find_dotenv()
         env_file_encoding = "utf-8"
+
+        @classmethod
+        def parse_env_var(cls, field_name: str, raw_val: str) -> Any:
+            if field_name == "AGENT_ENVIRONMENTS":
+                # Return raw string value, let validator handle parsing
+                return raw_val
+            # For other fields, use default JSON parsing
+            return json.loads(raw_val)
 
     WEBHOOK_INVOKER_TIMEOUT: float = 30
 
