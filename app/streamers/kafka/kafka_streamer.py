@@ -31,6 +31,43 @@ class KafkaStreamer(BaseStreamer):
             )
             return
 
+        # Check environment filtering if configured
+        if settings.AGENT_ENVIRONMENTS:
+            # Extract environment from invocation method body
+            msg_environments = []
+
+            body = invocation_method.get("body", {})
+            if isinstance(body, dict) and "environment" in body:
+                env_value = body.get("environment", "")
+                if isinstance(env_value, str) and env_value:
+                    msg_environments = [env_value]
+                elif isinstance(env_value, list):
+                    msg_environments = env_value
+
+            # Skip if no environment specified
+            if not msg_environments:
+                logger.info(
+                    "Skip process message from topic %s, partition %d, offset %d: "
+                    "no environment specified and agent has environment filter",
+                    topic,
+                    msg.partition(),
+                    msg.offset(),
+                )
+                return
+
+            # Skip if environment doesn't match
+            if not any(env in settings.AGENT_ENVIRONMENTS for env in msg_environments):
+                logger.info(
+                    "Skip process message from topic %s, partition %d, offset %d: "
+                    "message environments %s not in allowed environments %s",
+                    topic,
+                    msg.partition(),
+                    msg.offset(),
+                    msg_environments,
+                    settings.AGENT_ENVIRONMENTS,
+                )
+                return
+
         KafkaToWebhookProcessor.msg_process(msg, invocation_method, topic)
 
     @staticmethod
