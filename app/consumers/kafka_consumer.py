@@ -40,6 +40,8 @@ class KafkaConsumer(BaseConsumer):
                 conf["sasl.username"] = username
                 conf["sasl.password"] = password
                 conf["bootstrap.servers"] = ",".join(brokers)
+            else:
+                conf["bootstrap.servers"] = "host.docker.internal:29092"
 
             self.consumer = Consumer(conf)
 
