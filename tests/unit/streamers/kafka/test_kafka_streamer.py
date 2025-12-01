@@ -81,7 +81,6 @@ def test_single_stream_skipped_due_to_agentless(
 
         mock_info.assert_has_calls(
             [
-                call(ANY, ANY),
                 call(
                     "Received message - topic: %s, partition: %d, offset: %d",
                     ANY,
