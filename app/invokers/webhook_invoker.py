@@ -97,8 +97,15 @@ class WebhookInvoker(BaseInvoker):
         success_status = "SUCCESS" if is_sync else None
         default_status = success_status if response_context.ok else "FAILURE"
 
-        response_detail = f". Response: {response_context.text}" if settings.VERBOSE_LOGGING else ""
-        failure_summary = f"Failed to invoke the webhook with status code: {response_context.status_code}{response_detail}."
+        response_detail = (
+            f". Response: {response_context.text}"
+            if settings.VERBOSE_LOGGING
+            else ""
+        )
+        failure_summary = (
+            f"Failed to invoke the webhook with status code: "
+            f"{response_context.status_code}{response_detail}."
+        )
         default_summary = None if response_context.ok else failure_summary
         report_payload: ReportPayload = ReportPayload(
             status=default_status, summary=default_summary
@@ -137,9 +144,12 @@ class WebhookInvoker(BaseInvoker):
     def _request(
         request_payload: RequestPayload, run_logger: Callable[[str], None]
     ) -> Response:
-        body_log = f", body: {request_payload.body}" if settings.VERBOSE_LOGGING else ""
+        body_log = (
+            f", body: {request_payload.body}" if settings.VERBOSE_LOGGING else ""
+        )
         logger.info(
-            f"WebhookInvoker - request - method: {request_payload.method}, url: {request_payload.url}{body_log}"
+            f"WebhookInvoker - request - method: {request_payload.method}, "
+            f"url: {request_payload.url}{body_log}"
         )
         run_logger("Sending the request")
         request_payload.headers["X-Port-Timestamp"] = str(int(time.time()))
