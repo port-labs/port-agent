@@ -83,6 +83,12 @@ def test_single_stream_skipped_due_to_agentless(
             [
                 call(ANY, ANY),
                 call(
+                    "Received message - topic: %s, partition: %d, offset: %d",
+                    ANY,
+                    0,
+                    0,
+                ),
+                call(
                     "Skip process message"
                     " from topic %s, partition %d, offset %d: not for agent",
                     ANY,
