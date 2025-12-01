@@ -20,7 +20,7 @@ def log_with_verbose(
     verbose_field: Optional[str] = None,
     verbose_value: Any = None,
 ) -> None:
-    """Helper to conditionally add verbose field to logs based on VERBOSE_LOGGING setting."""
+    """Add verbose field to logs based on VERBOSE_LOGGING."""
     msg = base_msg
     if settings.VERBOSE_LOGGING and verbose_field and verbose_value is not None:
         msg += f", {verbose_field}: %s"

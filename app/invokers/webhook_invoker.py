@@ -179,7 +179,7 @@ class WebhookInvoker(BaseInvoker):
                 res.text,
             )
             run_logger(
-                f"Action invocation has completed successfully with "
+                "Action invocation has completed successfully with "
                 f"status code: {res.status_code}"
             )
         else:
@@ -191,7 +191,8 @@ class WebhookInvoker(BaseInvoker):
                 res.text,
             )
             run_logger(
-                f"Action invocation failed with status code: {res.status_code}"
+                "Action invocation failed with "
+                f"status code: {res.status_code}"
             )
 
         return res

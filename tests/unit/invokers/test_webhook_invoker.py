@@ -4,10 +4,10 @@ from unittest import mock
 import pytest
 from glom import assign, glom
 from glom.core import PathAssignError
-from invokers.webhook_invoker import WebhookInvoker
 
 from app.core.config import Mapping
 from app.utils import decrypt_field, decrypt_payload_fields
+from invokers.webhook_invoker import WebhookInvoker
 
 
 def inplace_decrypt_mock(
@@ -179,7 +179,7 @@ def test_decrypt_payload_fields_decrypt_exception() -> None:
 
 
 def test_get_nested_and_set_nested() -> None:
-    data = {
+    data: Dict[str, Any] = {
         "a": {"b": [1, {"c": "value"}]},
         "x": [0, {"y": "z"}],
     }
