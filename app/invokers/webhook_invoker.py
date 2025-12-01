@@ -16,6 +16,7 @@ from utils import (
     decrypt_payload_fields,
     get_invocation_method_object,
     get_response_body,
+    log_with_verbose,
     response_to_dict,
     sign_sha_256,
 )
@@ -97,15 +98,12 @@ class WebhookInvoker(BaseInvoker):
         success_status = "SUCCESS" if is_sync else None
         default_status = success_status if response_context.ok else "FAILURE"
 
-        response_detail = (
-            f". Response: {response_context.text}"
-            if settings.VERBOSE_LOGGING
-            else ""
-        )
         failure_summary = (
             f"Failed to invoke the webhook with status code: "
-            f"{response_context.status_code}{response_detail}."
+            f"{response_context.status_code}."
         )
+        if settings.VERBOSE_LOGGING:
+            failure_summary += f" Response: {response_context.text}"
         default_summary = None if response_context.ok else failure_summary
         report_payload: ReportPayload = ReportPayload(
             status=default_status, summary=default_summary
@@ -144,12 +142,12 @@ class WebhookInvoker(BaseInvoker):
     def _request(
         request_payload: RequestPayload, run_logger: Callable[[str], None]
     ) -> Response:
-        body_log = (
-            f", body: {request_payload.body}" if settings.VERBOSE_LOGGING else ""
-        )
-        logger.info(
-            f"WebhookInvoker - request - method: {request_payload.method}, "
-            f"url: {request_payload.url}{body_log}"
+        log_with_verbose(
+            logger.info,
+            "WebhookInvoker - request - method: %s, url: %s",
+            [request_payload.method, request_payload.url],
+            "body",
+            request_payload.body,
         )
         run_logger("Sending the request")
         request_payload.headers["X-Port-Timestamp"] = str(int(time.time()))
@@ -169,33 +167,25 @@ class WebhookInvoker(BaseInvoker):
         )
 
         if res.ok:
-            if settings.VERBOSE_LOGGING:
-                logger.info(
-                    "WebhookInvoker - request - status_code: %s, body: %s",
-                    res.status_code,
-                    res.text,
-                )
-            else:
-                logger.info(
-                    "WebhookInvoker - request - status_code: %s",
-                    res.status_code,
-                )
+            log_with_verbose(
+                logger.info,
+                "WebhookInvoker - request - status_code: %s",
+                [res.status_code],
+                "body",
+                res.text,
+            )
             run_logger(
                 f"Action invocation has completed successfully with "
                 f"status code: {res.status_code}"
             )
         else:
-            if settings.VERBOSE_LOGGING:
-                logger.warning(
-                    "WebhookInvoker - request - status_code: %s, response: %s",
-                    res.status_code,
-                    res.text,
-                )
-            else:
-                logger.warning(
-                    "WebhookInvoker - request - status_code: %s",
-                    res.status_code,
-                )
+            log_with_verbose(
+                logger.warning,
+                "WebhookInvoker - request - status_code: %s",
+                [res.status_code],
+                "response",
+                res.text,
+            )
             run_logger(
                 f"Action invocation failed with status code: {res.status_code}"
             )
@@ -215,29 +205,17 @@ class WebhookInvoker(BaseInvoker):
                 res.status_code,
             )
         else:
+            log_with_verbose(
+                logger.warning,
+                "WebhookInvoker - report run - run_id: %s, status_code: %s",
+                [run_id, res.status_code],
+                "response",
+                res.text,
+            )
+            user_msg = f"The run state failed to be reported with status code: {res.status_code}"
             if settings.VERBOSE_LOGGING:
-                logger.warning(
-                    "WebhookInvoker - report run - "
-                    "run_id: %s, status_code: %s, response: %s",
-                    run_id,
-                    res.status_code,
-                    res.text,
-                )
-                run_logger(
-                    f"The run state failed to be reported "
-                    f"with status code: {res.status_code} and response: {res.text}"
-                )
-            else:
-                logger.warning(
-                    "WebhookInvoker - report run - "
-                    "run_id: %s, status_code: %s",
-                    run_id,
-                    res.status_code,
-                )
-                run_logger(
-                    f"The run state failed to be reported "
-                    f"with status code: {res.status_code}"
-                )
+                user_msg += f" and response: {res.text}"
+            run_logger(user_msg)
 
         return res
 
@@ -245,17 +223,13 @@ class WebhookInvoker(BaseInvoker):
     def _report_run_response(
         run_id: str, response_body: dict | str | None, run_logger: Callable[[str], None]
     ) -> Response:
-        if settings.VERBOSE_LOGGING:
-            logger.info(
-                "WebhookInvoker - report run response - run_id: %s, response: %s",
-                run_id,
-                response_body,
-            )
-        else:
-            logger.info(
-                "WebhookInvoker - report run response - run_id: %s",
-                run_id,
-            )
+        log_with_verbose(
+            logger.info,
+            "WebhookInvoker - report run response - run_id: %s",
+            [run_id],
+            "response",
+            response_body,
+        )
         run_logger("Reporting the run response")
 
         res = report_run_response(run_id, response_body)
@@ -268,29 +242,17 @@ class WebhookInvoker(BaseInvoker):
             )
             run_logger("The run response was reported successfully ")
         else:
+            log_with_verbose(
+                logger.warning,
+                "WebhookInvoker - report run response - run_id: %s, status_code: %s",
+                [run_id, res.status_code],
+                "response",
+                res.text,
+            )
+            user_msg = f"The run response failed to be reported with status code: {res.status_code}"
             if settings.VERBOSE_LOGGING:
-                logger.warning(
-                    "WebhookInvoker - report run response - "
-                    "run_id: %s, status_code: %s, response: %s",
-                    run_id,
-                    res.status_code,
-                    res.text,
-                )
-                run_logger(
-                    f"The run response failed to be reported "
-                    f"with status code: {res.status_code} and response: {res.text}"
-                )
-            else:
-                logger.warning(
-                    "WebhookInvoker - report run response - "
-                    "run_id: %s, status_code: %s",
-                    run_id,
-                    res.status_code,
-                )
-                run_logger(
-                    f"The run response failed to be reported "
-                    f"with status code: {res.status_code}"
-                )
+                user_msg += f" and response: {res.text}"
+            run_logger(user_msg)
 
         return res
 
