@@ -16,9 +16,16 @@ class KafkaStreamer(BaseStreamer):
         self.kafka_consumer = KafkaConsumer(self.msg_process, consumer)
 
     def msg_process(self, msg: Message) -> None:
-        logger.info("Raw message value: %s", msg.value())
-        msg_value = json.loads(msg.value().decode())
         topic = msg.topic()
+        if settings.VERBOSE_LOGGING:
+            logger.info("Raw message value: %s", msg.value())
+        logger.info(
+            "Received message - topic: %s, partition: %d, offset: %d",
+            topic,
+            msg.partition(),
+            msg.offset(),
+        )
+        msg_value = json.loads(msg.value().decode())
         invocation_method = self.get_invocation_method(msg_value, topic)
 
         if not invocation_method.pop("agent", False):
