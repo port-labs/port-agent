@@ -2,12 +2,13 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from Crypto.Cipher import AES
-from core.config import settings
 from glom import assign, glom
 from requests import Response
+
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def log_with_verbose(
     log_fn: Callable,
     base_msg: str,
     base_args: list,
-    verbose_field: str = None,
+    verbose_field: Optional[str] = None,
     verbose_value: Any = None,
 ) -> None:
     """Helper to conditionally add verbose field to logs based on VERBOSE_LOGGING setting."""

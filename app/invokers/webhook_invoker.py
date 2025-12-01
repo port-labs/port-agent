@@ -216,7 +216,10 @@ class WebhookInvoker(BaseInvoker):
                 "response",
                 res.text,
             )
-            user_msg = f"The run state failed to be reported with status code: {res.status_code}"
+            user_msg = (
+                f"The run state failed to be reported "
+                f"with status code: {res.status_code}"
+            )
             if settings.VERBOSE_LOGGING:
                 user_msg += f" and response: {res.text}"
             run_logger(user_msg)
@@ -253,7 +256,10 @@ class WebhookInvoker(BaseInvoker):
                 "response",
                 res.text,
             )
-            user_msg = f"The run response failed to be reported with status code: {res.status_code}"
+            user_msg = (
+                f"The run response failed to be reported "
+                f"with status code: {res.status_code}"
+            )
             if settings.VERBOSE_LOGGING:
                 user_msg += f" and response: {res.text}"
             run_logger(user_msg)
