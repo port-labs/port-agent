@@ -45,8 +45,12 @@ class WebhookInvoker(BaseInvoker):
         try:
             return jq.first(expression, context)
         except Exception as e:
-            logger.warning(
-                "WebhookInvoker - jq error - expression: %s, error: %s", expression, e
+            log_with_verbose(
+                logger.warning,
+                "WebhookInvoker - jq error - %s",
+                [type(e).__name__],
+                "details",
+                {"expression": expression, "error": str(e)},
             )
             return None
 
@@ -262,10 +266,11 @@ class WebhookInvoker(BaseInvoker):
         run_logger = run_logger_factory(run_id)
         run_logger("An action message has been received")
 
-        logger.info(
-            "WebhookInvoker - mapping - mapping: %s",
-            mapping.dict() if mapping else None,
-        )
+        if settings.VERBOSE_LOGGING:
+            logger.info(
+                "WebhookInvoker - mapping - mapping: %s",
+                mapping.dict() if mapping else None,
+            )
         run_logger("Preparing the payload for the request")
         request_payload = self._prepare_payload(mapping, body, invocation_method)
         res = self._request(request_payload, run_logger)
@@ -278,10 +283,11 @@ class WebhookInvoker(BaseInvoker):
             mapping, res, request_payload.dict(), body
         )
         if report_dict := report_payload.dict(exclude_none=True, by_alias=True):
-            logger.info(
-                "WebhookInvoker - report mapping - report_payload: %s",
-                report_payload.dict(exclude_none=True, by_alias=True),
-            )
+            if settings.VERBOSE_LOGGING:
+                logger.info(
+                    "WebhookInvoker - report mapping - report_payload: %s",
+                    report_payload.dict(exclude_none=True, by_alias=True),
+                )
             self._report_run_status(run_id, report_dict, run_logger)
         else:
             logger.info(
@@ -329,7 +335,13 @@ class WebhookInvoker(BaseInvoker):
         return True
 
     def invoke(self, msg: dict, invocation_method: dict) -> None:
-        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
+        log_with_verbose(
+            logger.info,
+            "WebhookInvoker - start - destination type: %s",
+            [invocation_method.get("type", "WEBHOOK")],
+            "details",
+            invocation_method,
+        )
         run_id = msg["context"].get("runId")
 
         invocation_method_name = invocation_method.get("type", "WEBHOOK")
@@ -340,9 +352,13 @@ class WebhookInvoker(BaseInvoker):
 
         mapping = self._find_mapping(msg)
         if mapping is None:
-            logger.info(
-                "WebhookInvoker - Could not find suitable mapping for the event%s",
-                f", run_id: {run_id}" if run_id else "",
+            log_with_verbose(
+                logger.info,
+                "WebhookInvoker - Could not find suitable mapping for the event",
+                [],
+                "run_id",
+                run_id,
+                always_include=True,
             )
             return
 
@@ -366,9 +382,10 @@ class WebhookInvoker(BaseInvoker):
         fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", None)
         if not settings.PORT_CLIENT_SECRET or not fields_to_decrypt:
             return
-        logger.info(
-            "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
-        )
+        if settings.VERBOSE_LOGGING:
+            logger.info(
+                "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
+            )
         decryption_key = settings.PORT_CLIENT_SECRET
         decrypted_payload = decrypt_payload_fields(
             msg, fields_to_decrypt, decryption_key

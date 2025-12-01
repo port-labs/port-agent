@@ -93,5 +93,5 @@ def decrypt_payload_fields(
                 decrypted = decrypt_field(encrypted, key)
                 assign(payload, path, decrypted)
             except Exception as e:
-                logger.warning(f"Decryption failed for '{path}': {e}")
+                logger.warning("Decryption failed for '%s': %s", path, e)
     return payload
