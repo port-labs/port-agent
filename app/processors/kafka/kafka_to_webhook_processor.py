@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class KafkaToWebhookProcessor:
     @staticmethod
     def msg_process(msg: Message, invocation_method: dict, topic: str) -> None:
-        if settings.VERBOSE_LOGGING:
+        if settings.DETAILED_LOGGING:
             logger.info("Raw message value: %s", msg.value())
         logger.info(
             "Processing message - topic: %s, partition: %d, offset: %d",

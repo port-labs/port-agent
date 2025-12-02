@@ -106,7 +106,7 @@ class WebhookInvoker(BaseInvoker):
             f"Failed to invoke the webhook with status code: "
             f"{response_context.status_code}."
         )
-        if settings.VERBOSE_LOGGING:
+        if settings.DETAILED_LOGGING:
             failure_summary += f" Response: {response_context.text}"
         default_summary = None if response_context.ok else failure_summary
         report_payload: ReportPayload = ReportPayload(
@@ -221,7 +221,7 @@ class WebhookInvoker(BaseInvoker):
                 f"The run state failed to be reported "
                 f"with status code: {res.status_code}"
             )
-            if settings.VERBOSE_LOGGING:
+            if settings.DETAILED_LOGGING:
                 user_msg += f" and response: {res.text}"
             run_logger(user_msg)
 
@@ -261,7 +261,7 @@ class WebhookInvoker(BaseInvoker):
                 f"The run response failed to be reported "
                 f"with status code: {res.status_code}"
             )
-            if settings.VERBOSE_LOGGING:
+            if settings.DETAILED_LOGGING:
                 user_msg += f" and response: {res.text}"
             run_logger(user_msg)
 
@@ -273,7 +273,7 @@ class WebhookInvoker(BaseInvoker):
         run_logger = run_logger_factory(run_id)
         run_logger("An action message has been received")
 
-        if settings.VERBOSE_LOGGING:
+        if settings.DETAILED_LOGGING:
             logger.info(
                 "WebhookInvoker - mapping - mapping: %s",
                 mapping.dict() if mapping else None,
@@ -290,7 +290,7 @@ class WebhookInvoker(BaseInvoker):
             mapping, res, request_payload.dict(), body
         )
         if report_dict := report_payload.dict(exclude_none=True, by_alias=True):
-            if settings.VERBOSE_LOGGING:
+            if settings.DETAILED_LOGGING:
                 logger.info(
                     "WebhookInvoker - report mapping - report_payload: %s",
                     report_payload.dict(exclude_none=True, by_alias=True),
@@ -365,7 +365,6 @@ class WebhookInvoker(BaseInvoker):
                 [],
                 "run_id",
                 run_id,
-                always_include=True,
             )
             return
 
@@ -389,7 +388,7 @@ class WebhookInvoker(BaseInvoker):
         fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", None)
         if not settings.PORT_CLIENT_SECRET or not fields_to_decrypt:
             return
-        if settings.VERBOSE_LOGGING:
+        if settings.DETAILED_LOGGING:
             logger.info(
                 "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
             )

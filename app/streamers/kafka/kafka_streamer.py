@@ -17,7 +17,7 @@ class KafkaStreamer(BaseStreamer):
 
     def msg_process(self, msg: Message) -> None:
         topic = msg.topic()
-        if settings.VERBOSE_LOGGING:
+        if settings.DETAILED_LOGGING:
             logger.info("Raw message value: %s", msg.value())
         logger.info(
             "Received message - topic: %s, partition: %d, offset: %d",

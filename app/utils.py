@@ -20,9 +20,9 @@ def log_with_verbose(
     verbose_field: Optional[str] = None,
     verbose_value: Any = None,
 ) -> None:
-    """Add verbose field to logs based on VERBOSE_LOGGING."""
+    """Add verbose field to logs based on DETAILED_LOGGING."""
     msg = base_msg
-    if settings.VERBOSE_LOGGING and verbose_field and verbose_value is not None:
+    if settings.DETAILED_LOGGING and verbose_field and verbose_value is not None:
         msg += f", {verbose_field}: %s"
         base_args.append(verbose_value)
     log_fn(msg, *base_args)
