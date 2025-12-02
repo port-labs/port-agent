@@ -4,11 +4,10 @@ import hmac
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
+from core.config import settings
 from Crypto.Cipher import AES
 from glom import assign, glom
 from requests import Response
-
-from core.config import settings
 
 logger = logging.getLogger(__name__)
 
