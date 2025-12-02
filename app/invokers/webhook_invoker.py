@@ -274,10 +274,10 @@ class WebhookInvoker(BaseInvoker):
         run_logger("An action message has been received")
 
         if settings.DETAILED_LOGGING:
-        logger.info(
-            "WebhookInvoker - mapping - mapping: %s",
-            mapping.dict() if mapping else None,
-        )
+            logger.info(
+                "WebhookInvoker - mapping - mapping: %s",
+                mapping.dict() if mapping else None,
+            )
         run_logger("Preparing the payload for the request")
         request_payload = self._prepare_payload(mapping, body, invocation_method)
         res = self._request(request_payload, run_logger)
@@ -291,10 +291,10 @@ class WebhookInvoker(BaseInvoker):
         )
         if report_dict := report_payload.dict(exclude_none=True, by_alias=True):
             if settings.DETAILED_LOGGING:
-            logger.info(
-                "WebhookInvoker - report mapping - report_payload: %s",
-                report_payload.dict(exclude_none=True, by_alias=True),
-            )
+                logger.info(
+                    "WebhookInvoker - report mapping - report_payload: %s",
+                    report_payload.dict(exclude_none=True, by_alias=True),
+                )
             self._report_run_status(run_id, report_dict, run_logger)
         else:
             logger.info(
@@ -389,9 +389,9 @@ class WebhookInvoker(BaseInvoker):
         if not settings.PORT_CLIENT_SECRET or not fields_to_decrypt:
             return
         if settings.DETAILED_LOGGING:
-        logger.info(
-            "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
-        )
+            logger.info(
+                "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
+            )
         decryption_key = settings.PORT_CLIENT_SECRET
         decrypted_payload = decrypt_payload_fields(
             msg, fields_to_decrypt, decryption_key
