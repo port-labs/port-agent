@@ -20,13 +20,17 @@ def log_by_detail_level(
     optional_field_name: Optional[str] = None,
     optional_field_value: Any = None,
 ) -> None:
-    """Log with detail level based on DETAILED_LOGGING config. 
-    
-    Logs concisely (base message only) when DETAILED_LOGGING=False, or with one 
+    """Log with detail level based on DETAILED_LOGGING config.
+
+    Logs concisely (base message only) when DETAILED_LOGGING=False, or with one
     additional optional field when DETAILED_LOGGING=True.
     """
     msg = base_message_format
-    if settings.DETAILED_LOGGING and optional_field_name and optional_field_value is not None:
+    if (
+        settings.DETAILED_LOGGING
+        and optional_field_name
+        and optional_field_value is not None
+    ):
         msg += f", {optional_field_name}: %s"
         base_format_args.append(optional_field_value)
     log_fn(msg, *base_format_args)
