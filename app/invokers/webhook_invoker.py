@@ -16,7 +16,7 @@ from utils import (
     decrypt_payload_fields,
     get_invocation_method_object,
     get_response_body,
-    log_with_verbose,
+    log_by_detail_level,
     response_to_dict,
     sign_sha_256,
 )
@@ -45,7 +45,7 @@ class WebhookInvoker(BaseInvoker):
         try:
             return jq.first(expression, context)
         except Exception as e:
-            log_with_verbose(
+            log_by_detail_level(
                 logger.warning,
                 "WebhookInvoker - jq error - %s",
                 [type(e).__name__],
@@ -146,7 +146,7 @@ class WebhookInvoker(BaseInvoker):
     def _request(
         request_payload: RequestPayload, run_logger: Callable[[str], None]
     ) -> Response:
-        log_with_verbose(
+        log_by_detail_level(
             logger.info,
             "WebhookInvoker - request - method: %s, url: %s",
             [request_payload.method, request_payload.url],
@@ -171,7 +171,7 @@ class WebhookInvoker(BaseInvoker):
         )
 
         if res.ok:
-            log_with_verbose(
+            log_by_detail_level(
                 logger.info,
                 "WebhookInvoker - request - status_code: %s",
                 [res.status_code],
@@ -183,7 +183,7 @@ class WebhookInvoker(BaseInvoker):
                 f"status code: {res.status_code}"
             )
         else:
-            log_with_verbose(
+            log_by_detail_level(
                 logger.warning,
                 "WebhookInvoker - request - status_code: %s",
                 [res.status_code],
@@ -210,7 +210,7 @@ class WebhookInvoker(BaseInvoker):
                 res.status_code,
             )
         else:
-            log_with_verbose(
+            log_by_detail_level(
                 logger.warning,
                 "WebhookInvoker - report run - run_id: %s, status_code: %s",
                 [run_id, res.status_code],
@@ -231,7 +231,7 @@ class WebhookInvoker(BaseInvoker):
     def _report_run_response(
         run_id: str, response_body: dict | str | None, run_logger: Callable[[str], None]
     ) -> Response:
-        log_with_verbose(
+        log_by_detail_level(
             logger.info,
             "WebhookInvoker - report run response - run_id: %s",
             [run_id],
@@ -250,7 +250,7 @@ class WebhookInvoker(BaseInvoker):
             )
             run_logger("The run response was reported successfully ")
         else:
-            log_with_verbose(
+            log_by_detail_level(
                 logger.warning,
                 "WebhookInvoker - report run response - run_id: %s, status_code: %s",
                 [run_id, res.status_code],
@@ -342,7 +342,7 @@ class WebhookInvoker(BaseInvoker):
         return True
 
     def invoke(self, msg: dict, invocation_method: dict) -> None:
-        log_with_verbose(
+        log_by_detail_level(
             logger.info,
             "WebhookInvoker - start - destination type: %s",
             [invocation_method.get("type", "WEBHOOK")],
@@ -359,7 +359,7 @@ class WebhookInvoker(BaseInvoker):
 
         mapping = self._find_mapping(msg)
         if mapping is None:
-            log_with_verbose(
+            log_by_detail_level(
                 logger.info,
                 "WebhookInvoker - Could not find suitable mapping for the event",
                 [],

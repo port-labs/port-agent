@@ -13,19 +13,23 @@ from core.config import settings
 logger = logging.getLogger(__name__)
 
 
-def log_with_verbose(
+def log_by_detail_level(
     log_fn: Callable,
-    base_msg: str,
-    base_args: list,
-    verbose_field: Optional[str] = None,
-    verbose_value: Any = None,
+    base_message_format: str,
+    base_format_args: list,
+    optional_field_name: Optional[str] = None,
+    optional_field_value: Any = None,
 ) -> None:
-    """Add verbose field to logs based on DETAILED_LOGGING."""
-    msg = base_msg
-    if settings.DETAILED_LOGGING and verbose_field and verbose_value is not None:
-        msg += f", {verbose_field}: %s"
-        base_args.append(verbose_value)
-    log_fn(msg, *base_args)
+    """Log with detail level based on DETAILED_LOGGING config. 
+    
+    Logs concisely (base message only) when DETAILED_LOGGING=False, or with one 
+    additional optional field when DETAILED_LOGGING=True.
+    """
+    msg = base_message_format
+    if settings.DETAILED_LOGGING and optional_field_name and optional_field_value is not None:
+        msg += f", {optional_field_name}: %s"
+        base_format_args.append(optional_field_value)
+    log_fn(msg, *base_format_args)
 
 
 def response_to_dict(response: Response) -> dict:
