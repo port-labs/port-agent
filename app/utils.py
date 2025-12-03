@@ -31,8 +31,9 @@ def log_by_detail_level(
         and optional_field_value is not None
     ):
         msg += f", {optional_field_name}: %s"
-        base_format_args.append(optional_field_value)
-    log_fn(msg, *base_format_args)
+        log_fn(msg, *base_format_args, optional_field_value)
+    else:
+        log_fn(msg, *base_format_args)
 
 
 def response_to_dict(response: Response) -> dict:

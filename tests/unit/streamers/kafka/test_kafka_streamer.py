@@ -82,10 +82,11 @@ def test_single_stream_skipped_due_to_agentless(
         mock_info.assert_has_calls(
             [
                 call(
-                    "Received message - topic: %s, partition: %d, offset: %d",
+                    "Received message - topic: %s, partition: %d, offset: %d, raw_value: %s",
                     ANY,
                     0,
                     0,
+                    ANY,
                 ),
                 call(
                     "Skip process message"
