@@ -365,7 +365,10 @@ class WebhookInvoker(BaseInvoker):
         if mapping is None:
             log_by_detail_level(
                 logger.info,
-                "WebhookInvoker - Could not find suitable mapping for the event - run_id: %s",
+                (
+                    "WebhookInvoker - Could not find suitable mapping "
+                    "for the event - run_id: %s"
+                ),
                 [run_id or consts.MISSING_VALUE],
                 "msg",
                 msg,
