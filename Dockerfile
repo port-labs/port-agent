@@ -1,4 +1,4 @@
-FROM python:3.11-alpine AS base
+FROM python:3.11-alpine3.19 AS base
 
 ENV LIBRDKAFKA_VERSION=1.9.2
 
@@ -33,7 +33,7 @@ RUN poetry config virtualenvs.in-project true
 # Install Python dependencies using Poetry
 RUN poetry install --without dev --no-ansi
 
-FROM python:3.11-alpine AS prod
+FROM python:3.11-alpine3.19 AS prod
 
 ENV LIBRDKAFKA_VERSION=1.9.2
 
