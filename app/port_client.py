@@ -4,6 +4,7 @@ from typing import Callable
 import requests
 from core.config import settings
 from requests import Response
+from utils import log_by_detail_level
 
 logger = getLogger(__name__)
 
@@ -19,10 +20,12 @@ def get_port_api_headers() -> dict[str, str]:
     )
 
     if not token_response.ok:
-        logger.error(
-            f"Failed to get Port API access token - "
-            f"status: {token_response.status_code}, "
-            f"response: {token_response.text}"
+        log_by_detail_level(
+            logger.error,
+            "Failed to get Port API access token - status: %s",
+            [token_response.status_code],
+            "response",
+            token_response.text,
         )
 
     token_response.raise_for_status()

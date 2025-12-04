@@ -34,6 +34,7 @@ class Mapping(BaseModel):
 class Settings(BaseSettings):
     USING_LOCAL_PORT_INSTANCE: bool = False
     LOG_LEVEL: str = "INFO"
+    DETAILED_LOGGING: bool = True
 
     STREAMER_NAME: str
 

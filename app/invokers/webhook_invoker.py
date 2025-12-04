@@ -16,6 +16,7 @@ from utils import (
     decrypt_payload_fields,
     get_invocation_method_object,
     get_response_body,
+    log_by_detail_level,
     response_to_dict,
     sign_sha_256,
 )
@@ -44,8 +45,12 @@ class WebhookInvoker(BaseInvoker):
         try:
             return jq.first(expression, context)
         except Exception as e:
-            logger.warning(
-                "WebhookInvoker - jq error - expression: %s, error: %s", expression, e
+            log_by_detail_level(
+                logger.warning,
+                "WebhookInvoker - jq error - %s",
+                [type(e).__name__],
+                "details",
+                {"expression": expression, "error": str(e)},
             )
             return None
 
@@ -99,8 +104,10 @@ class WebhookInvoker(BaseInvoker):
 
         failure_summary = (
             f"Failed to invoke the webhook with status code: "
-            f"{response_context.status_code}. Response: {response_context.text}."
+            f"{response_context.status_code}."
         )
+        if settings.DETAILED_LOGGING:
+            failure_summary += f" Response: {response_context.text}"
         default_summary = None if response_context.ok else failure_summary
         report_payload: ReportPayload = ReportPayload(
             status=default_status, summary=default_summary
@@ -139,10 +146,11 @@ class WebhookInvoker(BaseInvoker):
     def _request(
         request_payload: RequestPayload, run_logger: Callable[[str], None]
     ) -> Response:
-        logger.info(
-            "WebhookInvoker - request - " "method: %s, url: %s, body: %s",
-            request_payload.method,
-            request_payload.url,
+        log_by_detail_level(
+            logger.info,
+            "WebhookInvoker - request - method: %s, url: %s",
+            [request_payload.method, request_payload.url],
+            "body",
             request_payload.body,
         )
         run_logger("Sending the request")
@@ -163,25 +171,29 @@ class WebhookInvoker(BaseInvoker):
         )
 
         if res.ok:
-            logger.info(
-                "WebhookInvoker - request - status_code: %s, body: %s",
-                res.status_code,
+            log_by_detail_level(
+                logger.info,
+                "WebhookInvoker - request - status_code: %s",
+                [res.status_code],
+                "body",
                 res.text,
             )
             run_logger(
-                f"Action invocation has completed successfully with "
+                "Action invocation has completed successfully with "
                 f"status code: {res.status_code}"
             )
         else:
-            logger.warning(
-                "WebhookInvoker - request - status_code: %s, response: %s",
-                res.status_code,
+            log_by_detail_level(
+                logger.warning,
+                "WebhookInvoker - request - status_code: %s",
+                [res.status_code],
+                "response",
                 res.text,
             )
-            run_logger(
-                f"Action invocation failed with status code: {res.status_code} "
-                f"and response: {res.text}"
-            )
+            user_msg = f"Action invocation failed with status code: {res.status_code}"
+            if settings.DETAILED_LOGGING:
+                user_msg += f" and response: {res.text}"
+            run_logger(user_msg)
 
         return res
 
@@ -198,17 +210,20 @@ class WebhookInvoker(BaseInvoker):
                 res.status_code,
             )
         else:
-            logger.warning(
-                "WebhookInvoker - report run - "
-                "run_id: %s, status_code: %s, response: %s",
-                run_id,
-                res.status_code,
+            log_by_detail_level(
+                logger.warning,
+                "WebhookInvoker - report run - run_id: %s, status_code: %s",
+                [run_id, res.status_code],
+                "response",
                 res.text,
             )
-            run_logger(
+            user_msg = (
                 f"The run state failed to be reported "
-                f"with status code: {res.status_code} and response: {res.text}"
+                f"with status code: {res.status_code}"
             )
+            if settings.DETAILED_LOGGING:
+                user_msg += f" and response: {res.text}"
+            run_logger(user_msg)
 
         return res
 
@@ -216,9 +231,11 @@ class WebhookInvoker(BaseInvoker):
     def _report_run_response(
         run_id: str, response_body: dict | str | None, run_logger: Callable[[str], None]
     ) -> Response:
-        logger.info(
-            "WebhookInvoker - report run response - run_id: %s, response: %s",
-            run_id,
+        log_by_detail_level(
+            logger.info,
+            "WebhookInvoker - report run response - run_id: %s",
+            [run_id],
+            "response",
             response_body,
         )
         run_logger("Reporting the run response")
@@ -233,17 +250,20 @@ class WebhookInvoker(BaseInvoker):
             )
             run_logger("The run response was reported successfully ")
         else:
-            logger.warning(
-                "WebhookInvoker - report run response - "
-                "run_id: %s, status_code: %s, response: %s",
-                run_id,
-                res.status_code,
+            log_by_detail_level(
+                logger.warning,
+                "WebhookInvoker - report run response - run_id: %s, status_code: %s",
+                [run_id, res.status_code],
+                "response",
                 res.text,
             )
-            run_logger(
+            user_msg = (
                 f"The run response failed to be reported "
-                f"with status code: {res.status_code} and response: {res.text}"
+                f"with status code: {res.status_code}"
             )
+            if settings.DETAILED_LOGGING:
+                user_msg += f" and response: {res.text}"
+            run_logger(user_msg)
 
         return res
 
@@ -253,8 +273,11 @@ class WebhookInvoker(BaseInvoker):
         run_logger = run_logger_factory(run_id)
         run_logger("An action message has been received")
 
-        logger.info(
-            "WebhookInvoker - mapping - mapping: %s",
+        log_by_detail_level(
+            logger.info,
+            "WebhookInvoker - preparing mapping - run_id: %s",
+            [run_id],
+            "mapping",
             mapping.dict() if mapping else None,
         )
         run_logger("Preparing the payload for the request")
@@ -269,8 +292,11 @@ class WebhookInvoker(BaseInvoker):
             mapping, res, request_payload.dict(), body
         )
         if report_dict := report_payload.dict(exclude_none=True, by_alias=True):
-            logger.info(
-                "WebhookInvoker - report mapping - report_payload: %s",
+            log_by_detail_level(
+                logger.info,
+                "WebhookInvoker - report mapping - run_id: %s",
+                [run_id],
+                "report_payload",
                 report_payload.dict(exclude_none=True, by_alias=True),
             )
             self._report_run_status(run_id, report_dict, run_logger)
@@ -320,10 +346,16 @@ class WebhookInvoker(BaseInvoker):
         return True
 
     def invoke(self, msg: dict, invocation_method: dict) -> None:
-        logger.info("WebhookInvoker - start - destination: %s", invocation_method)
+        log_by_detail_level(
+            logger.info,
+            "WebhookInvoker - start - destination type: %s",
+            [invocation_method.get("type") or consts.MISSING_VALUE],
+            "details",
+            invocation_method,
+        )
         run_id = msg["context"].get("runId")
 
-        invocation_method_name = invocation_method.get("type", "WEBHOOK")
+        invocation_method_name = invocation_method.get("type") or consts.MISSING_VALUE
         if not self.validate_incoming_signature(msg, invocation_method_name):
             return
 
@@ -331,9 +363,15 @@ class WebhookInvoker(BaseInvoker):
 
         mapping = self._find_mapping(msg)
         if mapping is None:
-            logger.info(
-                "WebhookInvoker - Could not find suitable mapping for the event"
-                f" - msg: {msg} {', run_id: ' + run_id if run_id else ''}",
+            log_by_detail_level(
+                logger.info,
+                (
+                    "WebhookInvoker - Could not find suitable mapping "
+                    "for the event - run_id: %s"
+                ),
+                [run_id or consts.MISSING_VALUE],
+                "msg",
+                msg,
             )
             return
 
@@ -357,9 +395,10 @@ class WebhookInvoker(BaseInvoker):
         fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", None)
         if not settings.PORT_CLIENT_SECRET or not fields_to_decrypt:
             return
-        logger.info(
-            "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
-        )
+        if settings.DETAILED_LOGGING:
+            logger.info(
+                "WebhookInvoker - decrypting fields - fields: %s", fields_to_decrypt
+            )
         decryption_key = settings.PORT_CLIENT_SECRET
         decrypted_payload = decrypt_payload_fields(
             msg, fields_to_decrypt, decryption_key

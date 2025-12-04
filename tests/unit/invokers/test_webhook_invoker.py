@@ -179,7 +179,7 @@ def test_decrypt_payload_fields_decrypt_exception() -> None:
 
 
 def test_get_nested_and_set_nested() -> None:
-    data = {
+    data: Dict[str, Any] = {
         "a": {"b": [1, {"c": "value"}]},
         "x": [0, {"y": "z"}],
     }
