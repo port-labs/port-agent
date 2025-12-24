@@ -9,7 +9,8 @@ class StreamerFactory:
         valid_types = ["KAFKA", "HTTPS"]
         if transport_type not in valid_types:
             raise ValueError(
-                f"PORT_AGENT_TRANSPORT_TYPE must be one of {valid_types}, got: {transport_type}"
+                f"PORT_AGENT_TRANSPORT_TYPE must be one of {valid_types}, "
+                f"got: {transport_type}"
             )
 
         return KafkaStreamer() if transport_type == "KAFKA" else HttpsStreamer()
