@@ -1,24 +1,23 @@
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
-from consumers.https_consumer import HttpsConsumer
-from core.config import settings
 
 
 @pytest.fixture
 def mock_claim_pending_runs():
-    with patch('consumers.https_consumer.claim_pending_runs') as mock:
+    with patch("consumers.https_consumer.claim_pending_runs") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_ack_runs():
-    with patch('consumers.https_consumer.ack_runs') as mock:
+    with patch("consumers.https_consumer.ack_runs") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_time_sleep():
-    with patch('consumers.https_consumer.time.sleep') as mock:
+    with patch("consumers.https_consumer.time.sleep") as mock:
         yield mock
 
 
@@ -38,19 +37,10 @@ def sample_run():
                 "context": {
                     "runId": "run_123",
                     "entity": "entity_123",
-                    "blueprint": "microservice"
+                    "blueprint": "microservice",
                 },
-                "payload": {
-                    "action": {
-                        "identifier": "deploy"
-                    }
-                },
-                "trigger": {
-                    "by": {
-                        "userId": "user_123"
-                    }
-                }
-            }
-        }
+                "payload": {"action": {"identifier": "deploy"}},
+                "trigger": {"by": {"userId": "user_123"}},
+            },
+        },
     }
-

@@ -16,7 +16,7 @@ class HttpsStreamer(BaseStreamer):
 
     def process_run(self, run: dict) -> None:
         logger.info("Processing run: %s", run.get("_id") or run.get("id"))
-        
+
         payload = run["payload"]
         invocation_method = {
             "type": payload["type"],
@@ -26,17 +26,16 @@ class HttpsStreamer(BaseStreamer):
             "method": payload.get("method", "POST"),
             "headers": payload.get("headers", {}),
         }
-        
+
         if not invocation_method.pop("agent", False):
             logger.info(
                 "Skip process run %s: not for agent",
                 run.get("_id") or run.get("id"),
             )
             return
-        
+
         self.processor.process_run(run, invocation_method)
 
     def stream(self) -> None:
         logger.info("Starting HTTPS streamer")
         self.https_consumer.start()
-

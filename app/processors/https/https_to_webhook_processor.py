@@ -11,23 +11,22 @@ class HttpsToWebhookProcessor:
     @staticmethod
     def process_run(run: dict, invocation_method: dict) -> None:
         logger.info("Processing action run: %s", run.get("_id"))
-        
+
         payload = run["payload"]
         msg_value = payload["body"].copy()
-        
+
         msg_value["headers"] = invocation_method.get("headers", {})
-        
+
         if "payload" not in msg_value:
             msg_value["payload"] = {}
         if "action" not in msg_value["payload"]:
             msg_value["payload"]["action"] = {}
         msg_value["payload"]["action"]["invocationMethod"] = invocation_method
-        
+
         if "context" not in msg_value:
             msg_value["context"] = {}
         msg_value["context"]["runId"] = run["_id"]
-        
-        webhook_invoker.invoke(msg_value, invocation_method)
-        
-        logger.info("Successfully processed run %s", run.get("_id"))
 
+        webhook_invoker.invoke(msg_value, invocation_method)
+
+        logger.info("Successfully processed run %s", run.get("_id"))

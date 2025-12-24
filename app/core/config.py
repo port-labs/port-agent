@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
     PORT_AGENT_TRANSPORT_TYPE: str = "KAFKA"
-    
+
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
     KAFKA_CONSUMER_SESSION_TIMEOUT_MS: int = 45000
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_GROUP_ID: str = ""
 
     KAFKA_RUNS_TOPIC: str = ""
-    
+
     HTTPS_POLL_INTERVAL_SECONDS: int = 10
     HTTPS_RUNS_BATCH_SIZE: int = 100
     HTTPS_MAX_BACKOFF_SECONDS: int = 300
