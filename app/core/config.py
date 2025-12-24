@@ -35,12 +35,12 @@ class Settings(BaseSettings):
     USING_LOCAL_PORT_INSTANCE: bool = False
     LOG_LEVEL: str = "INFO"
 
-    STREAMER_NAME: str
-
     PORT_ORG_ID: str
     PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
+    PORT_AGENT_TRANSPORT_TYPE: str = "KAFKA"
+    
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
     KAFKA_CONSUMER_SESSION_TIMEOUT_MS: int = 45000
@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_GROUP_ID: str = ""
 
     KAFKA_RUNS_TOPIC: str = ""
+    
+    HTTPS_POLL_INTERVAL_SECONDS: int = 10
+    HTTPS_RUNS_BATCH_SIZE: int = 100
+    HTTPS_MAX_BACKOFF_SECONDS: int = 300
 
     CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 

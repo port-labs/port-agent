@@ -74,3 +74,40 @@ def get_kafka_credentials() -> tuple[list[str], str, str]:
     res.raise_for_status()
     data = res.json()["credentials"]
     return data["brokers"], data["username"], data["password"]
+
+
+def claim_pending_runs(limit: int) -> list[dict]:
+    headers = get_port_api_headers()
+    headers["x-port-reserved-usage"] = "true"
+    
+    body = {
+        "installationId": settings.PORT_ORG_ID,
+        "limit": limit,
+        "invocationMethod": "WEBHOOK"
+    }
+    
+    res = requests.post(
+        f"{settings.PORT_API_BASE_URL}/v1/actions/runs/claim-pending",
+        json=body,
+        headers=headers,
+    )
+    res.raise_for_status()
+    return res.json().get("runs", [])
+
+
+def ack_runs(run_ids: list[str]) -> int:
+    if not run_ids:
+        return 0
+        
+    headers = get_port_api_headers()
+    headers["x-port-reserved-usage"] = "true"
+    
+    body = {"runIds": run_ids}
+    
+    res = requests.patch(
+        f"{settings.PORT_API_BASE_URL}/v1/actions/runs/ack",
+        json=body,
+        headers=headers,
+    )
+    res.raise_for_status()
+    return res.json().get("ackedCount", 0)
