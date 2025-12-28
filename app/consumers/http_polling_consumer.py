@@ -12,7 +12,7 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-class HttpsConsumer(BaseConsumer):
+class HttpPollingConsumer(BaseConsumer):
     def __init__(self, msg_process: Callable[[dict], None]) -> None:
         self.running = False
         self.msg_process = msg_process
@@ -88,10 +88,11 @@ class HttpsConsumer(BaseConsumer):
 
             except Exception as error:
                 logger.error(
-                    "Error during HTTPS polling: %s", str(error), exc_info=True
+                    "Error during HTTP polling: %s", str(error), exc_info=True
                 )
                 self._exponential_backoff()
 
     def exit_gracefully(self, *_: Any) -> None:
         logger.info("Exiting gracefully...")
         self.running = False
+

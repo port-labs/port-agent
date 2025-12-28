@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
-    PORT_AGENT_STREAMER_TYPE: str = "KAFKA"
+    STREAMER_NAME: str = "KAFKA"
 
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"

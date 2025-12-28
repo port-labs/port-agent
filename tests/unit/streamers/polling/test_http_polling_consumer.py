@@ -1,13 +1,13 @@
 from threading import Timer
 
-from consumers.https_consumer import HttpsConsumer
+from consumers.http_polling_consumer import HttpPollingConsumer
 
 
 def terminate_consumer(consumer):
     consumer.exit_gracefully()
 
 
-def test_https_consumer_successful_poll(
+def test_http_polling_consumer_successful_poll(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep, sample_run
 ):
     mock_claim_pending_runs.return_value = [sample_run]
@@ -18,7 +18,7 @@ def test_https_consumer_successful_poll(
     def msg_process(run):
         processed_runs.append(run)
 
-    consumer = HttpsConsumer(msg_process)
+    consumer = HttpPollingConsumer(msg_process)
 
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -29,7 +29,7 @@ def test_https_consumer_successful_poll(
     mock_ack_runs.assert_called_with(["run_123"])
 
 
-def test_https_consumer_no_pending_runs(
+def test_http_polling_consumer_no_pending_runs(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep
 ):
     mock_claim_pending_runs.return_value = []
@@ -39,7 +39,7 @@ def test_https_consumer_no_pending_runs(
     def msg_process(run):
         processed_runs.append(run)
 
-    consumer = HttpsConsumer(msg_process)
+    consumer = HttpPollingConsumer(msg_process)
 
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -49,7 +49,7 @@ def test_https_consumer_no_pending_runs(
     mock_ack_runs.assert_not_called()
 
 
-def test_https_consumer_processing_error(
+def test_http_polling_consumer_processing_error(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep, sample_run
 ):
     mock_claim_pending_runs.return_value = [sample_run]
@@ -58,7 +58,7 @@ def test_https_consumer_processing_error(
     def msg_process(run):
         raise Exception("Processing failed")
 
-    consumer = HttpsConsumer(msg_process)
+    consumer = HttpPollingConsumer(msg_process)
 
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -67,12 +67,12 @@ def test_https_consumer_processing_error(
     mock_ack_runs.assert_called_with(["run_123"])
 
 
-def test_https_consumer_exponential_backoff(
+def test_http_polling_consumer_exponential_backoff(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep
 ):
     mock_claim_pending_runs.side_effect = Exception("API Error")
 
-    consumer = HttpsConsumer(lambda run: None)
+    consumer = HttpPollingConsumer(lambda run: None)
 
     Timer(0.2, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -80,7 +80,7 @@ def test_https_consumer_exponential_backoff(
     assert consumer.backoff_seconds > 0
 
 
-def test_https_consumer_backoff_reset(
+def test_http_polling_consumer_backoff_reset(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep, sample_run
 ):
     call_count = [0]
@@ -94,7 +94,7 @@ def test_https_consumer_backoff_reset(
     mock_claim_pending_runs.side_effect = claim_side_effect
     mock_ack_runs.return_value = 1
 
-    consumer = HttpsConsumer(lambda run: None)
+    consumer = HttpPollingConsumer(lambda run: None)
 
     Timer(0.3, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -102,7 +102,7 @@ def test_https_consumer_backoff_reset(
     assert consumer.backoff_seconds == 0
 
 
-def test_https_consumer_ack_all_claimed_runs(
+def test_http_polling_consumer_ack_all_claimed_runs(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep
 ):
     run1 = {
@@ -131,7 +131,7 @@ def test_https_consumer_ack_all_claimed_runs(
         if run["_id"] == "run_2":
             raise Exception("Processing failed")
 
-    consumer = HttpsConsumer(msg_process)
+    consumer = HttpPollingConsumer(msg_process)
 
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -141,7 +141,7 @@ def test_https_consumer_ack_all_claimed_runs(
     mock_ack_runs.assert_any_call(["run_2"])
 
 
-def test_https_consumer_ack_failure_skips_processing(
+def test_http_polling_consumer_ack_failure_skips_processing(
     mock_claim_pending_runs, mock_ack_runs, mock_time_sleep, sample_run
 ):
     mock_claim_pending_runs.return_value = [sample_run]
@@ -152,7 +152,7 @@ def test_https_consumer_ack_failure_skips_processing(
     def msg_process(run):
         processed_runs.append(run)
 
-    consumer = HttpsConsumer(msg_process)
+    consumer = HttpPollingConsumer(msg_process)
 
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
@@ -160,3 +160,4 @@ def test_https_consumer_ack_failure_skips_processing(
     assert len(processed_runs) == 0
     mock_claim_pending_runs.assert_called()
     mock_ack_runs.assert_called()
+

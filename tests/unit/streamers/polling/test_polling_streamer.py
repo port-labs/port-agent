@@ -7,11 +7,11 @@ from streamers.polling.polling_streamer import PollingStreamer
 def test_polling_streamer_initialization():
     streamer = PollingStreamer()
 
-    assert streamer.https_consumer is not None
+    assert streamer.http_polling_consumer is not None
     assert streamer.processor is not None
 
 
-@patch("streamers.polling.polling_streamer.HttpsConsumer")
+@patch("streamers.polling.polling_streamer.HttpPollingConsumer")
 @patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
 def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
     mock_consumer = MagicMock()
@@ -49,7 +49,7 @@ def test_polling_streamer_process_run(mock_processor_class):
         },
     }
 
-    with patch("streamers.polling.polling_streamer.HttpsConsumer"):
+    with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
         streamer = PollingStreamer()
 
         streamer.process_run(sample_run)
@@ -81,7 +81,7 @@ def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
         },
     }
 
-    with patch("streamers.polling.polling_streamer.HttpsConsumer"):
+    with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
         streamer = PollingStreamer()
 
         streamer.process_run(sample_run)

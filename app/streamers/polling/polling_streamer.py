@@ -1,6 +1,6 @@
 import logging
 
-from consumers.https_consumer import HttpsConsumer
+from consumers.http_polling_consumer import HttpPollingConsumer
 from core.config import settings
 from processors.https.https_to_webhook_processor import HttpsToWebhookProcessor
 from streamers.base_streamer import BaseStreamer
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PollingStreamer(BaseStreamer):
     def __init__(self) -> None:
-        self.https_consumer = HttpsConsumer(self.process_run)
+        self.http_polling_consumer = HttpPollingConsumer(self.process_run)
         self.processor = HttpsToWebhookProcessor()
 
     def process_run(self, run: dict) -> None:
@@ -38,4 +38,4 @@ class PollingStreamer(BaseStreamer):
 
     def stream(self) -> None:
         logger.info("Starting polling streamer")
-        self.https_consumer.start()
+        self.http_polling_consumer.start()

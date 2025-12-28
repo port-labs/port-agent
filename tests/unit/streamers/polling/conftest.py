@@ -5,19 +5,19 @@ import pytest
 
 @pytest.fixture
 def mock_claim_pending_runs():
-    with patch("consumers.https_consumer.claim_pending_runs") as mock:
+    with patch("consumers.http_polling_consumer.claim_pending_runs") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_ack_runs():
-    with patch("consumers.https_consumer.ack_runs") as mock:
+    with patch("consumers.http_polling_consumer.ack_runs") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_time_sleep():
-    with patch("consumers.https_consumer.time.sleep") as mock:
+    with patch("consumers.http_polling_consumer.time.sleep") as mock:
         yield mock
 
 

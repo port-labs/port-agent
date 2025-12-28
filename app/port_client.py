@@ -3,6 +3,7 @@ from typing import Callable
 
 import requests
 from core.config import settings
+from core.consts import consts
 from requests import Response
 
 logger = getLogger(__name__)
@@ -111,3 +112,29 @@ def ack_runs(run_ids: list[str]) -> int:
     )
     res.raise_for_status()
     return res.json().get("ackedCount", 0)
+
+
+def patch_org_streamer_setting(streamer_type: str) -> None:
+    if streamer_type not in consts.VALID_STREAMER_TYPES:
+        logger.warning(
+            "Unknown streamer type %s, skipping org setting update", streamer_type
+        )
+        return
+
+    headers = get_port_api_headers()
+
+    res = requests.patch(
+        f"{settings.PORT_API_BASE_URL}/v1/organization",
+        json={"settings": {"portAgentStreamerName": streamer_type}},
+        headers=headers,
+    )
+
+    if not res.ok:
+        logger.error(
+            "Failed to update org streamer setting - "
+            f"status: {res.status_code}, "
+            f"response: {res.text}"
+        )
+        res.raise_for_status()
+
+    logger.info("Successfully updated org streamer setting to %s", streamer_type)
