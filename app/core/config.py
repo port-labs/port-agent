@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
-    PORT_AGENT_TRANSPORT_TYPE: str = "KAFKA"
+    PORT_AGENT_STREAMER_TYPE: str = "KAFKA"
 
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
@@ -49,9 +49,12 @@ class Settings(BaseSettings):
 
     KAFKA_RUNS_TOPIC: str = ""
 
-    HTTPS_POLL_INTERVAL_SECONDS: int = 10
-    HTTPS_RUNS_BATCH_SIZE: int = 100
-    HTTPS_MAX_BACKOFF_SECONDS: int = 300
+    POLLING_INTERVAL_SECONDS: int = 10
+    POLLING_RUNS_BATCH_SIZE: int = 100
+    POLLING_MAX_BACKOFF_SECONDS: int = 300
+    POLLING_INITIAL_BACKOFF_SECONDS: int = 1
+    POLLING_BACKOFF_FACTOR: float = 2.0
+    POLLING_BACKOFF_JITTER_FACTOR: float = 0.1
 
     CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 

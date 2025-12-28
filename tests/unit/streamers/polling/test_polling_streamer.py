@@ -1,25 +1,25 @@
 from threading import Timer
 from unittest.mock import MagicMock, patch
 
-from streamers.https.https_streamer import HttpsStreamer
+from streamers.polling.polling_streamer import PollingStreamer
 
 
-def test_https_streamer_initialization():
-    streamer = HttpsStreamer()
+def test_polling_streamer_initialization():
+    streamer = PollingStreamer()
 
     assert streamer.https_consumer is not None
     assert streamer.processor is not None
 
 
-@patch("streamers.https.https_streamer.HttpsConsumer")
-@patch("streamers.https.https_streamer.HttpsToWebhookProcessor")
-def test_https_streamer_stream(mock_processor_class, mock_consumer_class):
+@patch("streamers.polling.polling_streamer.HttpsConsumer")
+@patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
+def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
     mock_consumer = MagicMock()
     mock_consumer_class.return_value = mock_consumer
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
-    streamer = HttpsStreamer()
+    streamer = PollingStreamer()
 
     def stop_consumer():
         mock_consumer.running = False
@@ -31,8 +31,8 @@ def test_https_streamer_stream(mock_processor_class, mock_consumer_class):
     mock_consumer.start.assert_called_once()
 
 
-@patch("streamers.https.https_streamer.HttpsToWebhookProcessor")
-def test_https_streamer_process_run(mock_processor_class):
+@patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
+def test_polling_streamer_process_run(mock_processor_class):
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
@@ -49,8 +49,8 @@ def test_https_streamer_process_run(mock_processor_class):
         },
     }
 
-    with patch("streamers.https.https_streamer.HttpsConsumer"):
-        streamer = HttpsStreamer()
+    with patch("streamers.polling.polling_streamer.HttpsConsumer"):
+        streamer = PollingStreamer()
 
         streamer.process_run(sample_run)
 
@@ -66,8 +66,8 @@ def test_https_streamer_process_run(mock_processor_class):
         assert "agent" not in invocation_method
 
 
-@patch("streamers.https.https_streamer.HttpsToWebhookProcessor")
-def test_https_streamer_process_run_skips_non_agent(mock_processor_class):
+@patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
+def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
@@ -81,8 +81,8 @@ def test_https_streamer_process_run_skips_non_agent(mock_processor_class):
         },
     }
 
-    with patch("streamers.https.https_streamer.HttpsConsumer"):
-        streamer = HttpsStreamer()
+    with patch("streamers.polling.polling_streamer.HttpsConsumer"):
+        streamer = PollingStreamer()
 
         streamer.process_run(sample_run)
 

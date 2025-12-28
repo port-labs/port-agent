@@ -9,7 +9,7 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-class HttpsStreamer(BaseStreamer):
+class PollingStreamer(BaseStreamer):
     def __init__(self) -> None:
         self.https_consumer = HttpsConsumer(self.process_run)
         self.processor = HttpsToWebhookProcessor()
@@ -37,5 +37,5 @@ class HttpsStreamer(BaseStreamer):
         self.processor.process_run(run, invocation_method)
 
     def stream(self) -> None:
-        logger.info("Starting HTTPS streamer")
+        logger.info("Starting polling streamer")
         self.https_consumer.start()

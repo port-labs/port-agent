@@ -17,18 +17,23 @@ class HttpsConsumer(BaseConsumer):
         self.running = False
         self.msg_process = msg_process
         self.backoff_seconds = 0
-        self.max_backoff = settings.HTTPS_MAX_BACKOFF_SECONDS
+        self.max_backoff = settings.POLLING_MAX_BACKOFF_SECONDS
+        self.initial_backoff = settings.POLLING_INITIAL_BACKOFF_SECONDS
+        self.backoff_factor = settings.POLLING_BACKOFF_FACTOR
+        self.backoff_jitter_factor = settings.POLLING_BACKOFF_JITTER_FACTOR
 
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def _exponential_backoff(self) -> None:
         if self.backoff_seconds == 0:
-            self.backoff_seconds = 1
+            self.backoff_seconds = self.initial_backoff
         else:
-            self.backoff_seconds = min(self.backoff_seconds * 2, self.max_backoff)
+            self.backoff_seconds = min(
+                self.backoff_seconds * self.backoff_factor, self.max_backoff
+            )
 
-        jitter = random.uniform(0, self.backoff_seconds * 0.1)
+        jitter = random.uniform(0, self.backoff_seconds * self.backoff_jitter_factor)
         sleep_time = self.backoff_seconds + jitter
 
         time.sleep(sleep_time)
@@ -42,7 +47,7 @@ class HttpsConsumer(BaseConsumer):
 
         while self.running:
             try:
-                runs = claim_pending_runs(limit=settings.HTTPS_RUNS_BATCH_SIZE)
+                runs = claim_pending_runs(limit=settings.POLLING_RUNS_BATCH_SIZE)
                 self._reset_backoff()
                 if runs:
                     logger.info("Claimed %d pending runs", len(runs))
@@ -79,7 +84,7 @@ class HttpsConsumer(BaseConsumer):
                     logger.debug("No pending runs found")
 
                 if self.running:
-                    time.sleep(settings.HTTPS_POLL_INTERVAL_SECONDS)
+                    time.sleep(settings.POLLING_INTERVAL_SECONDS)
 
             except Exception as error:
                 logger.error(

@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     streamer_factory = StreamerFactory()
-    streamer = streamer_factory.get_streamer(settings.PORT_AGENT_TRANSPORT_TYPE)
+    streamer = streamer_factory.get_streamer(settings.PORT_AGENT_STREAMER_TYPE)
     logger.info(
-        "Starting streaming with transport type: %s", settings.PORT_AGENT_TRANSPORT_TYPE
+        "Starting streaming with streamer type: %s", settings.PORT_AGENT_STREAMER_TYPE
     )
     streamer.stream()
 
