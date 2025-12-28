@@ -55,7 +55,7 @@ class HttpsConsumer(BaseConsumer):
                             if acked_count == 0:
                                 logger.warning("Failed to ack run %s", run_id)
                                 continue
-                            logger.info("acked run %s", run_id)
+                            logger.info("Acked run %s", run_id)
                         except Exception as ack_error:
                             logger.error(
                                 "Failed to ack run %s: %s",
