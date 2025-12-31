@@ -2,15 +2,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from dotenv import find_dotenv
-from pydantic import (
-    AnyHttpUrl,
-    BaseModel,
-    BaseSettings,
-    Field,
-    parse_file_as,
-    parse_obj_as,
-    validator,
-)
+from pydantic import (AnyHttpUrl, BaseModel, BaseSettings, Field,
+                      parse_file_as, parse_obj_as, validator)
 
 
 class ActionReport(BaseModel):
@@ -61,16 +54,17 @@ class Settings(BaseSettings):
         if isinstance(v, str) and v:
             if using_local is False:
                 raise ValueError(
-                    "KAFKA_CONSUMER_BOOTSTRAP_SERVERS works only with USING_LOCAL_PORT_INSTANCE=True"
+                    "KAFKA_CONSUMER_BOOTSTRAP_SERVERS works only with "
+                    "USING_LOCAL_PORT_INSTANCE=True"
                 )
 
             return v
 
         elif using_local is True:
             raise ValueError(
-                "KAFKA_CONSUMER_BOOTSTRAP_SERVERS must be set when USING_LOCAL_PORT_INSTANCE=True"
+                "KAFKA_CONSUMER_BOOTSTRAP_SERVERS must be set when "
+                "USING_LOCAL_PORT_INSTANCE=True"
             )
-
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
