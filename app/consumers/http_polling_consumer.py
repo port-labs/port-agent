@@ -21,6 +21,8 @@ class HttpPollingConsumer(BaseConsumer):
         self.initial_backoff = settings.POLLING_INITIAL_BACKOFF_SECONDS
         self.backoff_factor = settings.POLLING_BACKOFF_FACTOR
         self.backoff_jitter_factor = settings.POLLING_BACKOFF_JITTER_FACTOR
+        self.max_failure_duration = settings.POLLING_MAX_FAILURE_DURATION_SECONDS
+        self.first_failure_time: float | None = None
 
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
@@ -41,6 +43,22 @@ class HttpPollingConsumer(BaseConsumer):
     def _reset_backoff(self) -> None:
         if self.backoff_seconds > 0:
             self.backoff_seconds = 0
+        self.first_failure_time = None
+
+    def _handle_error(self, error: Exception) -> None:
+        logger.error(
+            "Error during HTTP polling: %s", str(error), exc_info=True
+        )
+        if self.first_failure_time is None:
+            self.first_failure_time = time.time()
+        elif time.time() - self.first_failure_time > self.max_failure_duration:
+            logger.error(
+                "Polling has been failing for %d seconds, exiting",
+                self.max_failure_duration,
+            )
+            self.exit_gracefully()
+            return
+        self._exponential_backoff()
 
     def start(self) -> None:
         self.running = True
@@ -49,11 +67,15 @@ class HttpPollingConsumer(BaseConsumer):
             try:
                 runs = claim_pending_runs(limit=settings.POLLING_RUNS_BATCH_SIZE)
                 self._reset_backoff()
+                
                 if runs:
                     logger.info("Claimed %d pending runs", len(runs))
 
                     for run in runs:
-                        run_id = run.get("_id") or run.get("id")
+                        run_id = run.get("id")
+                        if not run_id:
+                            logger.error("Run missing id field: %s", run)
+                            continue
 
                         try:
                             acked_count = ack_runs([run_id])
@@ -83,14 +105,13 @@ class HttpPollingConsumer(BaseConsumer):
                 else:
                     logger.debug("No pending runs found")
 
-                if self.running:
+                if len(runs) < settings.POLLING_RUNS_BATCH_SIZE and self.running:
                     time.sleep(settings.POLLING_INTERVAL_SECONDS)
 
             except Exception as error:
-                logger.error(
-                    "Error during HTTP polling: %s", str(error), exc_info=True
-                )
-                self._exponential_backoff()
+                self._handle_error(error)
+                if not self.running:
+                    break
 
     def exit_gracefully(self, *_: Any) -> None:
         logger.info("Exiting gracefully...")

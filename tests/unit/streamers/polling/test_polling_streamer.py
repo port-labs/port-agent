@@ -12,7 +12,7 @@ def test_polling_streamer_initialization():
 
 
 @patch("streamers.polling.polling_streamer.HttpPollingConsumer")
-@patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
+@patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
 def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
     mock_consumer = MagicMock()
     mock_consumer_class.return_value = mock_consumer
@@ -31,7 +31,7 @@ def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
     mock_consumer.start.assert_called_once()
 
 
-@patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
+@patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
 def test_polling_streamer_process_run(mock_processor_class):
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
@@ -66,7 +66,7 @@ def test_polling_streamer_process_run(mock_processor_class):
         assert "agent" not in invocation_method
 
 
-@patch("streamers.polling.polling_streamer.HttpsToWebhookProcessor")
+@patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
 def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor

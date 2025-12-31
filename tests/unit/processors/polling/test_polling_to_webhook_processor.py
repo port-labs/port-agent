@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from processors.https.https_to_webhook_processor import HttpsToWebhookProcessor
+from processors.polling.polling_to_webhook_processor import PollingToWebhookProcessor
 
 
 @pytest.fixture
@@ -28,9 +28,9 @@ def sample_run():
     }
 
 
-@patch("processors.https.https_to_webhook_processor.webhook_invoker")
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
 def test_process_run_success(mock_invoker, sample_run):
-    processor = HttpsToWebhookProcessor()
+    processor = PollingToWebhookProcessor()
 
     invocation_method = {
         "type": "WEBHOOK",
@@ -58,7 +58,7 @@ def test_process_run_success(mock_invoker, sample_run):
     assert invocation_method_arg["url"] == "http://localhost:8080/webhook"
 
 
-@patch("processors.https.https_to_webhook_processor.webhook_invoker")
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
 def test_process_run_without_invocation_method(mock_invoker):
     run = {"_id": "run_789", "payload": {"body": {}}}
 
@@ -70,13 +70,13 @@ def test_process_run_without_invocation_method(mock_invoker):
         "headers": {},
     }
 
-    processor = HttpsToWebhookProcessor()
+    processor = PollingToWebhookProcessor()
     processor.process_run(run, invocation_method)
 
     mock_invoker.invoke.assert_called_once()
 
 
-@patch("processors.https.https_to_webhook_processor.webhook_invoker")
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
 def test_process_run_adds_run_id_to_context(mock_invoker):
     run = {
         "_id": "run_999",
@@ -96,7 +96,7 @@ def test_process_run_adds_run_id_to_context(mock_invoker):
         "headers": {},
     }
 
-    processor = HttpsToWebhookProcessor()
+    processor = PollingToWebhookProcessor()
     processor.process_run(run, invocation_method)
 
     call_args = mock_invoker.invoke.call_args
@@ -105,7 +105,7 @@ def test_process_run_adds_run_id_to_context(mock_invoker):
     assert msg_value["context"]["runId"] == "run_999"
 
 
-@patch("processors.https.https_to_webhook_processor.webhook_invoker")
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
 def test_process_run_preserves_existing_run_id(mock_invoker):
     run = {
         "_id": "run_888",
@@ -125,10 +125,11 @@ def test_process_run_preserves_existing_run_id(mock_invoker):
         "headers": {},
     }
 
-    processor = HttpsToWebhookProcessor()
+    processor = PollingToWebhookProcessor()
     processor.process_run(run, invocation_method)
 
     call_args = mock_invoker.invoke.call_args
     msg_value = call_args[0][0]
 
     assert msg_value["context"]["runId"] == "run_888"
+

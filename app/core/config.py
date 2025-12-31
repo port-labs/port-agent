@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     POLLING_INITIAL_BACKOFF_SECONDS: int = 1
     POLLING_BACKOFF_FACTOR: float = 2.0
     POLLING_BACKOFF_JITTER_FACTOR: float = 0.1
+    POLLING_MAX_FAILURE_DURATION_SECONDS: int = 3600
 
     CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 

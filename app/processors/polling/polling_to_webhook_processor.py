@@ -7,10 +7,14 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-class HttpsToWebhookProcessor:
+class PollingToWebhookProcessor:
     @staticmethod
     def process_run(run: dict, invocation_method: dict) -> None:
-        logger.info("Processing action run: %s", run.get("_id"))
+        run_id = run.get("id")
+        if not run_id:
+            logger.error("Run missing id field: %s", run)
+            return
+        logger.info("Processing action run: %s", run_id)
 
         payload = run["payload"]
         msg_value = payload["body"].copy()
@@ -25,8 +29,9 @@ class HttpsToWebhookProcessor:
 
         if "context" not in msg_value:
             msg_value["context"] = {}
-        msg_value["context"]["runId"] = run["_id"]
+        msg_value["context"]["runId"] = run_id
 
         webhook_invoker.invoke(msg_value, invocation_method)
 
-        logger.info("Successfully processed run %s", run.get("_id"))
+        logger.info("Successfully processed run %s", run_id)
+
