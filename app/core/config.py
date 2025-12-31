@@ -47,10 +47,30 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_SESSION_TIMEOUT_MS: int = 45000
     KAFKA_CONSUMER_AUTO_OFFSET_RESET: str = "earliest"
     KAFKA_CONSUMER_GROUP_ID: str = ""
+    KAFKA_CONSUMER_BOOTSTRAP_SERVERS: str = ""
 
     KAFKA_RUNS_TOPIC: str = ""
 
     CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
+
+    @validator("KAFKA_CONSUMER_BOOTSTRAP_SERVERS", always=True)
+    def set_kafka_consumer_bootstrap_servers(
+        cls, v: Optional[str], values: dict
+    ) -> str:
+        using_local = values.get("USING_LOCAL_PORT_INSTANCE")
+        if isinstance(v, str) and v:
+            if using_local is False:
+                raise ValueError(
+                    "KAFKA_CONSUMER_BOOTSTRAP_SERVERS works only with USING_LOCAL_PORT_INSTANCE=True"
+                )
+
+            return v
+
+        elif using_local is True:
+            raise ValueError(
+                "KAFKA_CONSUMER_BOOTSTRAP_SERVERS must be set when USING_LOCAL_PORT_INSTANCE=True"
+            )
+
 
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
