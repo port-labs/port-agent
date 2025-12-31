@@ -37,24 +37,78 @@ To submit code contributions:
 
 ## Debugging
 
-### Running Against Local Port Instance
+### Set Environment Variables
 
-When debugging the Port Execution Agent locally against a local instance of Port, follow these steps:
+Create or update your `.env` file to include the following environment variables (replace with your actual values):
 
-1. **Set Up Local Environment:**
-   - Ensure you have a local instance of Port running. This will act as your development and testing environment.
+```env
+STREAMER_NAME=KAFKA
+KAFKA_CONSUMER_GROUP_ID=my_consumer_group
 
-2. **Configure Environment Variables:**
-   - Create or update your `.env` file to include the following environment variable:
-     ```env
-     USING_LOCAL_PORT_INSTANCE=True
-     ```
+PORT_ORG_ID=your_organization_id_here
+PORT_CLIENT_ID=your_client_id_here
+PORT_CLIENT_SECRET=your_client_secret_here
+PORT_API_BASE_URL=your_api_base_url_here
+ ```
 
-3. **Kafka Authentication:**
-   - When `USING_LOCAL_PORT_INSTANCE` is set to `True`, the execution agent will not attempt to pull your local organization's kafka credentials.
+### Run with Python
 
-4. **Running the Agent Locally:**
-   - Start the execution agent as you normally would.
+**Prequisites:**
+
+- Python 3.11
+- [Poetry](https://python-poetry.org/docs/#installing-manually)
+
+**Install Dependencies:**
+
+It is recommended to install the dependencies inside a virtual environment:
+
+```bash
+VENV_PATH=".venv"
+python3.11 -m venv $VENV_PATH
+$VENV_PATH/bin/pip install -U pip setuptools
+$VENV_PATH/bin/pip install poetry
+source $VENV_PATH/bin/activate
+
+poetry install
+```
+
+**Run the Agent:**
+
+Activate the virtual environment if not already activated:
+
+```bash
+source .venv/bin/activate
+```
+
+The execution must be from the `app` directory:
+
+```bash
+cd app
+```
+
+To start the Port Execution Agent, run the following command from the `app` directory:
+
+```bash
+python main.py
+```
+
+### Run with Docker
+
+Before running the container, ensure you have built the Docker image:
+
+```bash
+docker build -t port-execution-agent .
+```
+
+Run the Port Execution Agent container with the following command:
+
+```bash
+docker run \
+  --name port-execution-agent \
+  --env-file .env \
+  --network host \
+  port-execution-agent
+```
 
 ### General Troubleshooting (Optional)
 
