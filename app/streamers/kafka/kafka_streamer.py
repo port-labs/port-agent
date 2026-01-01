@@ -6,6 +6,7 @@ from consumers.kafka_consumer import KafkaConsumer
 from core.config import settings
 from processors.kafka.kafka_to_webhook_processor import KafkaToWebhookProcessor
 from streamers.base_streamer import BaseStreamer
+from utils import log_by_detail_level
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -16,9 +17,15 @@ class KafkaStreamer(BaseStreamer):
         self.kafka_consumer = KafkaConsumer(self.msg_process, consumer)
 
     def msg_process(self, msg: Message) -> None:
-        logger.info("Raw message value: %s", msg.value())
-        msg_value = json.loads(msg.value().decode())
         topic = msg.topic()
+        log_by_detail_level(
+            logger.info,
+            "Received message - topic: %s, partition: %d, offset: %d",
+            [topic, msg.partition(), msg.offset()],
+            "raw_value",
+            msg.value(),
+        )
+        msg_value = json.loads(msg.value().decode())
         invocation_method = self.get_invocation_method(msg_value, topic)
 
         if not invocation_method.pop("agent", False):

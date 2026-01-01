@@ -2,13 +2,38 @@ import base64
 import hashlib
 import hmac
 import logging
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
+from core.config import settings
 from Crypto.Cipher import AES
 from glom import assign, glom
 from requests import Response
 
 logger = logging.getLogger(__name__)
+
+
+def log_by_detail_level(
+    log_fn: Callable,
+    base_message_format: str,
+    base_format_args: list,
+    optional_field_name: Optional[str] = None,
+    optional_field_value: Any = None,
+) -> None:
+    """Log with detail level based on DETAILED_LOGGING config.
+
+    Logs concisely (base message only) when DETAILED_LOGGING=False, or with one
+    additional optional field when DETAILED_LOGGING=True.
+    """
+    msg = base_message_format
+    if (
+        settings.DETAILED_LOGGING
+        and optional_field_name
+        and optional_field_value is not None
+    ):
+        msg += f", {optional_field_name}: %s"
+        log_fn(msg, *base_format_args, optional_field_value)
+    else:
+        log_fn(msg, *base_format_args)
 
 
 def response_to_dict(response: Response) -> dict:
@@ -77,5 +102,5 @@ def decrypt_payload_fields(
                 decrypted = decrypt_field(encrypted, key)
                 assign(payload, path, decrypted)
             except Exception as e:
-                logger.warning(f"Decryption failed for '{path}': {e}")
+                logger.warning("Decryption failed for '%s': %s", path, e)
     return payload
