@@ -2,8 +2,15 @@ from pathlib import Path
 from typing import Any, Optional
 
 from dotenv import find_dotenv
-from pydantic import (AnyHttpUrl, BaseModel, BaseSettings, Field,
-                      parse_file_as, parse_obj_as, validator)
+from pydantic import (
+    AnyHttpUrl,
+    BaseModel,
+    BaseSettings,
+    Field,
+    parse_file_as,
+    parse_obj_as,
+    validator,
+)
 
 
 class ActionReport(BaseModel):

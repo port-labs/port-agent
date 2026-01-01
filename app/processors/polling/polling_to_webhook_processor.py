@@ -34,4 +34,3 @@ class PollingToWebhookProcessor:
         webhook_invoker.invoke(msg_value, invocation_method)
 
         logger.info("Successfully processed run %s", run_id)
-

@@ -132,4 +132,3 @@ def test_process_run_preserves_existing_run_id(mock_invoker):
     msg_value = call_args[0][0]
 
     assert msg_value["context"]["runId"] == "run_888"
-

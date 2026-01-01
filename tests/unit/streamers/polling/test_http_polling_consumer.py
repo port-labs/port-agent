@@ -160,4 +160,3 @@ def test_http_polling_consumer_ack_failure_skips_processing(
     assert len(processed_runs) == 0
     mock_claim_pending_runs.assert_called()
     mock_ack_runs.assert_called()
-

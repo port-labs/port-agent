@@ -67,7 +67,7 @@ class HttpPollingConsumer(BaseConsumer):
             try:
                 runs = claim_pending_runs(limit=settings.POLLING_RUNS_BATCH_SIZE)
                 self._reset_backoff()
-                
+
                 if runs:
                     logger.info("Claimed %d pending runs", len(runs))
 
@@ -116,4 +116,3 @@ class HttpPollingConsumer(BaseConsumer):
     def exit_gracefully(self, *_: Any) -> None:
         logger.info("Exiting gracefully...")
         self.running = False
-
