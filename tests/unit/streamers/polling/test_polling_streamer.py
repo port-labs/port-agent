@@ -38,6 +38,7 @@ def test_polling_streamer_process_run(mock_processor_class):
 
     sample_run = {
         "_id": "run_123",
+        "id": "run_123",
         "payload": {
             "type": "WEBHOOK",
             "url": "http://localhost:8080/webhook",

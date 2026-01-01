@@ -107,6 +107,7 @@ def test_http_polling_consumer_ack_all_claimed_runs(
 ):
     run1 = {
         "_id": "run_1",
+        "id": "run_1",
         "payload": {
             "type": "WEBHOOK",
             "url": "http://localhost:8080/webhook",
@@ -116,6 +117,7 @@ def test_http_polling_consumer_ack_all_claimed_runs(
     }
     run2 = {
         "_id": "run_2",
+        "id": "run_2",
         "payload": {
             "type": "WEBHOOK",
             "url": "http://localhost:8080/webhook",

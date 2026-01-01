@@ -23,9 +23,7 @@ def main() -> None:
 
     streamer_factory = StreamerFactory()
     streamer = streamer_factory.get_streamer(settings.STREAMER_NAME)
-    logger.info(
-        "Starting streaming with streamer type: %s", settings.STREAMER_NAME
-    )
+    logger.info("Starting streaming with streamer type: %s", settings.STREAMER_NAME)
     streamer.stream()
 
 

@@ -60,7 +60,7 @@ def test_process_run_success(mock_invoker, sample_run):
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
 def test_process_run_without_invocation_method(mock_invoker):
-    run = {"_id": "run_789", "payload": {"body": {}}}
+    run = {"_id": "run_789", "id": "run_789", "payload": {"body": {}}}
 
     invocation_method = {
         "type": "WEBHOOK",
@@ -80,6 +80,7 @@ def test_process_run_without_invocation_method(mock_invoker):
 def test_process_run_adds_run_id_to_context(mock_invoker):
     run = {
         "_id": "run_999",
+        "id": "run_999",
         "payload": {
             "type": "WEBHOOK",
             "url": "http://localhost:8080/webhook",
@@ -109,6 +110,7 @@ def test_process_run_adds_run_id_to_context(mock_invoker):
 def test_process_run_preserves_existing_run_id(mock_invoker):
     run = {
         "_id": "run_888",
+        "id": "run_888",
         "payload": {
             "type": "WEBHOOK",
             "url": "http://localhost:8080/webhook",

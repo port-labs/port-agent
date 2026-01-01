@@ -46,9 +46,7 @@ class HttpPollingConsumer(BaseConsumer):
         self.first_failure_time = None
 
     def _handle_error(self, error: Exception) -> None:
-        logger.error(
-            "Error during HTTP polling: %s", str(error), exc_info=True
-        )
+        logger.error("Error during HTTP polling: %s", str(error), exc_info=True)
         if self.first_failure_time is None:
             self.first_failure_time = time.time()
         elif time.time() - self.first_failure_time > self.max_failure_duration:
