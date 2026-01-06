@@ -85,7 +85,7 @@ def claim_pending_runs(limit: int) -> list[dict]:
     headers["x-port-reserved-usage"] = "true"
 
     body = {
-        "installationId": consts._PORT_EXEC_AGENT,
+        "installationId": consts.PORT_EXEC_AGENT_CLAIMING_KEY,
         "limit": limit,
         "invocationMethod": "WEBHOOK",
     }

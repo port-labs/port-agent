@@ -32,7 +32,7 @@ class PollingStreamer(BaseStreamer):
         }
 
         if not invocation_method.pop("agent", False):
-            logger.info("Skip process run %s: not for agent", run_id)
+            logger.warning("Skip process run %s: not for agent", run_id)
             return
 
         self.processor.process_run(run, invocation_method)
