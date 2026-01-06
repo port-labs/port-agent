@@ -2,8 +2,15 @@ from pathlib import Path
 from typing import Any, Optional
 
 from dotenv import find_dotenv
-from pydantic import (AnyHttpUrl, BaseModel, BaseSettings, Field,
-                      parse_file_as, parse_obj_as, validator)
+from pydantic import (
+    AnyHttpUrl,
+    BaseModel,
+    BaseSettings,
+    Field,
+    parse_file_as,
+    parse_obj_as,
+    validator,
+)
 
 
 class ActionReport(BaseModel):
@@ -29,12 +36,12 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     DETAILED_LOGGING: bool = True
 
-    STREAMER_NAME: str
-
     PORT_ORG_ID: str
     PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
+    STREAMER_NAME: str = "KAFKA"
+
     KAFKA_CONSUMER_SECURITY_PROTOCOL: str = "plaintext"
     KAFKA_CONSUMER_AUTHENTICATION_MECHANISM: str = "none"
     KAFKA_CONSUMER_SESSION_TIMEOUT_MS: int = 45000
@@ -43,6 +50,14 @@ class Settings(BaseSettings):
     KAFKA_CONSUMER_BOOTSTRAP_SERVERS: str = ""
 
     KAFKA_RUNS_TOPIC: str = ""
+
+    POLLING_INTERVAL_SECONDS: int = 10
+    POLLING_RUNS_BATCH_SIZE: int = 100
+    POLLING_MAX_BACKOFF_SECONDS: int = 300
+    POLLING_INITIAL_BACKOFF_SECONDS: int = 1
+    POLLING_BACKOFF_FACTOR: float = 2.0
+    POLLING_BACKOFF_JITTER_FACTOR: float = 0.1
+    POLLING_MAX_FAILURE_DURATION_SECONDS: int = 3600
 
     CONTROL_THE_PAYLOAD_CONFIG_PATH: Path = Path("./control_the_payload_config.json")
 
