@@ -35,13 +35,20 @@ RUN poetry install --without dev --no-ansi
 
 FROM python:3.11-alpine3.19 AS prod
 
+ARG AGENT_USER_ID=1000
+
 ENV LIBRDKAFKA_VERSION=1.9.2
+
+# Create a dedicated user and group
+RUN addgroup -g ${AGENT_USER_ID} -S appgroup && \
+    adduser -u ${AGENT_USER_ID} -S -G appgroup -s /bin/bash agent
 
 # Install only runtime dependencies
 RUN apk add --no-cache \
     librdkafka-dev \
     bash \
-    oniguruma-dev
+    oniguruma-dev \
+    sudo
 
 WORKDIR /app
 
@@ -54,5 +61,15 @@ COPY ./app/. .
 # Clean up old setuptools
 RUN pip uninstall -y setuptools || true
 
+# Change ownership of /app to agent user
+RUN chown -R agent:appgroup /app
+
+# Allow agent user to run update-ca-certificates without password (secure, limited sudo)
+RUN echo "agent ALL=(root) NOPASSWD: /usr/sbin/update-ca-certificates" >> /etc/sudoers.d/agent-certs && \
+    chmod 440 /etc/sudoers.d/agent-certs
+
+# Switch to agent user
+USER agent
+
 # Run the application
-CMD ["sh", "-c", "update-ca-certificates && /app/.venv/bin/python main.py"]
+CMD ["sh", "-c", "sudo update-ca-certificates && /app/.venv/bin/python main.py"]
