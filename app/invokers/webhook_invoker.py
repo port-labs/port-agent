@@ -9,13 +9,17 @@ from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
 from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
-from port_client import (report_run_response, report_run_status,
-                         run_logger_factory)
+from port_client import report_run_response, report_run_status, run_logger_factory
 from pydantic import BaseModel, Field
 from requests import Response
-from utils import (decrypt_payload_fields, get_invocation_method_object,
-                   get_response_body, log_by_detail_level, response_to_dict,
-                   sign_sha_256)
+from utils import (
+    decrypt_payload_fields,
+    get_invocation_method_object,
+    get_response_body,
+    log_by_detail_level,
+    response_to_dict,
+    sign_sha_256,
+)
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -341,7 +345,12 @@ class WebhookInvoker(BaseInvoker):
             return False
         return True
 
-    def invoke(self, msg: dict, invocation_method: dict) -> None:
+    def invoke(
+        self,
+        msg: dict,
+        invocation_method: dict,
+        skip_signature_validation: bool = False,
+    ) -> None:
         log_by_detail_level(
             logger.info,
             "WebhookInvoker - start - destination type: %s",
@@ -352,7 +361,9 @@ class WebhookInvoker(BaseInvoker):
         run_id = msg["context"].get("runId")
 
         invocation_method_name = invocation_method.get("type") or consts.MISSING_VALUE
-        if not self.validate_incoming_signature(msg, invocation_method_name):
+        if not skip_signature_validation and not self.validate_incoming_signature(
+            msg, invocation_method_name
+        ):
             return
 
         logger.info("WebhookInvoker - validating signature")
