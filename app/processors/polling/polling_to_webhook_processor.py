@@ -31,6 +31,8 @@ class PollingToWebhookProcessor:
             msg_value["context"] = {}
         msg_value["context"]["runId"] = run_id
 
-        webhook_invoker.invoke(msg_value, invocation_method)
+        webhook_invoker.invoke(
+            msg_value, invocation_method, skip_signature_validation=True
+        )
 
         logger.info("Successfully processed run %s", run_id)

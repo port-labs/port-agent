@@ -50,7 +50,11 @@ def test_http_polling_consumer_no_pending_runs(
 
 
 def test_http_polling_consumer_processing_error(
-    mock_claim_pending_runs, mock_ack_runs, mock_time_sleep, sample_run
+    mock_claim_pending_runs,
+    mock_ack_runs,
+    mock_time_sleep,
+    mock_report_run_status,
+    sample_run,
 ):
     mock_claim_pending_runs.return_value = [sample_run]
     mock_ack_runs.return_value = 1
@@ -65,6 +69,13 @@ def test_http_polling_consumer_processing_error(
 
     mock_claim_pending_runs.assert_called()
     mock_ack_runs.assert_called_with(["run_123"])
+    mock_report_run_status.assert_called_with(
+        "run_123",
+        {
+            "status": "FAILURE",
+            "summary": "Agent failed to process the run",
+        },
+    )
 
 
 def test_http_polling_consumer_exponential_backoff(

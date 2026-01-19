@@ -22,6 +22,12 @@ def mock_time_sleep():
 
 
 @pytest.fixture
+def mock_report_run_status():
+    with patch("consumers.http_polling_consumer.report_run_status") as mock:
+        yield mock
+
+
+@pytest.fixture
 def sample_run():
     return {
         "_id": "run_123",

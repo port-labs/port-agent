@@ -345,7 +345,12 @@ class WebhookInvoker(BaseInvoker):
             return False
         return True
 
-    def invoke(self, msg: dict, invocation_method: dict) -> None:
+    def invoke(
+        self,
+        msg: dict,
+        invocation_method: dict,
+        skip_signature_validation: bool = False,
+    ) -> None:
         log_by_detail_level(
             logger.info,
             "WebhookInvoker - start - destination type: %s",
@@ -356,7 +361,9 @@ class WebhookInvoker(BaseInvoker):
         run_id = msg["context"].get("runId")
 
         invocation_method_name = invocation_method.get("type") or consts.MISSING_VALUE
-        if not self.validate_incoming_signature(msg, invocation_method_name):
+        if not skip_signature_validation and not self.validate_incoming_signature(
+            msg, invocation_method_name
+        ):
             return
 
         logger.info("WebhookInvoker - validating signature")
