@@ -1,4 +1,7 @@
-FROM python:3.11-alpine3.19 AS base
+ARG ACCOUNT_ID=1
+ARG BASE_PYTHON_IMAGE=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11-alpine
+
+FROM ${BASE_PYTHON_IMAGE} AS base
 
 ENV LIBRDKAFKA_VERSION=1.9.2
 
@@ -33,7 +36,10 @@ RUN poetry config virtualenvs.in-project true
 # Install Python dependencies using Poetry
 RUN poetry install --without dev --no-ansi
 
-FROM python:3.11-alpine3.19 AS prod
+ARG ACCOUNT_ID=1
+ARG BASE_PYTHON_IMAGE=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11-alpine
+
+FROM ${BASE_PYTHON_IMAGE} AS prod
 
 ARG AGENT_USER_ID=1000
 
