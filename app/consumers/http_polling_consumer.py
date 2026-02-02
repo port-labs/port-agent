@@ -6,16 +6,28 @@ from typing import Any, Callable
 
 from consumers.base_consumer import BaseConsumer
 from core.config import settings
-from port_client import ack_runs, claim_pending_runs, report_run_status
+from port_client import (
+    ack_runs,
+    ack_workflow_run,
+    claim_pending_runs,
+    claim_pending_workflow_runs,
+    report_run_status,
+    report_workflow_node_run_status,
+)
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
 class HttpPollingConsumer(BaseConsumer):
-    def __init__(self, msg_process: Callable[[dict], None]) -> None:
+    def __init__(
+        self,
+        msg_process: Callable[[dict], None],
+        workflow_run_process: Callable[[dict], None] | None = None,
+    ) -> None:
         self.running = False
         self.msg_process = msg_process
+        self.workflow_run_process = workflow_run_process
         self.backoff_seconds = 0
         self.max_backoff = settings.POLLING_MAX_BACKOFF_SECONDS
         self.initial_backoff = settings.POLLING_INITIAL_BACKOFF_SECONDS
@@ -71,70 +83,145 @@ class HttpPollingConsumer(BaseConsumer):
             try:
                 if settings.DETAILED_LOGGING:
                     logger.info("Polling for pending runs...")
+
                 runs = claim_pending_runs(limit=settings.POLLING_RUNS_BATCH_SIZE)
+                self._process_action_runs(runs)
+
+                workflow_runs = []
+                if self.workflow_run_process:
+                    workflow_runs = claim_pending_workflow_runs(
+                        limit=settings.POLLING_RUNS_BATCH_SIZE
+                    )
+                    self._process_workflow_runs(workflow_runs)
+
                 self._reset_backoff()
 
-                if runs:
-                    logger.info("Claimed %d pending runs", len(runs))
-
-                    acked_runs = []
-                    for run in runs:
-                        run_id = run.get("id")
-                        if not run_id:
-                            logger.error("Run missing id field: %s", run)
-                            continue
-
-                        try:
-                            acked_count = ack_runs([run_id])
-                            if acked_count == 0:
-                                logger.warning("Failed to ack run %s", run_id)
-                                continue
-                            logger.info("Acked run %s", run_id)
-                            acked_runs.append(run)
-                        except Exception as ack_error:
-                            logger.error(
-                                "Failed to ack run %s: %s",
-                                run_id,
-                                str(ack_error),
-                                exc_info=True,
-                            )
-
-                    for run in acked_runs:
-                        run_id = run.get("id")
-                        try:
-                            logger.info("Processing run %s", run_id)
-                            self.msg_process(run)
-                        except Exception as process_error:
-                            logger.error(
-                                "Failed to process run %s: %s",
-                                run_id,
-                                str(process_error),
-                                exc_info=True,
-                            )
-                            try:
-                                report_run_status(
-                                    run_id,
-                                    {
-                                        "status": "FAILURE",
-                                        "summary": "Agent failed to process the run",
-                                    },
-                                )
-                            except Exception as report_error:
-                                logger.error(
-                                    "Failed to report failure status for run %s: %s",
-                                    run_id,
-                                    str(report_error),
-                                )
-                else:
+                total_runs = len(runs) + len(workflow_runs)
+                if total_runs == 0:
                     logger.debug("No pending runs found")
 
-                if len(runs) < settings.POLLING_RUNS_BATCH_SIZE and self.running:
+                if total_runs < settings.POLLING_RUNS_BATCH_SIZE and self.running:
                     time.sleep(settings.POLLING_INTERVAL_SECONDS)
 
             except Exception as error:
                 self._handle_error(error)
                 if not self.running:
                     break
+
+    def _process_action_runs(self, runs: list[dict]) -> None:
+        if not runs:
+            return
+
+        logger.info("Claimed %d pending action runs", len(runs))
+
+        acked_runs = []
+        for run in runs:
+            run_id = run.get("id")
+            if not run_id:
+                logger.error("Action run missing id field: %s", run)
+                continue
+
+            try:
+                acked_count = ack_runs([run_id])
+                if acked_count == 0:
+                    logger.warning("Failed to ack action run %s", run_id)
+                    continue
+                logger.info("Acked action run %s", run_id)
+                acked_runs.append(run)
+            except Exception as ack_error:
+                logger.error(
+                    "Failed to ack action run %s: %s",
+                    run_id,
+                    str(),
+                    exc_iack_errornfo=True,
+                )
+
+        for run in acked_runs:
+            run_id = run.get("id")
+            try:
+                logger.info("Processing action run %s", run_id)
+                self.msg_process(run)
+            except Exception as process_error:
+                logger.error(
+                    "Failed to process action run %s: %s",
+                    run_id,
+                    str(process_error),
+                    exc_info=True,
+                )
+                try:
+                    report_run_status(
+                        run_id,
+                        {
+                            "status": "FAILURE",
+                            "summary": "Agent failed to process the run",
+                        },
+                    )
+                except Exception as report_error:
+                    logger.error(
+                        "Failed to report failure status for action run %s: %s",
+                        run_id,
+                        str(report_error),
+                    )
+
+    def _process_workflow_runs(self, workflow_runs: list[dict]) -> None:
+        if not workflow_runs:
+            return
+
+        logger.info("Claimed %d pending workflow node runs", len(workflow_runs))
+
+        acked_runs = []
+        for run in workflow_runs:
+            run_identifier = run.get("identifier")
+            if not run_identifier:
+                logger.error("Workflow node run missing identifier field: %s", run)
+                continue
+
+            try:
+                acked = ack_workflow_run(run_identifier)
+                if not acked:
+                    logger.warning(
+                        "Failed to ack workflow node run %s", run_identifier
+                    )
+                    continue
+                logger.info("Acked workflow node run %s", run_identifier)
+                acked_runs.append(run)
+            except Exception as ack_error:
+                logger.error(
+                    "Failed to ack workflow node run %s: %s",
+                    run_identifier,
+                    str(ack_error),
+                    exc_info=True,
+                )
+
+        for run in acked_runs:
+            run_identifier = run.get("identifier")
+            try:
+                logger.info("Processing workflow node run %s", run_identifier)
+                self.workflow_run_process(run)
+            except Exception as process_error:
+                logger.error(
+                    "Failed to process workflow node run %s: %s",
+                    run_identifier,
+                    str(process_error),
+                    exc_info=True,
+                )
+                try:
+                    report_workflow_node_run_status(
+                        run_identifier,
+                        {
+                            "status": "FAILED",
+                            "result": "FAILURE",
+                            "logs": [
+                                {"message": "Agent failed to process the run"}
+                            ],
+                        },
+                    )
+                except Exception as report_error:
+                    logger.error(
+                        "Failed to report failure status for workflow node run %s: %s",
+                        run_identifier,
+                        str(report_error),
+                    )
 
     def exit_gracefully(self, *_: Any) -> None:
         logger.info("Exiting gracefully...")
