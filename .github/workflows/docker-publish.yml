@@ -69,4 +69,4 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+            AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
