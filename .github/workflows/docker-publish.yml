@@ -17,6 +17,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -44,6 +45,18 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Configure AWS Credentials 🔒
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: "eu-west-1"
+          role-to-assume: ${{ secrets.AWS_ECR_ROLE_ARN }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v3
@@ -55,3 +68,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}

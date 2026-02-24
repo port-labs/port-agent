@@ -1,21 +1,24 @@
-FROM python:3.11-alpine3.19 AS base
+ARG AWS_ACCOUNT_ID
+ARG BASE_PYTHON_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11
+
+FROM ${BASE_PYTHON_IMAGE} AS base
 
 ENV LIBRDKAFKA_VERSION=1.9.2
 
 # Install system dependencies and libraries
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    musl-dev \
+    g++ \
     librdkafka-dev \
-    build-base \
+    build-essential \
     bash \
-    oniguruma-dev \
-    make \
+    libonig-dev \
     autoconf \
     automake \
     libtool \
     curl \
-    libffi-dev  # Added libffi-dev for compatibility with some packages
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python3 -
@@ -33,22 +36,26 @@ RUN poetry config virtualenvs.in-project true
 # Install Python dependencies using Poetry
 RUN poetry install --without dev --no-ansi
 
-FROM python:3.11-alpine3.19 AS prod
+ARG AWS_ACCOUNT_ID
+ARG BASE_PYTHON_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11
+
+FROM ${BASE_PYTHON_IMAGE} AS prod
 
 ARG AGENT_USER_ID=1000
 
 ENV LIBRDKAFKA_VERSION=1.9.2
 
 # Create a dedicated user and group
-RUN addgroup -g ${AGENT_USER_ID} -S appgroup && \
-    adduser -u ${AGENT_USER_ID} -S -G appgroup -s /bin/bash agent
+RUN groupadd --gid ${AGENT_USER_ID} appgroup && \
+    useradd --uid ${AGENT_USER_ID} --gid appgroup --shell /bin/bash --create-home agent
 
 # Install only runtime dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     librdkafka-dev \
-    bash \
-    oniguruma-dev \
-    sudo
+    libonig-dev \
+    sudo \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
