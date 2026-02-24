@@ -1,5 +1,5 @@
 ARG ACCOUNT_ID=1 
-ARG BASE_PYTHON_IMAGE=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11-alpine
+ARG BASE_PYTHON_IMAGE=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11
 
 FROM ${BASE_PYTHON_IMAGE} AS base
 
@@ -37,7 +37,7 @@ RUN poetry config virtualenvs.in-project true
 RUN poetry install --without dev --no-ansi
 
 ARG ACCOUNT_ID=1
-ARG BASE_PYTHON_IMAGE=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11-alpine
+ARG BASE_PYTHON_IMAGE=${ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11
 
 FROM ${BASE_PYTHON_IMAGE} AS prod
 
