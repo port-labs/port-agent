@@ -36,3 +36,31 @@ class PollingToWebhookProcessor:
         )
 
         logger.info("Successfully processed run %s", run_id)
+
+    @staticmethod
+    def process_workflow_node_run(
+        node_run: dict, invocation_method: dict
+    ) -> None:
+        node_run_id = node_run.get("identifier")
+        if not node_run_id:
+            logger.error("Workflow node run missing identifier: %s", node_run)
+            return
+        logger.info("Processing workflow node run: %s", node_run_id)
+
+        config = node_run.get("config") or {}
+        msg_value = {
+            "headers": invocation_method.get("headers", {}),
+            "payload": {
+                "action": {"invocationMethod": invocation_method},
+            },
+            "context": {
+                "nodeRunIdentifier": node_run_id,
+                "nodeConfig": config,
+            },
+        }
+
+        webhook_invoker.invoke(
+            msg_value, invocation_method, skip_signature_validation=True
+        )
+
+        logger.info("Successfully processed workflow node run %s", node_run_id)
