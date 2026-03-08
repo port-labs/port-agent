@@ -198,7 +198,8 @@ class HttpPollingConsumer(BaseConsumer):
                         )
                     except Exception as report_error:
                         logger.error(
-                            "Failed to report failure status for workflow node run %s: %s",
+                            "Failed to report failure status for"
+                            " workflow node run %s: %s",
                             node_run_id,
                             str(report_error),
                         )
