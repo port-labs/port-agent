@@ -101,6 +101,7 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
     WEBHOOK_INVOKER_TIMEOUT: float = 30
+    WEBHOOK_VERIFY_SSL: bool = True
 
 
 settings = Settings()

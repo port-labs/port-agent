@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Script to sync CA certificates from privileged locations to unprivileged user directory
-# This handles cases where CA certificates are mounted or updated at runtime
-# Kubernetes compatibility: Uses /tmp/port-agent which can be mounted as emptyDir volume
-# and supports environments with allowPrivilegeEscalation: false
-
 CERT_SOURCE_DIRS="/etc/ssl/certs /usr/share/ca-certificates /usr/local/share/ca-certificates"
 USER_CERT_DIR="/tmp/port-agent/ca-certificates"
 
