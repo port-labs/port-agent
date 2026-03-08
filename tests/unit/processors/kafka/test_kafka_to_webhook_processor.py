@@ -115,6 +115,7 @@ def test_single_stream_success_control_the_payload(
             headers=expected_headers,
             params=expected_query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
+            verify=settings.WEBHOOK_VERIFY_SSL,
         )
 
         mock_error.assert_not_called()
@@ -175,6 +176,7 @@ def test_invocation_method_synchronized(
             headers=expected_headers,
             params=expected_query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
+            verify=settings.WEBHOOK_VERIFY_SSL,
         )
 
         request_patch_mock.assert_has_calls(
@@ -265,6 +267,7 @@ def test_invocation_method_method_override(
             headers=expected_headers,
             params=expected_query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
+            verify=settings.WEBHOOK_VERIFY_SSL,
         )
 
         mock_error.assert_not_called()

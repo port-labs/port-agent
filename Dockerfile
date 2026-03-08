@@ -53,7 +53,6 @@ RUN groupadd --gid ${AGENT_USER_ID} appgroup && \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     librdkafka-dev \
     libonig-dev \
-    sudo \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
@@ -68,15 +67,16 @@ COPY ./app/. .
 # Clean up old setuptools
 RUN pip uninstall -y setuptools || true
 
+# Copy startup scripts
+COPY ./scripts/sync_ca_certs.sh /app/scripts/sync_ca_certs.sh
+COPY ./scripts/init.sh /app/scripts/init.sh
+RUN chmod +x /app/scripts/sync_ca_certs.sh /app/scripts/init.sh
+
 # Change ownership of /app to agent user
 RUN chown -R agent:appgroup /app
-
-# Allow agent user to run update-ca-certificates without password (secure, limited sudo)
-RUN echo "agent ALL=(root) NOPASSWD: /usr/sbin/update-ca-certificates" >> /etc/sudoers.d/agent-certs && \
-    chmod 440 /etc/sudoers.d/agent-certs
 
 # Switch to agent user
 USER agent
 
 # Run the application
-CMD ["sh", "-c", "sudo update-ca-certificates && /app/.venv/bin/python main.py"]
+CMD ["bash", "/app/scripts/init.sh"]
