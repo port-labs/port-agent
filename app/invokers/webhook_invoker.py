@@ -168,6 +168,7 @@ class WebhookInvoker(BaseInvoker):
             headers=request_payload.headers,
             params=request_payload.query,
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
+            verify=settings.WEBHOOK_VERIFY_SSL,
         )
 
         if res.ok:
