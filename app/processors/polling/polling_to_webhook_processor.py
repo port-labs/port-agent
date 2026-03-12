@@ -2,6 +2,7 @@ import logging
 
 from core.config import settings
 from invokers.webhook_invoker import webhook_invoker
+from port_client import report_workflow_node_run_status
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -59,8 +60,28 @@ class PollingToWebhookProcessor:
             },
         }
 
-        webhook_invoker.invoke(
-            msg_value, invocation_method, skip_signature_validation=True
-        )
-
-        logger.info("Successfully processed workflow node run %s", node_run_id)
+        try:
+            webhook_invoker.invoke(
+                msg_value,
+                invocation_method,
+                skip_signature_validation=True,
+            )
+            report_workflow_node_run_status(
+                node_run_id,
+                {"status": "COMPLETED", "result": "SUCCESS"},
+            )
+            logger.info(
+                "Successfully processed workflow node run %s",
+                node_run_id,
+            )
+        except Exception:
+            logger.error(
+                "Webhook failed for workflow node run %s",
+                node_run_id,
+                exc_info=True,
+            )
+            report_workflow_node_run_status(
+                node_run_id,
+                {"status": "COMPLETED", "result": "FAILURE"},
+            )
+            raise
