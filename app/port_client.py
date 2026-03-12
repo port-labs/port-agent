@@ -117,6 +117,51 @@ def ack_runs(run_ids: list[str]) -> int:
     return res.json().get("ackedCount", 0)
 
 
+def claim_pending_workflow_node_runs(limit: int) -> list[dict]:
+    headers = get_port_api_headers()
+    headers["x-port-reserved-usage"] = "true"
+
+    body = {
+        "installationId": consts.PORT_EXEC_AGENT_CLAIMING_KEY,
+        "limit": limit,
+    }
+
+    res = requests.post(
+        f"{settings.PORT_API_BASE_URL}/v1/workflows/runs/claim-pending",
+        json=body,
+        headers=headers,
+    )
+    res.raise_for_status()
+    return res.json().get("nodeRuns", [])
+
+
+def ack_workflow_node_run(node_run_identifier: str) -> bool:
+    headers = get_port_api_headers()
+    headers["x-port-reserved-usage"] = "true"
+
+    body = {"nodeRunIdentifier": node_run_identifier}
+
+    res = requests.patch(
+        f"{settings.PORT_API_BASE_URL}/v1/workflows/runs/ack",
+        json=body,
+        headers=headers,
+    )
+    res.raise_for_status()
+    return res.json().get("acked", False)
+
+
+def report_workflow_node_run_status(
+    node_run_identifier: str, data_to_patch: dict
+) -> Response:
+    headers = get_port_api_headers()
+    res = requests.patch(
+        f"{settings.PORT_API_BASE_URL}/v1/workflows/nodes/runs/{node_run_identifier}",
+        json=data_to_patch,
+        headers=headers,
+    )
+    return res
+
+
 def patch_org_streamer_setting(streamer_type: str) -> None:
     if streamer_type not in consts.VALID_STREAMER_TYPES:
         logger.warning(

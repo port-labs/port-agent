@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 class PollingStreamer(BaseStreamer):
     def __init__(self) -> None:
-        self.http_polling_consumer = HttpPollingConsumer(self.process_run)
+        self.http_polling_consumer = HttpPollingConsumer(
+            self.process_run, self.process_workflow_node_run
+        )
         self.processor = PollingToWebhookProcessor()
 
     def process_run(self, run: dict) -> None:
@@ -36,6 +38,31 @@ class PollingStreamer(BaseStreamer):
             return
 
         self.processor.process_run(run, invocation_method)
+
+    def process_workflow_node_run(self, node_run: dict) -> None:
+        node_run_id = node_run.get("identifier")
+        if not node_run_id:
+            logger.error("Workflow node run missing identifier: %s", node_run)
+            return
+        logger.info("Processing workflow node run: %s", node_run_id)
+
+        config = node_run.get("config") or {}
+        invocation_method = {
+            "type": config.get("type"),
+            "url": config.get("url"),
+            "agent": config.get("agent"),
+            "synchronized": config.get("synchronized", False),
+            "method": config.get("method", "POST"),
+            "headers": config.get("headers", {}),
+        }
+
+        if not invocation_method.pop("agent", False):
+            logger.warning(
+                "Skip workflow node run %s: not for agent", node_run_id
+            )
+            return
+
+        self.processor.process_workflow_node_run(node_run, invocation_method)
 
     def stream(self) -> None:
         logger.info("Starting polling streamer")
