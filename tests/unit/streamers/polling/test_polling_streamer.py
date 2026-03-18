@@ -88,3 +88,80 @@ def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
         streamer.process_run(sample_run)
 
         mock_processor.process_run.assert_not_called()
+
+
+# --- Workflow node run streamer tests ---
+
+
+@patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
+def test_polling_streamer_process_wf_node_run(
+    mock_processor_class,
+):
+    mock_processor = MagicMock()
+    mock_processor_class.return_value = mock_processor
+
+    node_run = {
+        "identifier": "wfnr_abc123",
+        "status": "IN_PROGRESS",
+        "config": {
+            "type": "WEBHOOK",
+            "url": "https://httpbin.org/post",
+            "agent": True,
+            "synchronized": True,
+            "method": "POST",
+            "headers": {"Content-Type": "application/json"},
+        },
+    }
+
+    with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
+        streamer = PollingStreamer()
+        streamer.process_wf_node_run(node_run)
+
+        mock_processor.process_wf_node_run.assert_called_once()
+        call_args = mock_processor.process_wf_node_run.call_args
+        assert call_args[0][0] == node_run
+        invocation_method = call_args[0][1]
+        assert invocation_method["type"] == "WEBHOOK"
+        assert invocation_method["url"] == "https://httpbin.org/post"
+        assert invocation_method["synchronized"] is True
+        assert "agent" not in invocation_method
+
+
+@patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
+def test_polling_streamer_process_wf_node_run_skips_non_agent(
+    mock_processor_class,
+):
+    mock_processor = MagicMock()
+    mock_processor_class.return_value = mock_processor
+
+    node_run = {
+        "identifier": "wfnr_skip",
+        "config": {
+            "type": "WEBHOOK",
+            "url": "https://httpbin.org/post",
+            "agent": False,
+            "method": "POST",
+        },
+    }
+
+    with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
+        streamer = PollingStreamer()
+        streamer.process_wf_node_run(node_run)
+
+        mock_processor.process_wf_node_run.assert_not_called()
+
+
+@patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
+def test_polling_streamer_process_wf_node_run_missing_identifier(
+    mock_processor_class,
+):
+    mock_processor = MagicMock()
+    mock_processor_class.return_value = mock_processor
+
+    node_run = {"config": {"type": "WEBHOOK", "url": "https://httpbin.org/post"}}
+
+    with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
+        streamer = PollingStreamer()
+        streamer.process_wf_node_run(node_run)
+
+        mock_processor.process_wf_node_run.assert_not_called()

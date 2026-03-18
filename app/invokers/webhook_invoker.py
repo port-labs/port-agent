@@ -202,15 +202,10 @@ class WebhookInvoker(BaseInvoker):
     def _report_run_status(
         run_id: str, data_to_patch: dict, run_logger: Callable[[str], None]
     ) -> Response:
-        res = report_run_status(run_id, data_to_patch)
-
-        if res.ok:
-            logger.info(
-                "WebhookInvoker - report run - run_id: %s, status_code: %s",
-                run_id,
-                res.status_code,
-            )
-        else:
+        try:
+            res = report_run_status(run_id, data_to_patch)
+        except requests.HTTPError as e:
+            res = e.response
             log_by_detail_level(
                 logger.warning,
                 "WebhookInvoker - report run - run_id: %s, status_code: %s",
@@ -225,7 +220,13 @@ class WebhookInvoker(BaseInvoker):
             if settings.DETAILED_LOGGING:
                 user_msg += f" and response: {res.text}"
             run_logger(user_msg)
+            return res
 
+        logger.info(
+            "WebhookInvoker - report run - run_id: %s, status_code: %s",
+            run_id,
+            res.status_code,
+        )
         return res
 
     @staticmethod
