@@ -2,7 +2,7 @@ import logging
 
 from core.config import settings
 from invokers.webhook_invoker import webhook_invoker
-from port_client import report_workflow_node_run_status
+from port_client import report_wf_node_run_status
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class PollingToWebhookProcessor:
         logger.info("Successfully processed run %s", run_id)
 
     @staticmethod
-    def process_workflow_node_run(
+    def process_wf_node_run(
         node_run: dict, invocation_method: dict
     ) -> None:
         node_run_id = node_run.get("identifier")
@@ -66,7 +66,7 @@ class PollingToWebhookProcessor:
                 invocation_method,
                 skip_signature_validation=True,
             )
-            report_workflow_node_run_status(
+            report_wf_node_run_status(
                 node_run_id,
                 {"status": "COMPLETED", "result": "SUCCESS"},
             )
@@ -80,8 +80,15 @@ class PollingToWebhookProcessor:
                 node_run_id,
                 exc_info=True,
             )
-            report_workflow_node_run_status(
-                node_run_id,
-                {"status": "COMPLETED", "result": "FAILURE"},
-            )
+            try:
+                report_wf_node_run_status(
+                    node_run_id,
+                    {"status": "COMPLETED", "result": "FAILURE"},
+                )
+            except Exception:
+                logger.error(
+                    "Failed to report failure status for workflow node run %s",
+                    node_run_id,
+                    exc_info=True,
+                )
             raise

@@ -2,43 +2,50 @@ import logging
 import random
 import signal
 import time
-from dataclasses import dataclass
 from typing import Any, Callable
 
 from consumers.base_consumer import BaseConsumer
 from core.config import settings
 from port_client import (
     ack_runs,
-    ack_workflow_node_run,
+    ack_wf_node_run,
     claim_pending_runs,
-    claim_pending_workflow_node_runs,
+    claim_pending_wf_node_runs,
     report_run_status,
-    report_workflow_node_run_status,
+    report_wf_node_run_status,
 )
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class _RunTypeConfig:
-    label: str
-    id_field: str
-    claim_fn: Callable[..., list[dict]]
-    ack_fn: Callable[[str], Any]
-    process_fn: Callable[[dict], None]
-    report_failure_fn: Callable[[str], None]
+class _RunConfig:
+    def __init__(
+        self,
+        label: str,
+        id_field: str,
+        claim_fn: Callable[..., list[dict]],
+        ack_fn: Callable[[str], Any],
+        process_fn: Callable[[dict], None],
+        report_failure_fn: Callable[[str], None],
+    ) -> None:
+        self.label = label
+        self.id_field = id_field
+        self.claim_fn = claim_fn
+        self.ack_fn = ack_fn
+        self.process_fn = process_fn
+        self.report_failure_fn = report_failure_fn
 
 
 class HttpPollingConsumer(BaseConsumer):
     def __init__(
         self,
         msg_process: Callable[[dict], None],
-        workflow_node_run_process: Callable[[dict], None] | None = None,
+        wf_node_run_process: Callable[[dict], None] | None = None,
     ) -> None:
         self.running = False
         self.msg_process = msg_process
-        self.workflow_node_run_process = workflow_node_run_process
+        self.wf_node_run_process = wf_node_run_process
         self.backoff_seconds = 0
         self.max_backoff = settings.POLLING_MAX_BACKOFF_SECONDS
         self.initial_backoff = settings.POLLING_INITIAL_BACKOFF_SECONDS
@@ -87,9 +94,9 @@ class HttpPollingConsumer(BaseConsumer):
             return
         self._exponential_backoff()
 
-    def _build_run_configs(self) -> list[_RunTypeConfig]:
-        configs: list[_RunTypeConfig] = [
-            _RunTypeConfig(
+    def _build_run_configs(self) -> list[_RunConfig]:
+        configs: list[_RunConfig] = [
+            _RunConfig(
                 label="action run",
                 id_field="id",
                 claim_fn=claim_pending_runs,
@@ -104,15 +111,15 @@ class HttpPollingConsumer(BaseConsumer):
                 ),
             ),
         ]
-        if self.workflow_node_run_process:
+        if self.wf_node_run_process:
             configs.append(
-                _RunTypeConfig(
+                _RunConfig(
                     label="workflow node run",
                     id_field="identifier",
-                    claim_fn=claim_pending_workflow_node_runs,
-                    ack_fn=ack_workflow_node_run,
-                    process_fn=self.workflow_node_run_process,
-                    report_failure_fn=lambda run_id: report_workflow_node_run_status(
+                    claim_fn=claim_pending_wf_node_runs,
+                    ack_fn=ack_wf_node_run,
+                    process_fn=self.wf_node_run_process,
+                    report_failure_fn=lambda run_id: report_wf_node_run_status(
                         run_id,
                         {"status": "COMPLETED", "result": "FAILURE"},
                     ),
@@ -120,7 +127,7 @@ class HttpPollingConsumer(BaseConsumer):
             )
         return configs
 
-    def _poll_runs(self, config: _RunTypeConfig) -> int:
+    def _poll_runs(self, config: _RunConfig) -> int:
         if settings.DETAILED_LOGGING:
             logger.info("Polling for pending %ss...", config.label)
         runs = config.claim_fn(limit=settings.POLLING_RUNS_BATCH_SIZE)
@@ -189,24 +196,28 @@ class HttpPollingConsumer(BaseConsumer):
         run_configs = self._build_run_configs()
 
         while self.running:
-            try:
-                has_more = False
-                for config in run_configs:
-                    if not self.running:
-                        break
+            has_more = False
+            errored = False
+            for config in run_configs:
+                if not self.running:
+                    break
+                try:
                     count = self._poll_runs(config)
                     if count >= settings.POLLING_RUNS_BATCH_SIZE:
                         has_more = True
+                except Exception as error:
+                    errored = True
+                    self._handle_error(error)
+                    if not self.running:
+                        break
 
-                self._reset_backoff()
+            if errored:
+                continue
 
-                if not has_more and self.running:
-                    time.sleep(settings.POLLING_INTERVAL_SECONDS)
+            self._reset_backoff()
 
-            except Exception as error:
-                self._handle_error(error)
-                if not self.running:
-                    break
+            if not has_more and self.running:
+                time.sleep(settings.POLLING_INTERVAL_SECONDS)
 
     def exit_gracefully(self, *_: Any) -> None:
         logger.info("Exiting gracefully...")

@@ -28,26 +28,26 @@ def mock_report_run_status():
 
 
 @pytest.fixture
-def mock_claim_pending_workflow_node_runs():
+def mock_claim_pending_wf_node_runs():
     with patch(
-        "consumers.http_polling_consumer.claim_pending_workflow_node_runs"
+        "consumers.http_polling_consumer.claim_pending_wf_node_runs"
     ) as mock:
         mock.return_value = []
         yield mock
 
 
 @pytest.fixture
-def mock_ack_workflow_node_run():
+def mock_ack_wf_node_run():
     with patch(
-        "consumers.http_polling_consumer.ack_workflow_node_run"
+        "consumers.http_polling_consumer.ack_wf_node_run"
     ) as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_report_workflow_node_run_status():
+def mock_report_wf_node_run_status():
     with patch(
-        "consumers.http_polling_consumer.report_workflow_node_run_status"
+        "consumers.http_polling_consumer.report_wf_node_run_status"
     ) as mock:
         yield mock
 
@@ -78,7 +78,7 @@ def sample_run():
 
 
 @pytest.fixture
-def sample_workflow_node_run():
+def sample_wf_node_run():
     return {
         "identifier": "wfnr_abc123",
         "status": "IN_PROGRESS",

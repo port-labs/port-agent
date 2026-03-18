@@ -29,7 +29,7 @@ def sample_run():
 
 
 @pytest.fixture
-def sample_workflow_node_run():
+def sample_wf_node_run():
     return {
         "identifier": "wfnr_abc123",
         "status": "IN_PROGRESS",
@@ -170,15 +170,15 @@ def test_process_run_preserves_existing_run_id(mock_invoker):
 
 @patch(
     "processors.polling.polling_to_webhook_processor"
-    ".report_workflow_node_run_status"
+    ".report_wf_node_run_status"
 )
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_workflow_node_run_success(
-    mock_invoker, mock_report, sample_workflow_node_run, webhook_invocation_method
+def test_process_wf_node_run_success(
+    mock_invoker, mock_report, sample_wf_node_run, webhook_invocation_method
 ):
     processor = PollingToWebhookProcessor()
-    processor.process_workflow_node_run(
-        sample_workflow_node_run, webhook_invocation_method
+    processor.process_wf_node_run(
+        sample_wf_node_run, webhook_invocation_method
     )
 
     mock_invoker.invoke.assert_called_once()
@@ -199,18 +199,18 @@ def test_process_workflow_node_run_success(
 
 @patch(
     "processors.polling.polling_to_webhook_processor"
-    ".report_workflow_node_run_status"
+    ".report_wf_node_run_status"
 )
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_workflow_node_run_webhook_failure_reports_failure(
-    mock_invoker, mock_report, sample_workflow_node_run, webhook_invocation_method
+def test_process_wf_node_run_webhook_failure_reports_failure(
+    mock_invoker, mock_report, sample_wf_node_run, webhook_invocation_method
 ):
     mock_invoker.invoke.side_effect = Exception("Connection refused")
 
     processor = PollingToWebhookProcessor()
     with pytest.raises(Exception, match="Connection refused"):
-        processor.process_workflow_node_run(
-            sample_workflow_node_run, webhook_invocation_method
+        processor.process_wf_node_run(
+            sample_wf_node_run, webhook_invocation_method
         )
 
     mock_report.assert_called_once_with(
@@ -221,14 +221,14 @@ def test_process_workflow_node_run_webhook_failure_reports_failure(
 
 @patch(
     "processors.polling.polling_to_webhook_processor"
-    ".report_workflow_node_run_status"
+    ".report_wf_node_run_status"
 )
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_workflow_node_run_missing_identifier(
+def test_process_wf_node_run_missing_identifier(
     mock_invoker, mock_report
 ):
     processor = PollingToWebhookProcessor()
-    processor.process_workflow_node_run(
+    processor.process_wf_node_run(
         {"status": "IN_PROGRESS"},
         {"type": "WEBHOOK", "url": "https://httpbin.org/post"},
     )
@@ -239,10 +239,10 @@ def test_process_workflow_node_run_missing_identifier(
 
 @patch(
     "processors.polling.polling_to_webhook_processor"
-    ".report_workflow_node_run_status"
+    ".report_wf_node_run_status"
 )
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_workflow_node_run_empty_config(
+def test_process_wf_node_run_empty_config(
     mock_invoker, mock_report
 ):
     node_run = {
@@ -259,7 +259,7 @@ def test_process_workflow_node_run_empty_config(
     }
 
     processor = PollingToWebhookProcessor()
-    processor.process_workflow_node_run(node_run, invocation_method)
+    processor.process_wf_node_run(node_run, invocation_method)
 
     mock_invoker.invoke.assert_called_once()
     call_args = mock_invoker.invoke.call_args

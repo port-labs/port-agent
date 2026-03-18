@@ -10,7 +10,7 @@ def terminate_consumer(consumer):
 def test_http_polling_consumer_successful_poll(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
     sample_run,
 ):
@@ -36,7 +36,7 @@ def test_http_polling_consumer_successful_poll(
 def test_http_polling_consumer_no_pending_runs(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
 ):
     mock_claim_pending_runs.return_value = []
@@ -59,7 +59,7 @@ def test_http_polling_consumer_no_pending_runs(
 def test_http_polling_consumer_processing_error(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
     mock_report_run_status,
     sample_run,
@@ -89,7 +89,7 @@ def test_http_polling_consumer_processing_error(
 def test_http_polling_consumer_exponential_backoff(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
 ):
     mock_claim_pending_runs.side_effect = Exception("API Error")
@@ -105,7 +105,7 @@ def test_http_polling_consumer_exponential_backoff(
 def test_http_polling_consumer_backoff_reset(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
     sample_run,
 ):
@@ -131,7 +131,7 @@ def test_http_polling_consumer_backoff_reset(
 def test_http_polling_consumer_ack_all_claimed_runs(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
 ):
     run1 = {
@@ -175,7 +175,7 @@ def test_http_polling_consumer_ack_all_claimed_runs(
 def test_http_polling_consumer_ack_failure_skips_processing(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
     sample_run,
 ):
@@ -200,17 +200,17 @@ def test_http_polling_consumer_ack_failure_skips_processing(
 # --- Workflow node run tests ---
 
 
-def test_http_polling_consumer_workflow_node_run_successful_poll(
+def test_http_polling_consumer_wf_node_run_successful_poll(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
-    mock_ack_workflow_node_run,
+    mock_claim_pending_wf_node_runs,
+    mock_ack_wf_node_run,
     mock_time_sleep,
-    sample_workflow_node_run,
+    sample_wf_node_run,
 ):
     mock_claim_pending_runs.return_value = []
-    mock_claim_pending_workflow_node_runs.return_value = [sample_workflow_node_run]
-    mock_ack_workflow_node_run.return_value = True
+    mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
+    mock_ack_wf_node_run.return_value = True
 
     processed_node_runs = []
 
@@ -224,19 +224,19 @@ def test_http_polling_consumer_workflow_node_run_successful_poll(
 
     assert len(processed_node_runs) >= 1
     assert processed_node_runs[0]["identifier"] == "wfnr_abc123"
-    mock_claim_pending_workflow_node_runs.assert_called()
-    mock_ack_workflow_node_run.assert_called_with("wfnr_abc123")
+    mock_claim_pending_wf_node_runs.assert_called()
+    mock_ack_wf_node_run.assert_called_with("wfnr_abc123")
 
 
 def test_http_polling_consumer_workflow_no_pending_node_runs(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
-    mock_ack_workflow_node_run,
+    mock_claim_pending_wf_node_runs,
+    mock_ack_wf_node_run,
     mock_time_sleep,
 ):
     mock_claim_pending_runs.return_value = []
-    mock_claim_pending_workflow_node_runs.return_value = []
+    mock_claim_pending_wf_node_runs.return_value = []
 
     processed_node_runs = []
 
@@ -248,22 +248,22 @@ def test_http_polling_consumer_workflow_no_pending_node_runs(
     consumer.start()
 
     assert len(processed_node_runs) == 0
-    mock_claim_pending_workflow_node_runs.assert_called()
-    mock_ack_workflow_node_run.assert_not_called()
+    mock_claim_pending_wf_node_runs.assert_called()
+    mock_ack_wf_node_run.assert_not_called()
 
 
 def test_http_polling_consumer_workflow_processing_error(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
-    mock_ack_workflow_node_run,
-    mock_report_workflow_node_run_status,
+    mock_claim_pending_wf_node_runs,
+    mock_ack_wf_node_run,
+    mock_report_wf_node_run_status,
     mock_time_sleep,
-    sample_workflow_node_run,
+    sample_wf_node_run,
 ):
     mock_claim_pending_runs.return_value = []
-    mock_claim_pending_workflow_node_runs.return_value = [sample_workflow_node_run]
-    mock_ack_workflow_node_run.return_value = True
+    mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
+    mock_ack_wf_node_run.return_value = True
 
     def workflow_process(node_run):
         raise Exception("Processing failed")
@@ -273,9 +273,9 @@ def test_http_polling_consumer_workflow_processing_error(
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
 
-    mock_claim_pending_workflow_node_runs.assert_called()
-    mock_ack_workflow_node_run.assert_called_with("wfnr_abc123")
-    mock_report_workflow_node_run_status.assert_called_with(
+    mock_claim_pending_wf_node_runs.assert_called()
+    mock_ack_wf_node_run.assert_called_with("wfnr_abc123")
+    mock_report_wf_node_run_status.assert_called_with(
         "wfnr_abc123",
         {
             "status": "COMPLETED",
@@ -287,14 +287,14 @@ def test_http_polling_consumer_workflow_processing_error(
 def test_http_polling_consumer_workflow_ack_failure_skips_processing(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
-    mock_ack_workflow_node_run,
+    mock_claim_pending_wf_node_runs,
+    mock_ack_wf_node_run,
     mock_time_sleep,
-    sample_workflow_node_run,
+    sample_wf_node_run,
 ):
     mock_claim_pending_runs.return_value = []
-    mock_claim_pending_workflow_node_runs.return_value = [sample_workflow_node_run]
-    mock_ack_workflow_node_run.side_effect = Exception("Ack failed")
+    mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
+    mock_ack_wf_node_run.side_effect = Exception("Ack failed")
 
     processed_node_runs = []
 
@@ -306,14 +306,14 @@ def test_http_polling_consumer_workflow_ack_failure_skips_processing(
     consumer.start()
 
     assert len(processed_node_runs) == 0
-    mock_claim_pending_workflow_node_runs.assert_called()
-    mock_ack_workflow_node_run.assert_called()
+    mock_claim_pending_wf_node_runs.assert_called()
+    mock_ack_wf_node_run.assert_called()
 
 
 def test_http_polling_consumer_workflow_skipped_without_callback(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
+    mock_claim_pending_wf_node_runs,
     mock_time_sleep,
 ):
     mock_claim_pending_runs.return_value = []
@@ -323,22 +323,22 @@ def test_http_polling_consumer_workflow_skipped_without_callback(
     Timer(0.1, lambda: consumer.exit_gracefully()).start()
     consumer.start()
 
-    mock_claim_pending_workflow_node_runs.assert_not_called()
+    mock_claim_pending_wf_node_runs.assert_not_called()
 
 
 def test_http_polling_consumer_both_action_and_workflow_runs(
     mock_claim_pending_runs,
     mock_ack_runs,
-    mock_claim_pending_workflow_node_runs,
-    mock_ack_workflow_node_run,
+    mock_claim_pending_wf_node_runs,
+    mock_ack_wf_node_run,
     mock_time_sleep,
     sample_run,
-    sample_workflow_node_run,
+    sample_wf_node_run,
 ):
     mock_claim_pending_runs.return_value = [sample_run]
     mock_ack_runs.return_value = 1
-    mock_claim_pending_workflow_node_runs.return_value = [sample_workflow_node_run]
-    mock_ack_workflow_node_run.return_value = True
+    mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
+    mock_ack_wf_node_run.return_value = True
 
     processed_runs = []
     processed_node_runs = []

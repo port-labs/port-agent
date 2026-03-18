@@ -57,6 +57,7 @@ def report_run_status(run_id: str, data_to_patch: dict) -> Response:
         json=data_to_patch,
         headers=headers,
     )
+    res.raise_for_status()
     return res
 
 
@@ -117,7 +118,7 @@ def ack_runs(run_ids: list[str]) -> int:
     return res.json().get("ackedCount", 0)
 
 
-def claim_pending_workflow_node_runs(limit: int) -> list[dict]:
+def claim_pending_wf_node_runs(limit: int) -> list[dict]:
     headers = get_port_api_headers()
     headers["x-port-reserved-usage"] = "true"
 
@@ -135,7 +136,7 @@ def claim_pending_workflow_node_runs(limit: int) -> list[dict]:
     return res.json().get("nodeRuns", [])
 
 
-def ack_workflow_node_run(node_run_identifier: str) -> bool:
+def ack_wf_node_run(node_run_identifier: str) -> bool:
     headers = get_port_api_headers()
     headers["x-port-reserved-usage"] = "true"
 
@@ -150,7 +151,7 @@ def ack_workflow_node_run(node_run_identifier: str) -> bool:
     return res.json().get("acked", False)
 
 
-def report_workflow_node_run_status(
+def report_wf_node_run_status(
     node_run_identifier: str, data_to_patch: dict
 ) -> Response:
     headers = get_port_api_headers()
@@ -159,6 +160,7 @@ def report_workflow_node_run_status(
         json=data_to_patch,
         headers=headers,
     )
+    res.raise_for_status()
     return res
 
 

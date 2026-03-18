@@ -94,7 +94,7 @@ def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
 
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
-def test_polling_streamer_process_workflow_node_run(
+def test_polling_streamer_process_wf_node_run(
     mock_processor_class,
 ):
     mock_processor = MagicMock()
@@ -115,10 +115,10 @@ def test_polling_streamer_process_workflow_node_run(
 
     with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
         streamer = PollingStreamer()
-        streamer.process_workflow_node_run(node_run)
+        streamer.process_wf_node_run(node_run)
 
-        mock_processor.process_workflow_node_run.assert_called_once()
-        call_args = mock_processor.process_workflow_node_run.call_args
+        mock_processor.process_wf_node_run.assert_called_once()
+        call_args = mock_processor.process_wf_node_run.call_args
         assert call_args[0][0] == node_run
         invocation_method = call_args[0][1]
         assert invocation_method["type"] == "WEBHOOK"
@@ -128,7 +128,7 @@ def test_polling_streamer_process_workflow_node_run(
 
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
-def test_polling_streamer_process_workflow_node_run_skips_non_agent(
+def test_polling_streamer_process_wf_node_run_skips_non_agent(
     mock_processor_class,
 ):
     mock_processor = MagicMock()
@@ -146,13 +146,13 @@ def test_polling_streamer_process_workflow_node_run_skips_non_agent(
 
     with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
         streamer = PollingStreamer()
-        streamer.process_workflow_node_run(node_run)
+        streamer.process_wf_node_run(node_run)
 
-        mock_processor.process_workflow_node_run.assert_not_called()
+        mock_processor.process_wf_node_run.assert_not_called()
 
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
-def test_polling_streamer_process_workflow_node_run_missing_identifier(
+def test_polling_streamer_process_wf_node_run_missing_identifier(
     mock_processor_class,
 ):
     mock_processor = MagicMock()
@@ -162,6 +162,6 @@ def test_polling_streamer_process_workflow_node_run_missing_identifier(
 
     with patch("streamers.polling.polling_streamer.HttpPollingConsumer"):
         streamer = PollingStreamer()
-        streamer.process_workflow_node_run(node_run)
+        streamer.process_wf_node_run(node_run)
 
-        mock_processor.process_workflow_node_run.assert_not_called()
+        mock_processor.process_wf_node_run.assert_not_called()
