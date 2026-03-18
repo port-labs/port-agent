@@ -2,6 +2,7 @@ import logging
 import random
 import signal
 import time
+from dataclasses import dataclass
 from typing import Any, Callable
 
 from consumers.base_consumer import BaseConsumer
@@ -19,22 +20,14 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
 class _RunConfig:
-    def __init__(
-        self,
-        label: str,
-        id_field: str,
-        claim_fn: Callable[..., list[dict]],
-        ack_fn: Callable[[str], Any],
-        process_fn: Callable[[dict], None],
-        report_failure_fn: Callable[[str], None],
-    ) -> None:
-        self.label = label
-        self.id_field = id_field
-        self.claim_fn = claim_fn
-        self.ack_fn = ack_fn
-        self.process_fn = process_fn
-        self.report_failure_fn = report_failure_fn
+    label: str
+    id_field: str
+    claim_fn: Callable[..., list[dict]]
+    ack_fn: Callable[[str], Any]
+    process_fn: Callable[[dict], None]
+    report_failure_fn: Callable[[str], None]
 
 
 class HttpPollingConsumer(BaseConsumer):

@@ -194,7 +194,7 @@ def test_invocation_method_synchronized(
                     json={"status": "SUCCESS"},
                     headers={},
                 ),
-                call().ok.__bool__(),
+                call().raise_for_status(),
             ]
         )
 
