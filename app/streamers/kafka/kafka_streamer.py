@@ -26,6 +26,11 @@ class KafkaStreamer(BaseStreamer):
             msg.value(),
         )
         msg_value = json.loads(msg.value().decode())
+
+        if topic == settings.KAFKA_WF_NODE_RUNS_TOPIC:
+            self.process_wf_node_run(msg_value)
+            return
+
         invocation_method = self.get_invocation_method(msg_value, topic)
 
         if not invocation_method.pop("agent", False):
@@ -39,6 +44,31 @@ class KafkaStreamer(BaseStreamer):
             return
 
         KafkaToWebhookProcessor.msg_process(msg, invocation_method, topic)
+
+    def process_wf_node_run(self, node_run: dict) -> None:
+        node_run_id = node_run.get("identifier")
+        if not node_run_id:
+            logger.error("Workflow node run missing identifier: %s", node_run)
+            return
+        logger.info("Processing workflow node run: %s", node_run_id)
+
+        config = node_run.get("config") or {}
+        invocation_method = {
+            "type": config.get("type"),
+            "url": config.get("url"),
+            "agent": config.get("agent"),
+            "synchronized": config.get("synchronized", False),
+            "method": config.get("method", "POST"),
+            "headers": config.get("headers", {}),
+        }
+
+        if not invocation_method.pop("agent", False):
+            logger.warning(
+                "Skip workflow node run %s: not for agent", node_run_id
+            )
+            return
+
+        KafkaToWebhookProcessor.process_wf_node_run(node_run, invocation_method)
 
     @staticmethod
     def get_invocation_method(msg_value: dict, topic: str) -> dict:
