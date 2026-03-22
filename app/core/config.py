@@ -95,6 +95,14 @@ class Settings(BaseSettings):
             return v
         return f"{values.get('PORT_ORG_ID')}.change.log"
 
+    KAFKA_WF_NODE_RUNS_TOPIC: str = ""
+
+    @validator("KAFKA_WF_NODE_RUNS_TOPIC", always=True)
+    def set_kafka_wf_node_runs_topic(cls, v: Optional[str], values: dict) -> str:
+        if isinstance(v, str) and v:
+            return v
+        return f"{values.get('PORT_ORG_ID')}.workflow.runs"
+
     class Config:
         case_sensitive = True
         env_file = find_dotenv()

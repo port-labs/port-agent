@@ -100,3 +100,52 @@ def test_single_stream_skipped_due_to_agentless(
                 ),
             ]
         )
+
+@pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_wf_node_run_stream_success(
+    mock_requests: None, mock_kafka: None, mock_timestamp: None
+) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        (
+            "mock_wf_node_run_message",
+            {"type": "WEBHOOK", "url": "https://httpbin.org/post", "agent": False},
+            settings.KAFKA_WF_NODE_RUNS_TOPIC,
+        ),
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_wf_node_run_stream_skips_non_agent(
+    mock_kafka: None, mock_timestamp: None
+) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
+        streamer_logger, "warning"
+    ) as mock_warning:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_not_called()
+        mock_warning.assert_any_call(
+            "Skip workflow node run %s: not for agent", "wfnr_abc123"
+        )

@@ -271,3 +271,44 @@ def test_invocation_method_method_override(
         )
 
         mock_error.assert_not_called()
+
+@pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_wf_node_run_stream_success(
+    mock_requests: None, mock_kafka: dict, mock_timestamp: None
+) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_not_called()
+
+
+@pytest.mark.parametrize("mock_requests", [{"status_code": 500}], indirect=True)
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_wf_node_run_stream_webhook_failure(
+    mock_requests: None, mock_kafka: dict, mock_timestamp: None
+) -> None:
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
+
+        mock_error.assert_called_once()

@@ -117,6 +117,29 @@ def mock_kafka(monkeypatch: MonkeyPatch, request: Any) -> None:
 
 
 @pytest.fixture(scope="module")
+def mock_wf_node_run_message() -> Callable[[dict], bytes]:
+    node_run_message: dict = {
+        "identifier": "wfnr_abc123",
+        "status": "IN_PROGRESS",
+        "config": {
+            "type": "WEBHOOK",
+            "url": "https://httpbin.org/post",
+            "method": "POST",
+            "agent": True,
+            "headers": {"Content-Type": "application/json"},
+        },
+        "pendingExecution": True,
+    }
+
+    def get_node_run_message(config_override: dict) -> bytes:
+        if config_override is not None:
+            node_run_message["config"] = config_override
+        return json.dumps(node_run_message).encode()
+
+    return get_node_run_message
+
+
+@pytest.fixture(scope="module")
 def mock_webhook_run_message() -> Callable[[dict], bytes]:
     run_message: dict = {
         "action": "Create",
