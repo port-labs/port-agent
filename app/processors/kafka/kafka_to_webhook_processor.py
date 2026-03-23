@@ -23,6 +23,12 @@ class KafkaToWebhookProcessor:
         )
         msg_value = json.loads(msg.value().decode())
 
+        if topic == settings.KAFKA_WF_NODE_RUNS_TOPIC:
+            KafkaToWebhookProcessor._process_wf_node_run(
+                msg_value, invocation_method
+            )
+            return
+
         webhook_invoker.invoke(msg_value, invocation_method)
         logger.info(
             "Successfully processed message from topic %s, partition %d, offset %d",
@@ -32,7 +38,7 @@ class KafkaToWebhookProcessor:
         )
 
     @staticmethod
-    def process_wf_node_run(
+    def _process_wf_node_run(
         node_run: dict, invocation_method: dict
     ) -> None:
         node_run_id = node_run.get("identifier")
@@ -54,11 +60,7 @@ class KafkaToWebhookProcessor:
         }
 
         try:
-            webhook_invoker.invoke(
-                msg_value,
-                invocation_method,
-                skip_signature_validation=True,
-            )
+            webhook_invoker.invoke(msg_value, invocation_method)
             report_wf_node_run_status(
                 node_run_id,
                 {"status": "COMPLETED", "result": "SUCCESS"},

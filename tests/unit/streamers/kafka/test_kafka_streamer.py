@@ -140,12 +140,16 @@ def test_wf_node_run_stream_skips_non_agent(
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error, mock.patch.object(
-        streamer_logger, "warning"
-    ) as mock_warning:
+        streamer_logger, "info"
+    ) as mock_info:
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
 
         mock_error.assert_not_called()
-        mock_warning.assert_any_call(
-            "Skip workflow node run %s: not for agent", "wfnr_abc123"
+        mock_info.assert_any_call(
+            "Skip process message"
+            " from topic %s, partition %d, offset %d: not for agent",
+            ANY,
+            0,
+            0,
         )
