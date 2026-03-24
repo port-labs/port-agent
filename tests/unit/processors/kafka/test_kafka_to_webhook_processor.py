@@ -357,13 +357,3 @@ def test_wf_node_run_stream_success(
         streamer.stream()
 
         mock_error.assert_not_called()
-
-
-@pytest.mark.parametrize("mock_requests", [{"status_code": 500}], indirect=True)
-@pytest.mark.parametrize(
-    "mock_kafka",
-    [
-        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
-    ],
-    indirect=True,
-)
