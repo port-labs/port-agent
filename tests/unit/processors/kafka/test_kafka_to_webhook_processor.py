@@ -15,8 +15,6 @@ from streamers.kafka.kafka_streamer import KafkaStreamer
 
 from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
-from app.processors.kafka.kafka_to_webhook_processor import logger as processor_logger
-
 
 def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
     invocation_method = node_run["config"]
