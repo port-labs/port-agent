@@ -17,6 +17,29 @@ from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 
 
+def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
+    invocation_method = node_run["config"]
+    node_run_id = node_run["identifier"]
+    config = node_run.get("config") or {}
+    headers = invocation_method.setdefault("headers", {})
+    headers.pop("X-Port-Signature", None)
+    headers.pop("X-Port-Timestamp", None)
+    wire_msg = {
+        "headers": headers,
+        "payload": {"action": {"invocationMethod": invocation_method}},
+        "context": {
+            "nodeRunIdentifier": node_run_id,
+            "nodeConfig": config,
+        },
+    }
+    headers["X-Port-Signature"] = sign_sha_256(
+        json.dumps(wire_msg, separators=(",", ":"), ensure_ascii=False),
+        settings.PORT_CLIENT_SECRET,
+        str(timestamp),
+    )
+    headers["X-Port-Timestamp"] = timestamp
+
+
 def _patch_requests_patch_ok(mocker: MockFixture) -> None:
     mock_resp = mock.MagicMock()
     mock_resp.status_code = 200
@@ -46,6 +69,8 @@ def mock_wf_node_run_message() -> Callable[[dict | None], bytes]:
         msg = deepcopy(node_run_message)
         if config_override is not None:
             msg["config"] = config_override
+        if msg["config"].get("agent", True):
+            _attach_wf_node_port_signature(msg)
         return json.dumps(msg).encode()
 
     return get_node_run_message
