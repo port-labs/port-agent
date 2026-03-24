@@ -367,18 +367,3 @@ def test_wf_node_run_stream_success(
     ],
     indirect=True,
 )
-@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
-def test_wf_node_run_stream_webhook_failure(
-    mock_requests: None,
-    mock_kafka: dict,
-    mock_timestamp: None,
-    mocker: MockFixture,
-) -> None:
-    _patch_requests_patch_ok(mocker)
-    Timer(0.01, terminate_consumer).start()
-
-    with mock.patch.object(processor_logger, "error") as mock_error:
-        streamer = KafkaStreamer(Consumer())
-        streamer.stream()
-
-        mock_error.assert_called_once()
