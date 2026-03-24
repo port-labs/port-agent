@@ -17,7 +17,6 @@ from tests.unit.streamers.kafka.conftest import Consumer, terminate_consumer
 
 
 def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
-    """Headers expected by WebhookInvoker for the wire shape from _process_wf_node_run."""
     invocation_method = node_run["config"]
     node_run_id = node_run["identifier"]
     config = node_run.get("config") or {}
