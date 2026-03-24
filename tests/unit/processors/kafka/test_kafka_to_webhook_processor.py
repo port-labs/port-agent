@@ -15,6 +15,7 @@ from streamers.kafka.kafka_streamer import KafkaStreamer
 
 from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
+from app.processors.kafka.kafka_to_webhook_processor import logger as processor_logger
 
 
 def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
@@ -376,7 +377,7 @@ def test_wf_node_run_stream_webhook_failure(
     _patch_requests_patch_ok(mocker)
     Timer(0.01, terminate_consumer).start()
 
-    with mock.patch.object(consumer_logger, "error") as mock_error:
+    with mock.patch.object(processor_logger, "error") as mock_error:
         streamer = KafkaStreamer(Consumer())
         streamer.stream()
 
