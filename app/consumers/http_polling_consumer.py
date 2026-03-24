@@ -128,10 +128,10 @@ class HttpPollingConsumer(BaseConsumer):
         if runs:
             logger.info("Claimed %d pending %ss", len(runs), config.label)
 
-            acked_runs = []
+            acked_runs: list[tuple[dict, str]] = []
             for run in runs:
-                run_id = run.get(config.id_field)
-                if not run_id:
+                run_id_raw = run.get(config.id_field)
+                if not run_id_raw:
                     logger.error(
                         "%s missing %s field: %s",
                         config.label.capitalize(),
@@ -140,14 +140,13 @@ class HttpPollingConsumer(BaseConsumer):
                     )
                     continue
 
+                run_id = str(run_id_raw)
                 try:
                     if not config.ack_fn(run_id):
-                        logger.warning(
-                            "Failed to ack %s %s", config.label, run_id
-                        )
+                        logger.warning("Failed to ack %s %s", config.label, run_id)
                         continue
                     logger.info("Acked %s %s", config.label, run_id)
-                    acked_runs.append(run)
+                    acked_runs.append((run, run_id))
                 except Exception as ack_error:
                     logger.error(
                         "Failed to ack %s %s: %s",
@@ -157,8 +156,7 @@ class HttpPollingConsumer(BaseConsumer):
                         exc_info=True,
                     )
 
-            for run in acked_runs:
-                run_id = run.get(config.id_field)
+            for run, run_id in acked_runs:
                 try:
                     logger.info("Processing %s %s", config.label, run_id)
                     config.process_fn(run)

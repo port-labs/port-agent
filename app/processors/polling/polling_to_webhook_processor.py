@@ -39,9 +39,7 @@ class PollingToWebhookProcessor:
         logger.info("Successfully processed run %s", run_id)
 
     @staticmethod
-    def process_wf_node_run(
-        node_run: dict, invocation_method: dict
-    ) -> None:
+    def process_wf_node_run(node_run: dict, invocation_method: dict) -> None:
         node_run_id = node_run.get("identifier")
         if not node_run_id:
             logger.error("Workflow node run missing identifier: %s", node_run)

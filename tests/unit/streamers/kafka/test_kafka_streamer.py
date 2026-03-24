@@ -101,6 +101,7 @@ def test_single_stream_skipped_due_to_agentless(
             ]
         )
 
+
 @pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
 @pytest.mark.parametrize(
     "mock_kafka",

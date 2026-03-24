@@ -29,26 +29,20 @@ def mock_report_run_status():
 
 @pytest.fixture
 def mock_claim_pending_wf_node_runs():
-    with patch(
-        "consumers.http_polling_consumer.claim_pending_wf_node_runs"
-    ) as mock:
+    with patch("consumers.http_polling_consumer.claim_pending_wf_node_runs") as mock:
         mock.return_value = []
         yield mock
 
 
 @pytest.fixture
 def mock_ack_wf_node_run():
-    with patch(
-        "consumers.http_polling_consumer.ack_wf_node_run"
-    ) as mock:
+    with patch("consumers.http_polling_consumer.ack_wf_node_run") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_report_wf_node_run_status():
-    with patch(
-        "consumers.http_polling_consumer.report_wf_node_run_status"
-    ) as mock:
+    with patch("consumers.http_polling_consumer.report_wf_node_run_status") as mock:
         yield mock
 
 

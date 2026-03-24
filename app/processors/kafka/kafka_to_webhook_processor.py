@@ -24,9 +24,7 @@ class KafkaToWebhookProcessor:
         msg_value = json.loads(msg.value().decode())
 
         if topic == settings.KAFKA_WF_NODE_RUNS_TOPIC:
-            KafkaToWebhookProcessor._process_wf_node_run(
-                msg_value, invocation_method
-            )
+            KafkaToWebhookProcessor._process_wf_node_run(msg_value, invocation_method)
             return
 
         webhook_invoker.invoke(msg_value, invocation_method)
@@ -38,9 +36,7 @@ class KafkaToWebhookProcessor:
         )
 
     @staticmethod
-    def _process_wf_node_run(
-        node_run: dict, invocation_method: dict
-    ) -> None:
+    def _process_wf_node_run(node_run: dict, invocation_method: dict) -> None:
         node_run_id = node_run.get("identifier")
         if not node_run_id:
             logger.error("Workflow node run missing identifier: %s", node_run)

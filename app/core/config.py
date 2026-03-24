@@ -81,6 +81,8 @@ class Settings(BaseSettings):
                 "USING_LOCAL_PORT_INSTANCE=True"
             )
 
+        return ""
+
     @validator("KAFKA_RUNS_TOPIC", always=True)
     def set_kafka_runs_topic(cls, v: Optional[str], values: dict) -> str:
         if isinstance(v, str) and v:

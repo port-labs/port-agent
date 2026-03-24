@@ -272,6 +272,7 @@ def test_invocation_method_method_override(
 
         mock_error.assert_not_called()
 
+
 @pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
 @pytest.mark.parametrize(
     "mock_kafka",
