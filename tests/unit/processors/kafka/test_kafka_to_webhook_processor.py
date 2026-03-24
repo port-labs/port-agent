@@ -18,7 +18,6 @@ from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 
 
 def _patch_requests_patch_ok(mocker: MockFixture) -> None:
-    """report_wf_node_run_status uses requests.patch; kafka conftest only mocks other verbs."""
     mock_resp = mock.MagicMock()
     mock_resp.status_code = 200
     mock_resp.ok = True
