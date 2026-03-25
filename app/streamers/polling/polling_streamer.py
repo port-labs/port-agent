@@ -57,9 +57,7 @@ class PollingStreamer(BaseStreamer):
         }
 
         if not invocation_method.pop("agent", False):
-            logger.warning(
-                "Skip workflow node run %s: not for agent", node_run_id
-            )
+            logger.warning("Skip workflow node run %s: not for agent", node_run_id)
             return
 
         self.processor.process_wf_node_run(node_run, invocation_method)

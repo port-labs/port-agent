@@ -2,6 +2,7 @@ import json
 import time
 from copy import deepcopy
 from threading import Timer
+from typing import Callable
 from unittest import mock
 from unittest.mock import ANY, call
 
@@ -14,6 +15,65 @@ from streamers.kafka.kafka_streamer import KafkaStreamer
 
 from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
+
+
+def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
+    invocation_method = node_run["config"]
+    node_run_id = node_run["identifier"]
+    config = node_run.get("config") or {}
+    headers = invocation_method.setdefault("headers", {})
+    headers.pop("X-Port-Signature", None)
+    headers.pop("X-Port-Timestamp", None)
+    wire_msg = {
+        "headers": headers,
+        "payload": {"action": {"invocationMethod": invocation_method}},
+        "context": {
+            "nodeRunIdentifier": node_run_id,
+            "nodeConfig": config,
+        },
+    }
+    headers["X-Port-Signature"] = sign_sha_256(
+        json.dumps(wire_msg, separators=(",", ":"), ensure_ascii=False),
+        settings.PORT_CLIENT_SECRET,
+        str(timestamp),
+    )
+    headers["X-Port-Timestamp"] = timestamp
+
+
+def _patch_requests_patch_ok(mocker: MockFixture) -> None:
+    mock_resp = mock.MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.ok = True
+    mock_resp.text = ""
+    mock_resp.json.return_value = {}
+    mock_resp.raise_for_status = mock.Mock()
+    mocker.patch("requests.patch", return_value=mock_resp)
+
+
+@pytest.fixture(scope="module")
+def mock_wf_node_run_message() -> Callable[[dict | None], bytes]:
+    node_run_message: dict = {
+        "identifier": "wfnr_abc123",
+        "status": "IN_PROGRESS",
+        "config": {
+            "type": "WEBHOOK",
+            "url": "https://httpbin.org/post",
+            "method": "POST",
+            "agent": True,
+            "headers": {"Content-Type": "application/json"},
+        },
+        "pendingExecution": True,
+    }
+
+    def get_node_run_message(config_override: dict | None) -> bytes:
+        msg = deepcopy(node_run_message)
+        if config_override is not None:
+            msg["config"] = config_override
+        if msg["config"].get("agent", True):
+            _attach_wf_node_port_signature(msg)
+        return json.dumps(msg).encode()
+
+    return get_node_run_message
 
 
 @pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
@@ -269,5 +329,30 @@ def test_invocation_method_method_override(
             timeout=settings.WEBHOOK_INVOKER_TIMEOUT,
             verify=settings.WEBHOOK_VERIFY_SSL,
         )
+
+        mock_error.assert_not_called()
+
+
+@pytest.mark.parametrize("mock_requests", [{"status_code": 200}], indirect=True)
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_wf_node_run_stream_success(
+    mock_requests: None,
+    mock_kafka: dict,
+    mock_timestamp: None,
+    mocker: MockFixture,
+) -> None:
+    _patch_requests_patch_ok(mocker)
+    Timer(0.01, terminate_consumer).start()
+
+    with mock.patch.object(consumer_logger, "error") as mock_error:
+        streamer = KafkaStreamer(Consumer())
+        streamer.stream()
 
         mock_error.assert_not_called()
