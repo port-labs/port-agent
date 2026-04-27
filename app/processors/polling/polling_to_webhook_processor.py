@@ -57,5 +57,7 @@ class PollingToWebhookProcessor:
             },
         }
 
-        if webhook_invoker.invoke(msg_value, invocation_method, skip_signature_validation=True):
+        if webhook_invoker.invoke(
+            msg_value, invocation_method, skip_signature_validation=True
+        ):
             logger.info("Successfully processed workflow node run %s", node_run_id)

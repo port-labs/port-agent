@@ -278,7 +278,9 @@ class WebhookInvoker(BaseInvoker):
     @staticmethod
     def _report_wf_node_run_failure(run_id: str) -> None:
         try:
-            report_wf_node_run_status(run_id, {"status": "COMPLETED", "result": "FAILED"})
+            report_wf_node_run_status(
+                run_id, {"status": "COMPLETED", "result": "FAILED"}
+            )
         except Exception:
             logger.error(
                 "Failed to report FAILED status for workflow node run %s",
@@ -304,8 +306,15 @@ class WebhookInvoker(BaseInvoker):
             )
             self._report_wf_node_run_failure(run_id)
             raise
-        output = {"response": {"status": res.status_code, "data": get_response_body(res) or {}}}
-        report_wf_node_run_status(run_id, {"status": "COMPLETED", "result": "SUCCESS", "output": output})
+        output = {
+            "response": {
+                "status": res.status_code,
+                "data": get_response_body(res) or {},
+            }
+        }
+        report_wf_node_run_status(
+            run_id, {"status": "COMPLETED", "result": "SUCCESS", "output": output}
+        )
         node_run_logger("Port agent finished processing the workflow node run")
 
     def _invoke_run(
@@ -400,7 +409,9 @@ class WebhookInvoker(BaseInvoker):
             invocation_method,
         )
         run_id = msg.get("context", {}).get("runId")
-        is_wf_node_run = bool(run_id and run_id.startswith(consts.WF_NODE_RUN_ID_PREFIX))
+        is_wf_node_run = bool(
+            run_id and run_id.startswith(consts.WF_NODE_RUN_ID_PREFIX)
+        )
 
         invocation_method_name = invocation_method.get("type") or consts.MISSING_VALUE
         if not skip_signature_validation and not self.validate_incoming_signature(

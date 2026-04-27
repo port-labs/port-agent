@@ -29,4 +29,3 @@ class KafkaToWebhookProcessor:
                 msg.partition(),
                 msg.offset(),
             )
-
