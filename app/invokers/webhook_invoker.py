@@ -9,7 +9,13 @@ from core.config import Mapping, control_the_payload_config, settings
 from core.consts import consts
 from flatten_dict import flatten, unflatten
 from invokers.base_invoker import BaseInvoker
-from port_client import report_run_response, report_run_status, run_logger_factory
+from port_client import (
+    report_run_response,
+    report_run_status,
+    report_wf_node_run_status,
+    run_logger_factory,
+    wf_node_run_logger_factory,
+)
 from pydantic import BaseModel, Field
 from requests import Response
 from utils import (
@@ -269,6 +275,39 @@ class WebhookInvoker(BaseInvoker):
 
         return res
 
+    @staticmethod
+    def _report_wf_node_run_failure(run_id: str) -> None:
+        try:
+            report_wf_node_run_status(run_id, {"status": "COMPLETED", "result": "FAILED"})
+        except Exception:
+            logger.error(
+                "Failed to report FAILED status for workflow node run %s",
+                run_id,
+                exc_info=True,
+            )
+
+    def _invoke_wf_node_run(
+        self, run_id: str, mapping: Mapping, msg: dict, invocation_method: dict
+    ) -> None:
+        node_run_logger = wf_node_run_logger_factory(run_id)
+        node_run_logger("A workflow node run has been received")
+        request_payload = self._prepare_payload(mapping, msg, invocation_method)
+        node_run_logger("Preparing the payload for the request")
+        try:
+            res = self._request(request_payload, node_run_logger)
+            res.raise_for_status()
+        except Exception:
+            logger.error(
+                "Webhook failed for workflow node run %s",
+                run_id,
+                exc_info=True,
+            )
+            self._report_wf_node_run_failure(run_id)
+            raise
+        output = {"response": {"status": res.status_code, "data": get_response_body(res) or {}}}
+        report_wf_node_run_status(run_id, {"status": "COMPLETED", "result": "SUCCESS", "output": output})
+        node_run_logger("Port agent finished processing the workflow node run")
+
     def _invoke_run(
         self, run_id: str, mapping: Mapping, body: dict, invocation_method: dict
     ) -> None:
@@ -352,7 +391,7 @@ class WebhookInvoker(BaseInvoker):
         msg: dict,
         invocation_method: dict,
         skip_signature_validation: bool = False,
-    ) -> None:
+    ) -> bool:
         log_by_detail_level(
             logger.info,
             "WebhookInvoker - start - destination type: %s",
@@ -360,13 +399,16 @@ class WebhookInvoker(BaseInvoker):
             "details",
             invocation_method,
         )
-        run_id = msg["context"].get("runId")
+        run_id = msg.get("context", {}).get("runId")
+        is_wf_node_run = bool(run_id and run_id.startswith(consts.WF_NODE_RUN_ID_PREFIX))
 
         invocation_method_name = invocation_method.get("type") or consts.MISSING_VALUE
         if not skip_signature_validation and not self.validate_incoming_signature(
             msg, invocation_method_name
         ):
-            return
+            if is_wf_node_run:
+                self._report_wf_node_run_failure(run_id)
+            return False
 
         logger.info("WebhookInvoker - validating signature")
 
@@ -382,13 +424,16 @@ class WebhookInvoker(BaseInvoker):
                 "msg",
                 msg,
             )
-            return
+            if is_wf_node_run:
+                self._report_wf_node_run_failure(run_id)
+            return False
 
         self._replace_encrypted_fields(msg, mapping)
 
-        if run_id:
+        if is_wf_node_run:
+            self._invoke_wf_node_run(run_id, mapping, msg, invocation_method)
+        elif run_id:
             self._invoke_run(run_id, mapping, msg, invocation_method)
-        # Used for changelog destination event trigger
         elif invocation_method.get("url"):
             request_payload = self._prepare_payload(mapping, msg, invocation_method)
             res = self._request(request_payload, lambda _: None)
@@ -398,7 +443,9 @@ class WebhookInvoker(BaseInvoker):
                 "WebhookInvoker - Could not find suitable "
                 "invocation method for the event"
             )
+            return False
         logger.info("Finished processing the event")
+        return True
 
     def _replace_encrypted_fields(self, msg: dict, mapping: Mapping) -> None:
         fields_to_decrypt = getattr(mapping, "fieldsToDecryptPaths", None)

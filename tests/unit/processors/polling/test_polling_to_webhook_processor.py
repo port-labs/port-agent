@@ -3,6 +3,8 @@ from unittest.mock import patch
 import pytest
 from processors.polling.polling_to_webhook_processor import PollingToWebhookProcessor
 
+_INVOKER = "processors.polling.polling_to_webhook_processor.webhook_invoker"
+
 
 @pytest.fixture
 def sample_run():
@@ -136,7 +138,7 @@ def test_process_run_adds_run_id_to_context(mock_invoker):
 
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_run_preserves_existing_run_id(mock_invoker):
+def test_process_run_overwrites_body_run_id(mock_invoker):
     run = {
         "_id": "run_888",
         "id": "run_888",
@@ -168,11 +170,12 @@ def test_process_run_preserves_existing_run_id(mock_invoker):
 # --- Workflow node run processor tests ---
 
 
-@patch("processors.polling.polling_to_webhook_processor" ".report_wf_node_run_status")
-@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
+@patch(_INVOKER)
 def test_process_wf_node_run_success(
-    mock_invoker, mock_report, sample_wf_node_run, webhook_invocation_method
+    mock_invoker, sample_wf_node_run, webhook_invocation_method
 ):
+    mock_invoker.invoke.return_value = True
+
     processor = PollingToWebhookProcessor()
     processor.process_wf_node_run(sample_wf_node_run, webhook_invocation_method)
 
@@ -180,22 +183,16 @@ def test_process_wf_node_run_success(
     call_args = mock_invoker.invoke.call_args
     msg_value = call_args[0][0]
 
-    assert msg_value["context"]["nodeRunIdentifier"] == "wfnr_abc123"
+    assert msg_value["context"]["runId"] == "wfnr_abc123"
     assert msg_value["context"]["nodeConfig"]["type"] == "WEBHOOK"
     assert msg_value["payload"]["action"]["invocationMethod"] == (
         webhook_invocation_method
     )
 
-    mock_report.assert_called_once_with(
-        "wfnr_abc123",
-        {"status": "COMPLETED", "result": "SUCCESS"},
-    )
 
-
-@patch("processors.polling.polling_to_webhook_processor" ".report_wf_node_run_status")
-@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_wf_node_run_webhook_failure_reports_failure(
-    mock_invoker, mock_report, sample_wf_node_run, webhook_invocation_method
+@patch(_INVOKER)
+def test_process_wf_node_run_webhook_failure_propagates(
+    mock_invoker, sample_wf_node_run, webhook_invocation_method
 ):
     mock_invoker.invoke.side_effect = Exception("Connection refused")
 
@@ -203,15 +200,9 @@ def test_process_wf_node_run_webhook_failure_reports_failure(
     with pytest.raises(Exception, match="Connection refused"):
         processor.process_wf_node_run(sample_wf_node_run, webhook_invocation_method)
 
-    mock_report.assert_called_once_with(
-        "wfnr_abc123",
-        {"status": "COMPLETED", "result": "FAILURE"},
-    )
 
-
-@patch("processors.polling.polling_to_webhook_processor" ".report_wf_node_run_status")
-@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_wf_node_run_missing_identifier(mock_invoker, mock_report):
+@patch(_INVOKER)
+def test_process_wf_node_run_missing_identifier(mock_invoker):
     processor = PollingToWebhookProcessor()
     processor.process_wf_node_run(
         {"status": "IN_PROGRESS"},
@@ -219,12 +210,12 @@ def test_process_wf_node_run_missing_identifier(mock_invoker, mock_report):
     )
 
     mock_invoker.invoke.assert_not_called()
-    mock_report.assert_not_called()
 
 
-@patch("processors.polling.polling_to_webhook_processor" ".report_wf_node_run_status")
-@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_wf_node_run_empty_config(mock_invoker, mock_report):
+@patch(_INVOKER)
+def test_process_wf_node_run_empty_config(mock_invoker):
+    mock_invoker.invoke.return_value = True
+
     node_run = {
         "identifier": "wfnr_empty_config",
         "status": "IN_PROGRESS",
@@ -245,8 +236,3 @@ def test_process_wf_node_run_empty_config(mock_invoker, mock_report):
     call_args = mock_invoker.invoke.call_args
     msg_value = call_args[0][0]
     assert msg_value["context"]["nodeConfig"] == {}
-
-    mock_report.assert_called_once_with(
-        "wfnr_empty_config",
-        {"status": "COMPLETED", "result": "SUCCESS"},
-    )

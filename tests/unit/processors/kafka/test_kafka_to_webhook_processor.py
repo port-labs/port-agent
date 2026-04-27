@@ -17,29 +17,6 @@ from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 
 
-def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
-    invocation_method = node_run["config"]
-    node_run_id = node_run["identifier"]
-    config = node_run.get("config") or {}
-    headers = invocation_method.setdefault("headers", {})
-    headers.pop("X-Port-Signature", None)
-    headers.pop("X-Port-Timestamp", None)
-    wire_msg = {
-        "headers": headers,
-        "payload": {"action": {"invocationMethod": invocation_method}},
-        "context": {
-            "nodeRunIdentifier": node_run_id,
-            "nodeConfig": config,
-        },
-    }
-    headers["X-Port-Signature"] = sign_sha_256(
-        json.dumps(wire_msg, separators=(",", ":"), ensure_ascii=False),
-        settings.PORT_CLIENT_SECRET,
-        str(timestamp),
-    )
-    headers["X-Port-Timestamp"] = timestamp
-
-
 def _patch_requests_patch_ok(mocker: MockFixture) -> None:
     mock_resp = mock.MagicMock()
     mock_resp.status_code = 200
@@ -52,25 +29,32 @@ def _patch_requests_patch_ok(mocker: MockFixture) -> None:
 
 @pytest.fixture(scope="module")
 def mock_wf_node_run_message() -> Callable[[dict | None], bytes]:
+    invocation_method: dict = {
+        "type": "WEBHOOK",
+        "url": "https://httpbin.org/post",
+        "method": "POST",
+        "agent": True,
+        "headers": {"Content-Type": "application/json"},
+    }
     node_run_message: dict = {
-        "identifier": "wfnr_abc123",
-        "status": "IN_PROGRESS",
-        "config": {
-            "type": "WEBHOOK",
-            "url": "https://httpbin.org/post",
-            "method": "POST",
-            "agent": True,
-            "headers": {"Content-Type": "application/json"},
-        },
-        "pendingExecution": True,
+        "headers": {},
+        "payload": {"action": {"invocationMethod": invocation_method}},
+        "context": {"runId": "wfnr_abc123"},
     }
 
-    def get_node_run_message(config_override: dict | None) -> bytes:
+    def get_node_run_message(invocation_method_override: dict | None) -> bytes:
         msg = deepcopy(node_run_message)
-        if config_override is not None:
-            msg["config"] = config_override
-        if msg["config"].get("agent", True):
-            _attach_wf_node_port_signature(msg)
+        if invocation_method_override is not None:
+            msg["payload"]["action"]["invocationMethod"] = invocation_method_override
+        timestamp = 1713277889
+        msg["headers"] = {
+            "X-Port-Signature": sign_sha_256(
+                json.dumps(msg, separators=(",", ":")),
+                "test",
+                str(timestamp),
+            ),
+            "X-Port-Timestamp": timestamp,
+        }
         return json.dumps(msg).encode()
 
     return get_node_run_message
@@ -337,7 +321,7 @@ def test_invocation_method_method_override(
 @pytest.mark.parametrize(
     "mock_kafka",
     [
-        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
+        ("mock_wf_node_run_message", None, settings.KAFKA_RUNS_TOPIC),
     ],
     indirect=True,
 )
@@ -347,8 +331,14 @@ def test_wf_node_run_stream_success(
     mock_kafka: dict,
     mock_timestamp: None,
     mocker: MockFixture,
+    mock_control_the_payload_config: list[Mapping],
 ) -> None:
-    _patch_requests_patch_ok(mocker)
+    request_patch_mock = mocker.patch("requests.patch")
+    request_patch_mock.return_value.status_code = 200
+    request_patch_mock.return_value.ok = True
+    request_patch_mock.return_value.text = ""
+    request_patch_mock.return_value.json.return_value = {}
+    request_patch_mock.return_value.raise_for_status = mock.Mock()
     Timer(0.01, terminate_consumer).start()
 
     with mock.patch.object(consumer_logger, "error") as mock_error:
@@ -356,3 +346,12 @@ def test_wf_node_run_stream_success(
         streamer.stream()
 
         mock_error.assert_not_called()
+        request_patch_mock.assert_called_with(
+            f"{settings.PORT_API_BASE_URL}/v1/workflows/nodes/runs/wfnr_abc123",
+            json={
+                "status": "COMPLETED",
+                "result": "SUCCESS",
+                "output": {"response": {"status": 200, "data": {}}},
+            },
+            headers=ANY,
+        )

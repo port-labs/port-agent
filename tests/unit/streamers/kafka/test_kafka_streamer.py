@@ -16,29 +16,6 @@ from app.utils import sign_sha_256
 from tests.unit.streamers.kafka.conftest import Consumer, terminate_consumer
 
 
-def _attach_wf_node_port_signature(node_run: dict, timestamp: int = 1713277889) -> None:
-    invocation_method = node_run["config"]
-    node_run_id = node_run["identifier"]
-    config = node_run.get("config") or {}
-    headers = invocation_method.setdefault("headers", {})
-    headers.pop("X-Port-Signature", None)
-    headers.pop("X-Port-Timestamp", None)
-    wire_msg = {
-        "headers": headers,
-        "payload": {"action": {"invocationMethod": invocation_method}},
-        "context": {
-            "nodeRunIdentifier": node_run_id,
-            "nodeConfig": config,
-        },
-    }
-    headers["X-Port-Signature"] = sign_sha_256(
-        json.dumps(wire_msg, separators=(",", ":"), ensure_ascii=False),
-        settings.PORT_CLIENT_SECRET,
-        str(timestamp),
-    )
-    headers["X-Port-Timestamp"] = timestamp
-
-
 def _patch_requests_patch_ok(mocker: MockFixture) -> None:
     mock_resp = mock.MagicMock()
     mock_resp.status_code = 200
@@ -51,25 +28,32 @@ def _patch_requests_patch_ok(mocker: MockFixture) -> None:
 
 @pytest.fixture(scope="module")
 def mock_wf_node_run_message() -> Callable[[dict | None], bytes]:
+    invocation_method: dict = {
+        "type": "WEBHOOK",
+        "url": "https://httpbin.org/post",
+        "method": "POST",
+        "agent": True,
+        "headers": {"Content-Type": "application/json"},
+    }
     node_run_message: dict = {
-        "identifier": "wfnr_abc123",
-        "status": "IN_PROGRESS",
-        "config": {
-            "type": "WEBHOOK",
-            "url": "https://httpbin.org/post",
-            "method": "POST",
-            "agent": True,
-            "headers": {"Content-Type": "application/json"},
-        },
-        "pendingExecution": True,
+        "headers": {},
+        "payload": {"action": {"invocationMethod": invocation_method}},
+        "context": {"runId": "wfnr_abc123"},
     }
 
-    def get_node_run_message(config_override: dict | None) -> bytes:
+    def get_node_run_message(invocation_method_override: dict | None) -> bytes:
         msg = deepcopy(node_run_message)
-        if config_override is not None:
-            msg["config"] = config_override
-        if msg["config"].get("agent", True):
-            _attach_wf_node_port_signature(msg)
+        if invocation_method_override is not None:
+            msg["payload"]["action"]["invocationMethod"] = invocation_method_override
+        timestamp = 1713277889
+        msg["headers"] = {
+            "X-Port-Signature": sign_sha_256(
+                json.dumps(msg, separators=(",", ":")),
+                "test",
+                str(timestamp),
+            ),
+            "X-Port-Timestamp": timestamp,
+        }
         return json.dumps(msg).encode()
 
     return get_node_run_message
@@ -170,7 +154,7 @@ def test_single_stream_skipped_due_to_agentless(
 @pytest.mark.parametrize(
     "mock_kafka",
     [
-        ("mock_wf_node_run_message", None, settings.KAFKA_WF_NODE_RUNS_TOPIC),
+        ("mock_wf_node_run_message", None, settings.KAFKA_RUNS_TOPIC),
     ],
     indirect=True,
 )
@@ -197,7 +181,7 @@ def test_wf_node_run_stream_success(
         (
             "mock_wf_node_run_message",
             {"type": "WEBHOOK", "url": "https://httpbin.org/post", "agent": False},
-            settings.KAFKA_WF_NODE_RUNS_TOPIC,
+            settings.KAFKA_RUNS_TOPIC,
         ),
     ],
     indirect=True,

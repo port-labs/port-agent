@@ -277,10 +277,7 @@ def test_http_polling_consumer_workflow_processing_error(
     mock_ack_wf_node_run.assert_called_with("wfnr_abc123")
     mock_report_wf_node_run_status.assert_called_with(
         "wfnr_abc123",
-        {
-            "status": "COMPLETED",
-            "result": "FAILURE",
-        },
+        {"status": "COMPLETED", "result": "FAILED"},
     )
 
 
