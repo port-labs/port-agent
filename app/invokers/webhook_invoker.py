@@ -294,7 +294,6 @@ class WebhookInvoker(BaseInvoker):
         node_run_logger = wf_node_run_logger_factory(run_id)
         node_run_logger("A workflow node run has been received")
         request_payload = self._prepare_payload(mapping, msg, invocation_method)
-        node_run_logger("Preparing the payload for the request")
         try:
             res = self._request(request_payload, node_run_logger)
             res.raise_for_status()
