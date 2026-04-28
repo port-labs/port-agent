@@ -114,7 +114,7 @@ class HttpPollingConsumer(BaseConsumer):
                     process_fn=self.wf_node_run_process,
                     report_failure_fn=lambda run_id: report_wf_node_run_status(
                         run_id,
-                        {"status": "COMPLETED", "result": "FAILURE"},
+                        {"status": "COMPLETED", "result": "FAILED"},
                     ),
                 )
             )
