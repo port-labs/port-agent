@@ -4,6 +4,8 @@ class Consts:
     MISSING_VALUE = "MISSING"
     VALID_STREAMER_TYPES = ["KAFKA", "POLLING"]
     PORT_EXEC_AGENT_CLAIMING_KEY = "_PORT_EXEC_AGENT"
+    ACTION_RUN_ID_PREFIX = "r_"
+    WF_NODE_RUN_ID_PREFIX = "wfnr_"
 
 
 consts = Consts()

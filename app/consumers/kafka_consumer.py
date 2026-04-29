@@ -64,7 +64,6 @@ class KafkaConsumer(BaseConsumer):
                 [
                     settings.KAFKA_RUNS_TOPIC,
                     settings.KAFKA_CHANGE_LOG_TOPIC,
-                    settings.KAFKA_WF_NODE_RUNS_TOPIC,
                 ],
                 on_assign=self._on_assign,
             )

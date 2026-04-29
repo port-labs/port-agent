@@ -52,9 +52,6 @@ class KafkaStreamer(BaseStreamer):
         if topic == settings.KAFKA_CHANGE_LOG_TOPIC:
             return msg_value.get("changelogDestination", {})
 
-        if topic == settings.KAFKA_WF_NODE_RUNS_TOPIC:
-            return msg_value.get("config", {})
-
         return {}
 
     def stream(self) -> None:

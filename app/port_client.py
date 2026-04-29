@@ -50,6 +50,19 @@ def run_logger_factory(run_id: str) -> Callable[[str], None]:
     return send_run_log
 
 
+def wf_node_run_logger_factory(node_run_id: str) -> Callable[[str], None]:
+    def send_log(message: str) -> None:
+        headers = get_port_api_headers()
+
+        requests.post(
+            f"{settings.PORT_API_BASE_URL}/v1/workflows/nodes/runs/{node_run_id}/logs",
+            json={"logs": [{"level": "INFO", "message": message}]},
+            headers=headers,
+        )
+
+    return send_log
+
+
 def report_run_status(run_id: str, data_to_patch: dict) -> Response:
     headers = get_port_api_headers()
     res = requests.patch(
