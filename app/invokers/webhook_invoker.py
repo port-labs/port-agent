@@ -305,15 +305,16 @@ class WebhookInvoker(BaseInvoker):
             )
             self._report_wf_node_run_failure(run_id)
             raise
-        output = {
-            "response": {
-                "status": res.status_code,
-                "data": get_response_body(res) or {},
+        if invocation_method.get("synchronized"):
+            output = {
+                "response": {
+                    "status": res.status_code,
+                    "data": get_response_body(res) or {},
+                }
             }
-        }
-        report_wf_node_run_status(
-            run_id, {"status": "COMPLETED", "result": "SUCCESS", "output": output}
-        )
+            report_wf_node_run_status(
+                run_id, {"status": "COMPLETED", "result": "SUCCESS", "output": output}
+            )
         node_run_logger("Port agent finished processing the workflow node run")
 
     def _invoke_run(
