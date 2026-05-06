@@ -303,7 +303,8 @@ class WebhookInvoker(BaseInvoker):
                 run_id,
                 exc_info=True,
             )
-            self._report_wf_node_run_failure(run_id)
+            if invocation_method.get("synchronized"):
+                self._report_wf_node_run_failure(run_id)
             raise
         if invocation_method.get("synchronized"):
             output = {

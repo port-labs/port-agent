@@ -404,3 +404,39 @@ def test_wf_node_run_not_synchronized(
 
         mock_error.assert_not_called()
         request_patch_mock.assert_not_called()
+
+
+@pytest.mark.parametrize("mock_requests", [{"status_code": 500}], indirect=True)
+@pytest.mark.parametrize(
+    "mock_kafka",
+    [
+        (
+            "mock_wf_node_run_message",
+            {
+                "type": "WEBHOOK",
+                "url": "https://httpbin.org/post",
+                "method": "POST",
+                "agent": True,
+                "headers": {"Content-Type": "application/json"},
+                "synchronized": False,
+            },
+            settings.KAFKA_RUNS_TOPIC,
+        ),
+    ],
+    indirect=True,
+)
+@pytest.mark.parametrize("mock_timestamp", [{}], indirect=True)
+def test_wf_node_run_not_synchronized_failure(
+    mock_requests: None,
+    mock_kafka: dict,
+    mock_timestamp: None,
+    mocker: MockFixture,
+    mock_control_the_payload_config: list[Mapping],
+) -> None:
+    request_patch_mock = mocker.patch("requests.patch")
+    Timer(0.01, terminate_consumer).start()
+
+    streamer = KafkaStreamer(Consumer())
+    streamer.stream()
+
+    request_patch_mock.assert_not_called()
