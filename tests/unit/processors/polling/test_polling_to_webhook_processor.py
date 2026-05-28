@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from unittest.mock import patch
 
 import pytest
@@ -7,7 +8,7 @@ _INVOKER = "processors.polling.polling_to_webhook_processor.webhook_invoker"
 
 
 @pytest.fixture
-def sample_run():
+def sample_run() -> Dict[str, Any]:
     return {
         "_id": "run_123",
         "id": "run_123",
@@ -31,7 +32,7 @@ def sample_run():
 
 
 @pytest.fixture
-def sample_wf_node_run():
+def sample_wf_node_run() -> Dict[str, Any]:
     return {
         "identifier": "wfnr_abc123",
         "status": "IN_PROGRESS",
@@ -49,7 +50,7 @@ def sample_wf_node_run():
 
 
 @pytest.fixture
-def webhook_invocation_method():
+def webhook_invocation_method() -> Dict[str, Any]:
     return {
         "type": "WEBHOOK",
         "url": "https://httpbin.org/post",
@@ -60,7 +61,7 @@ def webhook_invocation_method():
 
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_run_success(mock_invoker, sample_run):
+def test_process_run_success(mock_invoker: Any, sample_run: Dict[str, Any]) -> None:
     processor = PollingToWebhookProcessor()
 
     invocation_method = {
@@ -90,7 +91,7 @@ def test_process_run_success(mock_invoker, sample_run):
 
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_run_without_invocation_method(mock_invoker):
+def test_process_run_without_invocation_method(mock_invoker: Any) -> None:
     run = {"_id": "run_789", "id": "run_789", "payload": {"body": {}}}
 
     invocation_method = {
@@ -108,7 +109,7 @@ def test_process_run_without_invocation_method(mock_invoker):
 
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_run_adds_run_id_to_context(mock_invoker):
+def test_process_run_adds_run_id_to_context(mock_invoker: Any) -> None:
     run = {
         "_id": "run_999",
         "id": "run_999",
@@ -138,7 +139,7 @@ def test_process_run_adds_run_id_to_context(mock_invoker):
 
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
-def test_process_run_overwrites_body_run_id(mock_invoker):
+def test_process_run_overwrites_body_run_id(mock_invoker: Any) -> None:
     run = {
         "_id": "run_888",
         "id": "run_888",
@@ -172,8 +173,8 @@ def test_process_run_overwrites_body_run_id(mock_invoker):
 
 @patch(_INVOKER)
 def test_process_wf_node_run_success(
-    mock_invoker, sample_wf_node_run, webhook_invocation_method
-):
+    mock_invoker: Any, sample_wf_node_run: Dict[str, Any], webhook_invocation_method: Dict[str, Any]
+) -> None:
     mock_invoker.invoke.return_value = True
 
     processor = PollingToWebhookProcessor()
@@ -192,8 +193,8 @@ def test_process_wf_node_run_success(
 
 @patch(_INVOKER)
 def test_process_wf_node_run_webhook_failure_propagates(
-    mock_invoker, sample_wf_node_run, webhook_invocation_method
-):
+    mock_invoker: Any, sample_wf_node_run: Dict[str, Any], webhook_invocation_method: Dict[str, Any]
+) -> None:
     mock_invoker.invoke.side_effect = Exception("Connection refused")
 
     processor = PollingToWebhookProcessor()
@@ -202,7 +203,7 @@ def test_process_wf_node_run_webhook_failure_propagates(
 
 
 @patch(_INVOKER)
-def test_process_wf_node_run_missing_identifier(mock_invoker):
+def test_process_wf_node_run_missing_identifier(mock_invoker: Any) -> None:
     processor = PollingToWebhookProcessor()
     processor.process_wf_node_run(
         {"status": "IN_PROGRESS"},
@@ -213,7 +214,7 @@ def test_process_wf_node_run_missing_identifier(mock_invoker):
 
 
 @patch(_INVOKER)
-def test_process_wf_node_run_empty_config(mock_invoker):
+def test_process_wf_node_run_empty_config(mock_invoker: Any) -> None:
     mock_invoker.invoke.return_value = True
 
     node_run = {

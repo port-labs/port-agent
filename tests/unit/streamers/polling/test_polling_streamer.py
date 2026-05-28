@@ -1,10 +1,11 @@
 from threading import Timer
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 from streamers.polling.polling_streamer import PollingStreamer
 
 
-def test_polling_streamer_initialization():
+def test_polling_streamer_initialization() -> None:
     streamer = PollingStreamer()
 
     assert streamer.http_polling_consumer is not None
@@ -13,7 +14,7 @@ def test_polling_streamer_initialization():
 
 @patch("streamers.polling.polling_streamer.HttpPollingConsumer")
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
-def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
+def test_polling_streamer_stream(mock_processor_class: Any, mock_consumer_class: Any) -> None:
     mock_consumer = MagicMock()
     mock_consumer_class.return_value = mock_consumer
     mock_processor = MagicMock()
@@ -21,7 +22,7 @@ def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
 
     streamer = PollingStreamer()
 
-    def stop_consumer():
+    def stop_consumer() -> None:
         mock_consumer.running = False
 
     Timer(0.1, stop_consumer).start()
@@ -32,7 +33,7 @@ def test_polling_streamer_stream(mock_processor_class, mock_consumer_class):
 
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
-def test_polling_streamer_process_run(mock_processor_class):
+def test_polling_streamer_process_run(mock_processor_class: Any) -> None:
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
@@ -68,7 +69,7 @@ def test_polling_streamer_process_run(mock_processor_class):
 
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
-def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
+def test_polling_streamer_process_run_skips_non_agent(mock_processor_class: Any) -> None:
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
@@ -95,8 +96,8 @@ def test_polling_streamer_process_run_skips_non_agent(mock_processor_class):
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
 def test_polling_streamer_process_wf_node_run(
-    mock_processor_class,
-):
+    mock_processor_class: Any,
+) -> None:
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
@@ -129,8 +130,8 @@ def test_polling_streamer_process_wf_node_run(
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
 def test_polling_streamer_process_wf_node_run_skips_non_agent(
-    mock_processor_class,
-):
+    mock_processor_class: Any,
+) -> None:
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 
@@ -153,8 +154,8 @@ def test_polling_streamer_process_wf_node_run_skips_non_agent(
 
 @patch("streamers.polling.polling_streamer.PollingToWebhookProcessor")
 def test_polling_streamer_process_wf_node_run_missing_identifier(
-    mock_processor_class,
-):
+    mock_processor_class: Any,
+) -> None:
     mock_processor = MagicMock()
     mock_processor_class.return_value = mock_processor
 

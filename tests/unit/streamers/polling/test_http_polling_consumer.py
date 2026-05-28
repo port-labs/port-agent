@@ -1,25 +1,26 @@
 from threading import Timer
+from typing import Any, Dict, List
 
 from consumers.http_polling_consumer import HttpPollingConsumer
 
 
-def terminate_consumer(consumer):
+def terminate_consumer(consumer: HttpPollingConsumer) -> None:
     consumer.exit_gracefully()
 
 
 def test_http_polling_consumer_successful_poll(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-    sample_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+    sample_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = [sample_run]
     mock_ack_runs.return_value = 1
 
-    processed_runs = []
+    processed_runs: List[Any] = []
 
-    def msg_process(run):
+    def msg_process(run: Any) -> None:
         processed_runs.append(run)
 
     consumer = HttpPollingConsumer(msg_process)
@@ -34,16 +35,16 @@ def test_http_polling_consumer_successful_poll(
 
 
 def test_http_polling_consumer_no_pending_runs(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+) -> None:
     mock_claim_pending_runs.return_value = []
 
-    processed_runs = []
+    processed_runs: List[Any] = []
 
-    def msg_process(run):
+    def msg_process(run: Any) -> None:
         processed_runs.append(run)
 
     consumer = HttpPollingConsumer(msg_process)
@@ -57,17 +58,17 @@ def test_http_polling_consumer_no_pending_runs(
 
 
 def test_http_polling_consumer_processing_error(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-    mock_report_run_status,
-    sample_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+    mock_report_run_status: Any,
+    sample_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = [sample_run]
     mock_ack_runs.return_value = 1
 
-    def msg_process(run):
+    def msg_process(run: Any) -> None:
         raise Exception("Processing failed")
 
     consumer = HttpPollingConsumer(msg_process)
@@ -87,11 +88,11 @@ def test_http_polling_consumer_processing_error(
 
 
 def test_http_polling_consumer_exponential_backoff(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+) -> None:
     mock_claim_pending_runs.side_effect = Exception("API Error")
 
     consumer = HttpPollingConsumer(lambda run: None)
@@ -103,15 +104,15 @@ def test_http_polling_consumer_exponential_backoff(
 
 
 def test_http_polling_consumer_backoff_reset(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-    sample_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+    sample_run: Dict[str, Any],
+) -> None:
     call_count = [0]
 
-    def claim_side_effect(*args, **kwargs):
+    def claim_side_effect(*args: Any, **kwargs: Any) -> List[Any]:
         call_count[0] += 1
         if call_count[0] == 1:
             raise Exception("API Error")
@@ -129,11 +130,11 @@ def test_http_polling_consumer_backoff_reset(
 
 
 def test_http_polling_consumer_ack_all_claimed_runs(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+) -> None:
     run1 = {
         "_id": "run_1",
         "id": "run_1",
@@ -158,7 +159,7 @@ def test_http_polling_consumer_ack_all_claimed_runs(
     mock_claim_pending_runs.return_value = [run1, run2]
     mock_ack_runs.return_value = 1
 
-    def msg_process(run):
+    def msg_process(run: Any) -> None:
         if run["_id"] == "run_2":
             raise Exception("Processing failed")
 
@@ -173,18 +174,18 @@ def test_http_polling_consumer_ack_all_claimed_runs(
 
 
 def test_http_polling_consumer_ack_failure_skips_processing(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-    sample_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+    sample_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = [sample_run]
     mock_ack_runs.side_effect = Exception("Ack failed")
 
-    processed_runs = []
+    processed_runs: List[Any] = []
 
-    def msg_process(run):
+    def msg_process(run: Any) -> None:
         processed_runs.append(run)
 
     consumer = HttpPollingConsumer(msg_process)
@@ -201,20 +202,20 @@ def test_http_polling_consumer_ack_failure_skips_processing(
 
 
 def test_http_polling_consumer_wf_node_run_successful_poll(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_ack_wf_node_run,
-    mock_time_sleep,
-    sample_wf_node_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_ack_wf_node_run: Any,
+    mock_time_sleep: Any,
+    sample_wf_node_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = []
     mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
     mock_ack_wf_node_run.return_value = True
 
-    processed_node_runs = []
+    processed_node_runs: List[Any] = []
 
-    def workflow_process(node_run):
+    def workflow_process(node_run: Any) -> None:
         processed_node_runs.append(node_run)
 
     consumer = HttpPollingConsumer(lambda r: None, workflow_process)
@@ -229,16 +230,16 @@ def test_http_polling_consumer_wf_node_run_successful_poll(
 
 
 def test_http_polling_consumer_workflow_no_pending_node_runs(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_ack_wf_node_run,
-    mock_time_sleep,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_ack_wf_node_run: Any,
+    mock_time_sleep: Any,
+) -> None:
     mock_claim_pending_runs.return_value = []
     mock_claim_pending_wf_node_runs.return_value = []
 
-    processed_node_runs = []
+    processed_node_runs: List[Any] = []
 
     consumer = HttpPollingConsumer(
         lambda r: None, lambda nr: processed_node_runs.append(nr)
@@ -253,19 +254,19 @@ def test_http_polling_consumer_workflow_no_pending_node_runs(
 
 
 def test_http_polling_consumer_workflow_processing_error(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_ack_wf_node_run,
-    mock_report_wf_node_run_status,
-    mock_time_sleep,
-    sample_wf_node_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_ack_wf_node_run: Any,
+    mock_report_wf_node_run_status: Any,
+    mock_time_sleep: Any,
+    sample_wf_node_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = []
     mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
     mock_ack_wf_node_run.return_value = True
 
-    def workflow_process(node_run):
+    def workflow_process(node_run: Any) -> None:
         raise Exception("Processing failed")
 
     consumer = HttpPollingConsumer(lambda r: None, workflow_process)
@@ -282,18 +283,18 @@ def test_http_polling_consumer_workflow_processing_error(
 
 
 def test_http_polling_consumer_workflow_ack_failure_skips_processing(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_ack_wf_node_run,
-    mock_time_sleep,
-    sample_wf_node_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_ack_wf_node_run: Any,
+    mock_time_sleep: Any,
+    sample_wf_node_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = []
     mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
     mock_ack_wf_node_run.side_effect = Exception("Ack failed")
 
-    processed_node_runs = []
+    processed_node_runs: List[Any] = []
 
     consumer = HttpPollingConsumer(
         lambda r: None, lambda nr: processed_node_runs.append(nr)
@@ -308,11 +309,11 @@ def test_http_polling_consumer_workflow_ack_failure_skips_processing(
 
 
 def test_http_polling_consumer_workflow_skipped_without_callback(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_time_sleep,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_time_sleep: Any,
+) -> None:
     mock_claim_pending_runs.return_value = []
 
     consumer = HttpPollingConsumer(lambda r: None)
@@ -324,21 +325,21 @@ def test_http_polling_consumer_workflow_skipped_without_callback(
 
 
 def test_http_polling_consumer_both_action_and_workflow_runs(
-    mock_claim_pending_runs,
-    mock_ack_runs,
-    mock_claim_pending_wf_node_runs,
-    mock_ack_wf_node_run,
-    mock_time_sleep,
-    sample_run,
-    sample_wf_node_run,
-):
+    mock_claim_pending_runs: Any,
+    mock_ack_runs: Any,
+    mock_claim_pending_wf_node_runs: Any,
+    mock_ack_wf_node_run: Any,
+    mock_time_sleep: Any,
+    sample_run: Dict[str, Any],
+    sample_wf_node_run: Dict[str, Any],
+) -> None:
     mock_claim_pending_runs.return_value = [sample_run]
     mock_ack_runs.return_value = 1
     mock_claim_pending_wf_node_runs.return_value = [sample_wf_node_run]
     mock_ack_wf_node_run.return_value = True
 
-    processed_runs = []
-    processed_node_runs = []
+    processed_runs: List[Any] = []
+    processed_node_runs: List[Any] = []
 
     consumer = HttpPollingConsumer(
         lambda r: processed_runs.append(r),
