@@ -173,7 +173,9 @@ def test_process_run_overwrites_body_run_id(mock_invoker: Any) -> None:
 
 @patch(_INVOKER)
 def test_process_wf_node_run_success(
-    mock_invoker: Any, sample_wf_node_run: Dict[str, Any], webhook_invocation_method: Dict[str, Any]
+    mock_invoker: Any,
+    sample_wf_node_run: Dict[str, Any],
+    webhook_invocation_method: Dict[str, Any],
 ) -> None:
     mock_invoker.invoke.return_value = True
 
@@ -193,7 +195,9 @@ def test_process_wf_node_run_success(
 
 @patch(_INVOKER)
 def test_process_wf_node_run_webhook_failure_propagates(
-    mock_invoker: Any, sample_wf_node_run: Dict[str, Any], webhook_invocation_method: Dict[str, Any]
+    mock_invoker: Any,
+    sample_wf_node_run: Dict[str, Any],
+    webhook_invocation_method: Dict[str, Any],
 ) -> None:
     mock_invoker.invoke.side_effect = Exception("Connection refused")
 
