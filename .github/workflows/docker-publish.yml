@@ -70,3 +70,4 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+            VERSION=${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}

@@ -42,8 +42,10 @@ ARG BASE_PYTHON_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/pyt
 FROM ${BASE_PYTHON_IMAGE} AS prod
 
 ARG AGENT_USER_ID=1000
+ARG VERSION=unknown
 
 ENV LIBRDKAFKA_VERSION=1.9.2
+ENV PORT_AGENT_VERSION=${VERSION}
 
 # Create a dedicated user and group
 RUN groupadd --gid ${AGENT_USER_ID} appgroup && \

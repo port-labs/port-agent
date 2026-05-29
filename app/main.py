@@ -1,6 +1,7 @@
 import logging
 
 from core.config import settings
+from core.version import get_version
 from port_client import patch_org_streamer_setting
 from streamers.streamer_factory import StreamerFactory
 
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
+    logger.info("Starting Port Execution Agent version %s", get_version())
     try:
         logger.info(
             "Updating org streamer setting to match streamer type: %s",
