@@ -129,7 +129,6 @@ def log_by_detail_level(
     Logs concisely (base message only) when DETAILED_LOGGING=False, or with one
     additional optional field when DETAILED_LOGGING=True.
     """
-    sanitized_args = [sanitize_for_log(arg) for arg in base_format_args]
     msg = base_message_format
     if (
         settings.DETAILED_LOGGING
@@ -137,9 +136,9 @@ def log_by_detail_level(
         and optional_field_value is not None
     ):
         msg += f", {optional_field_name}: %s"
-        log_fn(msg, *sanitized_args, sanitize_for_log(optional_field_value))
+        log_fn(msg, *base_format_args, optional_field_value)
     else:
-        log_fn(msg, *sanitized_args)
+        log_fn(msg, *base_format_args)
 
 
 def response_to_dict(response: Response) -> dict:

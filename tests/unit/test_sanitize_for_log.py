@@ -1,7 +1,10 @@
+import logging
+from io import StringIO
 from unittest import mock
 
 import pytest
 
+from app.core.logging import SanitizeLogFilter, configure_sanitized_logging
 from app.utils import REDACTED, log_by_detail_level, sanitize_for_log
 
 
@@ -46,20 +49,45 @@ def test_parses_json_strings(secrets: None) -> None:
     assert sanitized["ok"] is True
 
 
-def test_log_by_detail_level_sanitizes_optional_field(secrets: None) -> None:
-    messages: list[str] = []
+def test_sanitize_log_filter_redacts_format_args(secrets: None) -> None:
+    record = logging.LogRecord(
+        name="test",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=1,
+        msg="event - id: %s, payload: %s",
+        args=("run-1", {"clientSecret": "super-secret-value"}),
+        exc_info=None,
+    )
 
-    def capture(message: str, *args: object) -> None:
-        messages.append(message % args)
+    SanitizeLogFilter().filter(record)
+    message = record.getMessage()
+
+    assert "super-secret-value" not in message
+    assert REDACTED in message
+
+
+def test_log_by_detail_level_sanitized_via_logging_filter(secrets: None) -> None:
+    stream = StringIO()
+    configure_sanitized_logging("DEBUG")
+
+    root = logging.getLogger()
+    handler = logging.StreamHandler(stream)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    handler.addFilter(SanitizeLogFilter())
+    root.handlers = [handler]
+
+    test_logger = logging.getLogger("test.detail")
+    test_logger.setLevel(logging.DEBUG)
 
     log_by_detail_level(
-        capture,
+        test_logger.info,
         "event - id: %s",
         ["run-1"],
         "payload",
         {"clientSecret": "super-secret-value"},
     )
 
-    assert len(messages) == 1
-    assert "super-secret-value" not in messages[0]
-    assert REDACTED in messages[0]
+    output = stream.getvalue()
+    assert "super-secret-value" not in output
+    assert REDACTED in output

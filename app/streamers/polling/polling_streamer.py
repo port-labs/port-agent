@@ -4,7 +4,6 @@ from consumers.http_polling_consumer import HttpPollingConsumer
 from core.config import settings
 from processors.polling.polling_to_webhook_processor import PollingToWebhookProcessor
 from streamers.base_streamer import BaseStreamer
-from utils import sanitize_for_log
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ class PollingStreamer(BaseStreamer):
     def process_run(self, run: dict) -> None:
         run_id = run.get("id")
         if not run_id:
-            logger.error("Run missing id field: %s", sanitize_for_log(run))
+            logger.error("Run missing id field: %s", run)
             return
         logger.info("Processing run: %s", run_id)
 
@@ -44,7 +43,7 @@ class PollingStreamer(BaseStreamer):
         node_run_id = node_run.get("identifier")
         if not node_run_id:
             logger.error(
-                "Workflow node run missing identifier: %s", sanitize_for_log(node_run)
+                "Workflow node run missing identifier: %s", node_run
             )
             return
         logger.info("Processing workflow node run: %s", node_run_id)
