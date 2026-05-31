@@ -43,7 +43,7 @@ _SENSITIVE_KEY_NAMES = frozenset(
     }
 )
 
-_SENSITIVE_KEY_SUFFIXES = ("_secret", "_token", "_password", "_api_key", "_key")
+_SENSITIVE_KEY_SUFFIXES = ("_secret", "_token", "_password", "_api_key")
 
 _BEARER_TOKEN_PATTERN = re.compile(r"(?i)(Bearer\s+)[^\s,;]+")
 _JWT_PATTERN = re.compile(
@@ -93,7 +93,8 @@ def sanitize_for_log(value: Any, *, _depth: int = 0) -> Any:
         stripped = value.strip()
         if stripped.startswith("{") or stripped.startswith("["):
             try:
-                return sanitize_for_log(json.loads(value), _depth=_depth + 1)
+                sanitized = sanitize_for_log(json.loads(value), _depth=_depth + 1)
+                return json.dumps(sanitized)
             except (json.JSONDecodeError, TypeError):
                 pass
         return _redact_string(value)
