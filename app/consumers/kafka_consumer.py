@@ -92,12 +92,12 @@ class KafkaConsumer(BaseConsumer):
                                 msg.topic(),
                                 msg.partition(),
                                 msg.offset(),
-                                str(process_error),
+                                process_error,
                             )
                         finally:
                             self.consumer.commit(asynchronous=False)
                 except Exception as message_error:
-                    logger.error(str(message_error))
+                    logger.error("%s", message_error)
         finally:
             self.consumer.close()
 

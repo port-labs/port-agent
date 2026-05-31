@@ -1,11 +1,12 @@
 import logging
 
 from core.config import settings
+from core.logging import configure_sanitized_logging
 from core.version import get_version
 from port_client import patch_org_streamer_setting
 from streamers.streamer_factory import StreamerFactory
 
-logging.basicConfig(level=settings.LOG_LEVEL)
+configure_sanitized_logging(settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 

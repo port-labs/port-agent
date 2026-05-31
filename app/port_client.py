@@ -222,9 +222,9 @@ def patch_org_streamer_setting(streamer_type: str) -> None:
 
     if not res.ok:
         logger.error(
-            "Failed to update org streamer setting - "
-            f"status: {res.status_code}, "
-            f"response: {res.text}"
+            "Failed to update org streamer setting - status: %s, response: %s",
+            res.status_code,
+            res.text,
         )
         res.raise_for_status()
 

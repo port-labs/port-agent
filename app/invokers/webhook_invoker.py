@@ -24,6 +24,7 @@ from utils import (
     get_response_body,
     log_by_detail_level,
     response_to_dict,
+    sanitize_for_log,
     sign_sha_256,
 )
 
@@ -113,7 +114,7 @@ class WebhookInvoker(BaseInvoker):
             f"{response_context.status_code}."
         )
         if settings.DETAILED_LOGGING:
-            failure_summary += f" Response: {response_context.text}"
+            failure_summary += f" Response: {sanitize_for_log(response_context.text)}"
         default_summary = None if response_context.ok else failure_summary
         report_payload: ReportPayload = ReportPayload(
             status=default_status, summary=default_summary
@@ -199,7 +200,7 @@ class WebhookInvoker(BaseInvoker):
             )
             user_msg = f"Action invocation failed with status code: {res.status_code}"
             if settings.DETAILED_LOGGING:
-                user_msg += f" and response: {res.text}"
+                user_msg += f" and response: {sanitize_for_log(res.text)}"
             run_logger(user_msg)
 
         return res
@@ -224,7 +225,7 @@ class WebhookInvoker(BaseInvoker):
                 f"with status code: {res.status_code}"
             )
             if settings.DETAILED_LOGGING:
-                user_msg += f" and response: {res.text}"
+                user_msg += f" and response: {sanitize_for_log(res.text)}"
             run_logger(user_msg)
             return res
 
@@ -270,7 +271,7 @@ class WebhookInvoker(BaseInvoker):
                 f"with status code: {res.status_code}"
             )
             if settings.DETAILED_LOGGING:
-                user_msg += f" and response: {res.text}"
+                user_msg += f" and response: {sanitize_for_log(res.text)}"
             run_logger(user_msg)
 
         return res

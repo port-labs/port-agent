@@ -42,7 +42,9 @@ class PollingStreamer(BaseStreamer):
     def process_wf_node_run(self, node_run: dict) -> None:
         node_run_id = node_run.get("identifier")
         if not node_run_id:
-            logger.error("Workflow node run missing identifier: %s", node_run)
+            logger.error(
+                "Workflow node run missing identifier: %s", node_run
+            )
             return
         logger.info("Processing workflow node run: %s", node_run_id)
 
