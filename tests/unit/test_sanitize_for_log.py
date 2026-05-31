@@ -1,3 +1,4 @@
+import json
 import logging
 from io import StringIO
 from unittest import mock
@@ -45,8 +46,10 @@ def test_redacts_configured_secret_substrings(secrets: None) -> None:
 def test_parses_json_strings(secrets: None) -> None:
     raw = '{"accessToken": "token-value", "ok": true}'
     sanitized = sanitize_for_log(raw)
-    assert sanitized["accessToken"] == REDACTED
-    assert sanitized["ok"] is True
+    assert isinstance(sanitized, str)
+    parsed = json.loads(sanitized)
+    assert parsed["accessToken"] == REDACTED
+    assert parsed["ok"] is True
 
 
 def test_sanitize_log_filter_redacts_format_args(secrets: None) -> None:
