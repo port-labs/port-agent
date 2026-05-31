@@ -106,8 +106,10 @@ def test_single_stream_failed(
             ANY,
             0,
             0,
-            "Invoker failed with status code: 500",
+            ANY,
         )
+        logged_error = mock_error.call_args.args[4]
+        assert str(logged_error) == "Invoker failed with status code: 500"
 
 
 @pytest.mark.parametrize(
