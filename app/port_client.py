@@ -65,10 +65,24 @@ def wf_node_run_logger_factory(node_run_id: str) -> Callable[[str], None]:
 
 def report_run_status(run_id: str, data_to_patch: dict) -> Response:
     headers = get_port_api_headers()
+    log_by_detail_level(
+        logger.info,
+        "Reporting run status to Port - run_id: %s",
+        [run_id],
+        "data_to_patch",
+        data_to_patch,
+    )
     res = requests.patch(
         f"{settings.PORT_API_BASE_URL}/v1/actions/runs/{run_id}",
         json=data_to_patch,
         headers=headers,
+    )
+    log_by_detail_level(
+        logger.info if res.ok else logger.error,
+        "Reported run status to Port - run_id: %s, status_code: %s",
+        [run_id, res.status_code],
+        "response",
+        res.text,
     )
     res.raise_for_status()
     return res
@@ -168,10 +182,24 @@ def report_wf_node_run_status(
     node_run_identifier: str, data_to_patch: dict
 ) -> Response:
     headers = get_port_api_headers()
+    log_by_detail_level(
+        logger.info,
+        "Reporting workflow node run status to Port - node_run_id: %s",
+        [node_run_identifier],
+        "data_to_patch",
+        data_to_patch,
+    )
     res = requests.patch(
         f"{settings.PORT_API_BASE_URL}/v1/workflows/nodes/runs/{node_run_identifier}",
         json=data_to_patch,
         headers=headers,
+    )
+    log_by_detail_level(
+        logger.info if res.ok else logger.error,
+        "Reported workflow node run status to Port - node_run_id: %s, status_code: %s",
+        [node_run_identifier, res.status_code],
+        "response",
+        res.text,
     )
     res.raise_for_status()
     return res

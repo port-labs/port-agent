@@ -1,53 +1,54 @@
+from typing import Any, Dict, Generator
 from unittest.mock import patch
 
 import pytest
 
 
 @pytest.fixture
-def mock_claim_pending_runs():
+def mock_claim_pending_runs() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.claim_pending_runs") as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_ack_runs():
+def mock_ack_runs() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.ack_runs") as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_time_sleep():
+def mock_time_sleep() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.time.sleep") as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_report_run_status():
+def mock_report_run_status() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.report_run_status") as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_claim_pending_wf_node_runs():
+def mock_claim_pending_wf_node_runs() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.claim_pending_wf_node_runs") as mock:
         mock.return_value = []
         yield mock
 
 
 @pytest.fixture
-def mock_ack_wf_node_run():
+def mock_ack_wf_node_run() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.ack_wf_node_run") as mock:
         yield mock
 
 
 @pytest.fixture
-def mock_report_wf_node_run_status():
+def mock_report_wf_node_run_status() -> Generator[Any, None, None]:
     with patch("consumers.http_polling_consumer.report_wf_node_run_status") as mock:
         yield mock
 
 
 @pytest.fixture
-def sample_run():
+def sample_run() -> Dict[str, Any]:
     return {
         "_id": "run_123",
         "id": "run_123",
@@ -72,7 +73,7 @@ def sample_run():
 
 
 @pytest.fixture
-def sample_wf_node_run():
+def sample_wf_node_run() -> Dict[str, Any]:
     return {
         "identifier": "wfnr_abc123",
         "status": "IN_PROGRESS",

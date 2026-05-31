@@ -4,7 +4,7 @@ from copy import deepcopy
 from threading import Timer
 from typing import Callable
 from unittest import mock
-from unittest.mock import ANY, call
+from unittest.mock import ANY
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -17,14 +17,14 @@ from app.utils import sign_sha_256
 from tests.unit.processors.kafka.conftest import Consumer, terminate_consumer
 
 
-def _patch_requests_patch_ok(mocker: MockFixture) -> None:
+def _patch_requests_patch_ok(mocker: MockFixture) -> mock.MagicMock:
     mock_resp = mock.MagicMock()
     mock_resp.status_code = 200
     mock_resp.ok = True
     mock_resp.text = ""
     mock_resp.json.return_value = {}
     mock_resp.raise_for_status = mock.Mock()
-    mocker.patch("requests.patch", return_value=mock_resp)
+    return mocker.patch("requests.patch", return_value=mock_resp)
 
 
 @pytest.fixture(scope="module")
@@ -202,7 +202,7 @@ def test_invocation_method_synchronized(
     expected_query: dict[str, ANY] = {}
     Timer(0.01, terminate_consumer).start()
     request_mock = mocker.patch("requests.request")
-    request_patch_mock = mocker.patch("requests.patch")
+    request_patch_mock = _patch_requests_patch_ok(mocker)
     mocker.patch("pathlib.Path.is_file", side_effect=(True,))
 
     del expected_body["headers"]["X-Port-Signature"]
@@ -223,24 +223,19 @@ def test_invocation_method_synchronized(
             verify=settings.WEBHOOK_VERIFY_SSL,
         )
 
-        request_patch_mock.assert_has_calls(
-            calls=[
-                call(
-                    f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
-                    f"{webhook_run_payload['context']['runId']}/response",
-                    json=ANY,
-                    headers={},
-                ),
-                call().ok.__bool__(),
-                call(
-                    f"{settings.PORT_API_BASE_URL}/v1/actions/runs/"
-                    f"{webhook_run_payload['context']['runId']}",
-                    json={"status": "SUCCESS"},
-                    headers={},
-                ),
-                call().raise_for_status(),
-            ]
+        run_id = webhook_run_payload["context"]["runId"]
+        assert request_patch_mock.call_count == 2
+        request_patch_mock.assert_any_call(
+            f"{settings.PORT_API_BASE_URL}/v1/actions/runs/{run_id}/response",
+            json=ANY,
+            headers={},
         )
+        request_patch_mock.assert_any_call(
+            f"{settings.PORT_API_BASE_URL}/v1/actions/runs/{run_id}",
+            json={"status": "SUCCESS"},
+            headers={},
+        )
+        request_patch_mock.return_value.raise_for_status.assert_called_once()
 
         mock_error.assert_not_called()
 
