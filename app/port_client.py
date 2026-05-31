@@ -5,7 +5,7 @@ import requests
 from core.config import settings
 from core.consts import consts
 from requests import Response
-from utils import log_by_detail_level
+from utils import log_by_detail_level, sanitize_for_log
 
 logger = getLogger(__name__)
 
@@ -222,9 +222,9 @@ def patch_org_streamer_setting(streamer_type: str) -> None:
 
     if not res.ok:
         logger.error(
-            "Failed to update org streamer setting - "
-            f"status: {res.status_code}, "
-            f"response: {res.text}"
+            "Failed to update org streamer setting - status: %s, response: %s",
+            res.status_code,
+            sanitize_for_log(res.text),
         )
         res.raise_for_status()
 

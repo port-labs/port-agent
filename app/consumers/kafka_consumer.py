@@ -7,6 +7,7 @@ from consumers.base_consumer import BaseConsumer
 from core.config import settings
 from core.consts import consts
 from port_client import get_kafka_credentials
+from utils import sanitize_for_log
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -92,12 +93,12 @@ class KafkaConsumer(BaseConsumer):
                                 msg.topic(),
                                 msg.partition(),
                                 msg.offset(),
-                                str(process_error),
+                                sanitize_for_log(str(process_error)),
                             )
                         finally:
                             self.consumer.commit(asynchronous=False)
                 except Exception as message_error:
-                    logger.error(str(message_error))
+                    logger.error("%s", sanitize_for_log(str(message_error)))
         finally:
             self.consumer.close()
 

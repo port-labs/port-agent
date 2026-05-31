@@ -2,6 +2,7 @@ import logging
 
 from core.config import settings
 from invokers.webhook_invoker import webhook_invoker
+from utils import sanitize_for_log
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
@@ -12,7 +13,7 @@ class PollingToWebhookProcessor:
     def process_run(run: dict, invocation_method: dict) -> None:
         run_id = run.get("id")
         if not run_id:
-            logger.error("Run missing id field: %s", run)
+            logger.error("Run missing id field: %s", sanitize_for_log(run))
             return
         logger.info("Processing action run: %s", run_id)
 
@@ -41,7 +42,9 @@ class PollingToWebhookProcessor:
     def process_wf_node_run(node_run: dict, invocation_method: dict) -> None:
         node_run_id = node_run.get("identifier")
         if not node_run_id:
-            logger.error("Workflow node run missing identifier: %s", node_run)
+            logger.error(
+                "Workflow node run missing identifier: %s", sanitize_for_log(node_run)
+            )
             return
         logger.info("Processing workflow node run: %s", node_run_id)
 
