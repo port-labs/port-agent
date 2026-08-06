@@ -10,6 +10,21 @@ from app.core.config import Mapping
 from app.utils import decrypt_field, decrypt_payload_fields
 
 
+def test_invoke_wf_node_run_skips_silently_when_no_mapping_matches() -> None:
+    invoker = WebhookInvoker()
+    msg = {"context": {"runId": "wfnr_abc123"}, "payload": {"cluster": "other"}}
+    invocation_method = {"type": "WEBHOOK", "agent": True}
+
+    with (
+        mock.patch.object(invoker, "_find_mapping", return_value=None),
+        mock.patch.object(invoker, "_report_wf_node_run_failure") as report_failure,
+    ):
+        result = invoker.invoke(msg, invocation_method, skip_signature_validation=True)
+
+    assert result is False
+    report_failure.assert_not_called()
+
+
 def inplace_decrypt_mock(
     payload: Dict[str, Any], fields: List[str], key: str
 ) -> Dict[str, Any]:

@@ -436,8 +436,6 @@ class WebhookInvoker(BaseInvoker):
                 "msg",
                 msg,
             )
-            if is_wf_node_run:
-                self._report_wf_node_run_failure(run_id)
             return False
 
         self._replace_encrypted_fields(msg, mapping)

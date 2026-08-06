@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict
 from unittest.mock import patch
 
@@ -109,6 +110,89 @@ def test_process_run_without_invocation_method(mock_invoker: Any) -> None:
 
 
 @patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
+def test_process_run_forwards_the_invocation_method_as_is(mock_invoker: Any) -> None:
+    run = {
+        "id": "run_body",
+        "payload": {
+            "type": "WEBHOOK",
+            "url": "http://localhost:8080/webhook",
+            "agent": True,
+            "body": {
+                "context": {"entity": "entity_123"},
+                "payload": {
+                    "action": {
+                        "identifier": "deploy",
+                        "invocationMethod": {"url": "http://stale.example.com"},
+                    }
+                },
+            },
+        },
+    }
+    invocation_method = {
+        "type": "WEBHOOK",
+        "url": "http://localhost:8080/webhook",
+        "synchronized": True,
+        "method": "POST",
+        "headers": {},
+        "body": {"foo": "bar"},
+        "omitPayload": True,
+    }
+
+    PollingToWebhookProcessor().process_run(run, invocation_method)
+
+    msg_value, invocation_method_arg = mock_invoker.invoke.call_args[0]
+    assert msg_value["payload"]["action"]["invocationMethod"] == invocation_method
+    assert msg_value["payload"]["action"]["identifier"] == "deploy"
+    assert invocation_method_arg is invocation_method
+
+
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
+def test_process_run_does_not_mutate_the_run(mock_invoker: Any) -> None:
+    run = {
+        "id": "run_immutable",
+        "payload": {
+            "type": "WEBHOOK",
+            "url": "http://localhost:8080/webhook",
+            "agent": True,
+            "body": {
+                "context": {"runId": "existing_run_id"},
+                "payload": {"action": {"invocationMethod": {"body": {"foo": "bar"}}}},
+            },
+        },
+    }
+    original_run = deepcopy(run)
+
+    PollingToWebhookProcessor().process_run(
+        run, {"type": "WEBHOOK", "url": "http://localhost:8080/webhook"}
+    )
+
+    assert run == original_run
+
+
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
+def test_process_run_keeps_event_headers_when_invocation_method_has_none(
+    mock_invoker: Any,
+) -> None:
+    run = {
+        "id": "run_headers",
+        "payload": {
+            "type": "WEBHOOK",
+            "url": "http://localhost:8080/webhook",
+            "agent": True,
+            "body": {"context": {}, "headers": {"X-Existing": "1"}},
+        },
+    }
+
+    PollingToWebhookProcessor().process_run(
+        run,
+        {"type": "WEBHOOK", "url": "http://localhost:8080/webhook", "headers": {}},
+    )
+
+    msg_value = mock_invoker.invoke.call_args[0][0]
+    assert msg_value["headers"] == {"X-Existing": "1"}
+
+
+@patch("processors.polling.polling_to_webhook_processor.webhook_invoker")
 def test_process_run_adds_run_id_to_context(mock_invoker: Any) -> None:
     run = {
         "_id": "run_999",
@@ -191,6 +275,29 @@ def test_process_wf_node_run_success(
     assert msg_value["payload"]["action"]["invocationMethod"] == (
         webhook_invocation_method
     )
+
+
+@patch(_INVOKER)
+def test_process_wf_node_run_forwards_the_invocation_method_body(
+    mock_invoker: Any,
+    sample_wf_node_run: Dict[str, Any],
+) -> None:
+    mock_invoker.invoke.return_value = True
+    invocation_method = {
+        "type": "WEBHOOK",
+        "url": "https://httpbin.org/post",
+        "method": "POST",
+        "headers": {},
+        "body": {"service": "payments"},
+        "onTimeout": "continue",
+    }
+
+    PollingToWebhookProcessor().process_wf_node_run(
+        sample_wf_node_run, invocation_method
+    )
+
+    msg_value = mock_invoker.invoke.call_args[0][0]
+    assert msg_value["payload"]["action"]["invocationMethod"] == invocation_method
 
 
 @patch(_INVOKER)

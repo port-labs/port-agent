@@ -40,6 +40,7 @@ def mock_requests(monkeypatch: MonkeyPatch, request: Any) -> None:
     monkeypatch.setattr(requests, "post", mock_request)
     monkeypatch.setattr(requests, "delete", mock_request)
     monkeypatch.setattr(requests, "put", mock_request)
+    monkeypatch.setattr(requests, "patch", mock_request)
 
 
 def terminate_consumer() -> None:
