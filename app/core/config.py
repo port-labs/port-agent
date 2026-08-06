@@ -105,6 +105,15 @@ class Settings(BaseSettings):
     WEBHOOK_INVOKER_TIMEOUT: float = 30
     WEBHOOK_VERIFY_SSL: bool = True
 
+    # When multiple execution agents share one org's Kafka topic (e.g. one agent
+    # per cluster, each with its own controlThePayloadConfig filter, as described in
+    # https://docs.port.io/workflows/actions-and-automations/setup-backend/webhook/port-execution-agent/control-the-payload/#mapping-examples),
+    # every agent receives every workflow node run event, and an unmatched mapping on
+    # a given agent simply means "not my cluster" rather than a real misconfiguration.
+    # Set to False in that setup so an unmatched mapping is skipped silently instead
+    # of failing the run out from under whichever agent *does* own it.
+    FAIL_WORKFLOW_NODE_RUN_ON_UNMATCHED_MAPPING: bool = True
+
 
 settings = Settings()
 

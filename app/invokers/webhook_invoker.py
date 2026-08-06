@@ -436,7 +436,7 @@ class WebhookInvoker(BaseInvoker):
                 "msg",
                 msg,
             )
-            if is_wf_node_run:
+            if is_wf_node_run and settings.FAIL_WORKFLOW_NODE_RUN_ON_UNMATCHED_MAPPING:
                 self._report_wf_node_run_failure(run_id)
             return False
 

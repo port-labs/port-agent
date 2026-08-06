@@ -6,8 +6,49 @@ from glom import assign, glom
 from glom.core import PathAssignError
 from invokers.webhook_invoker import WebhookInvoker
 
-from app.core.config import Mapping
+from app.core.config import Mapping, settings
 from app.utils import decrypt_field, decrypt_payload_fields
+
+
+def _wf_node_run_message() -> Dict[str, Any]:
+    return {
+        "context": {"runId": "wfnr_doesNotMatchAnyMapping"},
+        "headers": {
+            "X-Port-Signature": "sig",
+            "X-Port-Timestamp": "123",
+        },
+    }
+
+
+@mock.patch("invokers.webhook_invoker.control_the_payload_config", [])
+@mock.patch("invokers.webhook_invoker.report_wf_node_run_status")
+@mock.patch.object(WebhookInvoker, "validate_incoming_signature", return_value=True)
+def test_unmatched_mapping_fails_wf_node_run_by_default(
+    _mock_validate: object, mock_report: mock.Mock
+) -> None:
+    invoker = WebhookInvoker()
+    result = invoker.invoke(_wf_node_run_message(), invocation_method={})
+    assert result is False
+    mock_report.assert_called_once_with(
+        "wfnr_doesNotMatchAnyMapping", {"status": "COMPLETED", "result": "FAILED"}
+    )
+
+
+@mock.patch("invokers.webhook_invoker.control_the_payload_config", [])
+@mock.patch("invokers.webhook_invoker.report_wf_node_run_status")
+@mock.patch.object(WebhookInvoker, "validate_incoming_signature", return_value=True)
+def test_unmatched_mapping_skips_silently_when_disabled(
+    _mock_validate: object, mock_report: mock.Mock
+) -> None:
+    original = settings.FAIL_WORKFLOW_NODE_RUN_ON_UNMATCHED_MAPPING
+    settings.FAIL_WORKFLOW_NODE_RUN_ON_UNMATCHED_MAPPING = False
+    try:
+        invoker = WebhookInvoker()
+        result = invoker.invoke(_wf_node_run_message(), invocation_method={})
+    finally:
+        settings.FAIL_WORKFLOW_NODE_RUN_ON_UNMATCHED_MAPPING = original
+    assert result is False
+    mock_report.assert_not_called()
 
 
 def inplace_decrypt_mock(
