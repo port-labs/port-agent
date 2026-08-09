@@ -49,6 +49,7 @@ class PollingToWebhookProcessor:
             return
         logger.info("Processing workflow node run: %s", node_run_id)
 
+        config = node_run.get("config") or {}
         msg_value = {
             **deepcopy(invocation_method.get("body") or {}),
             "headers": invocation_method.get("headers") or {},
@@ -57,6 +58,7 @@ class PollingToWebhookProcessor:
             },
             "context": {
                 "runId": node_run_id,
+                "nodeConfig": config,
             },
         }
 

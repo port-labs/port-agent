@@ -84,7 +84,7 @@ class PollingStreamer(BaseStreamer):
             return
         logger.info("Processing workflow node run: %s", node_run_id)
 
-        invocation_method = {**(node_run.get("config") or {})}
+        invocation_method = _with_defaults({**(node_run.get("config") or {})})
 
         if not invocation_method.pop("agent", False):
             logger.warning("Skip workflow node run %s: not for agent", node_run_id)
