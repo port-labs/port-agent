@@ -127,7 +127,7 @@ For debugging the Port Execution Agent in other environments, consider the follo
    - Check that all dependencies are up-to-date and compatible with your environment.
 
 5. **Consult Documentation:**
-   - Refer to our [Documentation](https://docs.getport.io/actions-and-automations/setup-backend/webhook/port-execution-agent).
+   - Refer to our [Documentation](https://docs.port.io/workflows/actions-and-automations/setup-backend/webhook/port-execution-agent/).
 
 ## Contact
 
