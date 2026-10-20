@@ -13,7 +13,7 @@ If you encounter any bugs or issues with the execution agent, please report an i
 
 ### Suggesting Enhancements
 
-If you have suggestions for new features or improvements, please open a feature request [here](https://roadmap.getport.io/ideas), or reach to us via our [Slack Community](https://port-community.slack.com/archives/C07CB3MV63G).
+If you have suggestions for new features or improvements, please open a feature request [here](https://roadmap.port.io/ideas), or reach to us via our [Slack Community](https://port-community.slack.com/archives/C07CB3MV63G).
 
 Provide details on:
 - The enhancement or feature you are proposing.
