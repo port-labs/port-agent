@@ -92,7 +92,7 @@ jobs:
       with:
         clientId: ${{ secrets.PORT_CLIENT_ID }}
         clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-        baseUrl: https://api.getport.io
+        baseUrl: https://api.port.io
         operation: GET
         identifier: port-agent
         blueprint: repository
@@ -131,7 +131,7 @@ jobs:
       with:
         clientId: ${{ secrets.PORT_CLIENT_ID }}
         clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
-        baseUrl: https://api.getport.io
+        baseUrl: https://api.port.io
         operation: UPSERT
         identifier: port-agent
         blueprint: repository

@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     DETAILED_LOGGING: bool = True
 
     PORT_ORG_ID: str
-    PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.getport.io")
+    PORT_API_BASE_URL: AnyHttpUrl = parse_obj_as(AnyHttpUrl, "https://api.port.io")
     PORT_CLIENT_ID: str
     PORT_CLIENT_SECRET: str
     STREAMER_NAME: str = "KAFKA"
