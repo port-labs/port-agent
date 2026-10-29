@@ -348,3 +348,36 @@ def test_process_wf_node_run_empty_config(mock_invoker: Any) -> None:
     call_args = mock_invoker.invoke.call_args
     msg_value = call_args[0][0]
     assert msg_value["context"]["nodeConfig"] == {}
+
+
+@patch(_INVOKER)
+def test_process_wf_node_run_passes_the_workflow_run_id(
+    mock_invoker: Any,
+    sample_wf_node_run: Dict[str, Any],
+    webhook_invocation_method: Dict[str, Any],
+) -> None:
+    mock_invoker.invoke.return_value = True
+
+    PollingToWebhookProcessor().process_wf_node_run(
+        {**sample_wf_node_run, "workflowRunIdentifier": "wfr_abc"},
+        webhook_invocation_method,
+    )
+
+    msg_value = mock_invoker.invoke.call_args[0][0]
+    assert msg_value["context"]["workflowRunId"] == "wfr_abc"
+
+
+@patch(_INVOKER)
+def test_process_wf_node_run_without_a_workflow_run_id(
+    mock_invoker: Any,
+    sample_wf_node_run: Dict[str, Any],
+    webhook_invocation_method: Dict[str, Any],
+) -> None:
+    mock_invoker.invoke.return_value = True
+
+    PollingToWebhookProcessor().process_wf_node_run(
+        sample_wf_node_run, webhook_invocation_method
+    )
+
+    msg_value = mock_invoker.invoke.call_args[0][0]
+    assert "workflowRunId" not in msg_value["context"]

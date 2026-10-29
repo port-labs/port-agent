@@ -5,6 +5,7 @@ import json
 import logging
 import re
 from typing import Any, Callable, Dict, List, Optional
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from core.config import settings
 from Crypto.Cipher import AES
@@ -210,3 +211,65 @@ def decrypt_payload_fields(
             except Exception as e:
                 logger.warning("Decryption failed for '%s': %s", path, e)
     return payload
+
+
+# The Port entity write routes. The search, count and group routes sit under the same
+# /entities path and reject unknown query params, so the run ids are only added to these.
+_ENTITY_WRITE_ROUTES = (
+    ({"POST"}, re.compile(r"/blueprints/[^/]+/entities$")),
+    ({"POST"}, re.compile(r"/blueprints/[^/]+/entities/bulk$")),
+    ({"PUT", "PATCH", "DELETE"}, re.compile(r"/blueprints/[^/]+/entities/[^/]+$")),
+    ({"DELETE"}, re.compile(r"/blueprints/[^/]+/bulk/entities$")),
+    ({"POST"}, re.compile(r"/blueprints/[^/]+/bulk/entities/delete$")),
+)
+
+
+def _is_entity_write_route(method: str, path: str) -> bool:
+    return any(
+        method.upper() in methods and pattern.search(path)
+        for methods, pattern in _ENTITY_WRITE_ROUTES
+    )
+
+
+def _query_keys(query: Any) -> set[str]:
+    if isinstance(query, dict):
+        return set(query)
+    if isinstance(query, str):
+        return {key for key, _ in parse_qsl(query)}
+    return set()
+
+
+def with_workflow_run_ids(
+    url: Any,
+    method: Any,
+    query: Any,
+    headers: Any,
+    workflow_run_id: str,
+    node_run_id: str,
+) -> Any:
+    """Adds the workflow run id and the node run id to a Port entity write, so the
+    change is tied to the workflow node run. Anything else comes back unchanged: other
+    hosts and routes, a URL that already carries either id, and a request that carries
+    its own Authorization header (a write made as a user is left untied)."""
+    if not isinstance(url, str) or not isinstance(method, str):
+        return url
+
+    parts = urlsplit(url)
+    if parts.netloc != urlsplit(str(settings.PORT_API_BASE_URL)).netloc:
+        return url
+    if not _is_entity_write_route(method, parts.path):
+        return url
+    if isinstance(headers, dict) and any(
+        str(name).lower() == "authorization" for name in headers
+    ):
+        return url
+    if (_query_keys(parts.query) | _query_keys(query)) & {
+        "run_id",
+        "node_run_identifier",
+    }:
+        return url
+
+    ids = urlencode({"run_id": workflow_run_id, "node_run_identifier": node_run_id})
+    return urlunsplit(
+        parts._replace(query=f"{parts.query}&{ids}" if parts.query else ids)
+    )

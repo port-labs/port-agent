@@ -62,6 +62,9 @@ class PollingToWebhookProcessor:
             },
         }
 
+        if workflow_run_id := node_run.get("workflowRunIdentifier"):
+            msg_value["context"]["workflowRunId"] = workflow_run_id
+
         if webhook_invoker.invoke(
             msg_value, invocation_method, skip_signature_validation=True
         ):

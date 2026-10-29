@@ -26,6 +26,7 @@ from utils import (
     response_to_dict,
     sanitize_for_log,
     sign_sha_256,
+    with_workflow_run_ids,
 )
 
 logging.basicConfig(level=settings.LOG_LEVEL)
@@ -295,6 +296,15 @@ class WebhookInvoker(BaseInvoker):
         node_run_logger = wf_node_run_logger_factory(run_id)
         node_run_logger("A workflow node run has been received")
         request_payload = self._prepare_payload(mapping, msg, invocation_method)
+        if workflow_run_id := msg.get("context", {}).get("workflowRunId"):
+            request_payload.url = with_workflow_run_ids(
+                request_payload.url,
+                request_payload.method,
+                request_payload.query,
+                request_payload.headers,
+                workflow_run_id,
+                run_id,
+            )
         try:
             res = self._request(request_payload, node_run_logger)
             res.raise_for_status()
