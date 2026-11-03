@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python3 -
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=2.2.1 python3 -
 
 # Ensure Poetry's bin directory is in PATH
 ENV PATH="/root/.local/bin:$PATH"
@@ -34,7 +34,10 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.in-project true
 
 # Install Python dependencies using Poetry
-RUN poetry install --without dev --no-ansi
+RUN poetry install --without dev --no-ansi --no-root
+
+# Remove build tooling from the venv
+RUN /app/.venv/bin/python -m pip uninstall -y pip setuptools wheel
 
 ARG AWS_ACCOUNT_ID
 ARG BASE_PYTHON_IMAGE=${AWS_ACCOUNT_ID}.dkr.ecr.eu-west-1.amazonaws.com/echo/python:3.11
@@ -61,13 +64,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy dependencies from the build stage
-COPY --from=base /app /app
+COPY --from=base /app/.venv /app/.venv
 
 # Copy the application code
 COPY ./app/. .
-
-# Clean up old setuptools
-RUN pip uninstall -y setuptools || true
 
 # Copy startup scripts
 COPY ./scripts/sync_ca_certs.sh /app/scripts/sync_ca_certs.sh
